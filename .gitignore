@@ -1,0 +1,49 @@
+# Java / Maven
+backend/target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# IntelliJ IDEA (keep codeStyles)
+.idea/*
+!.idea/codeStyles/
+*.iml
+*.iws
+out/
+
+# Node / npm
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Terraform
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/*.tfplan
+infra/.terraform.lock.hcl
+
+# Docker
+docker/data/
+
+# Coverage
+backend/coverage/
+frontend/coverage/
+*.lcov
+
+# LocalStack
+.localstack/
