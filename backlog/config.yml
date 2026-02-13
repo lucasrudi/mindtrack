@@ -1,0 +1,14 @@
+defaultStatus: "To Do"
+statuses:
+  - To Do
+  - In Progress
+  - Review
+  - Done
+definition_of_done:
+  - Tests pass
+  - Code reviewed
+  - Documentation updated
+  - No regressions introduced
+dateFormat: "yyyy-mm-dd hh:mm"
+autoCommit: false
+zeroPaddedIds: true

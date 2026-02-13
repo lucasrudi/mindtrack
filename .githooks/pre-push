@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -e
+
+echo "=== Pre-push checks ==="
+
+# Backend tests
+if [ -d "backend" ]; then
+    echo ">> Running backend tests..."
+    cd backend
+    mvn test -q
+    cd ..
+    echo ">> Backend tests passed."
+fi
+
+# Frontend lint + tests
+if [ -d "frontend" ] && [ -f "frontend/package.json" ]; then
+    echo ">> Running frontend lint..."
+    cd frontend
+    npm run lint
+    echo ">> Running frontend tests..."
+    npm run test:unit -- --run
+    cd ..
+    echo ">> Frontend checks passed."
+fi
+
+# Terraform checks
+if [ -d "infra" ]; then
+    echo ">> Running Terraform checks..."
+    terraform -chdir=infra fmt -check -recursive
+    terraform -chdir=infra validate
+    if command -v tflint &> /dev/null; then
+        tflint --recursive --chdir=infra
+    fi
+    if command -v tfsec &> /dev/null; then
+        tfsec infra/
+    fi
+    echo ">> Terraform checks passed."
+fi
+
+echo "=== All pre-push checks passed ==="
