@@ -1,0 +1,41 @@
+# Docker Compose profile: enables OpenTelemetry export to local Grafana stack
+spring:
+  datasource:
+    url: jdbc:mysql://mysql:3306/mindtrack
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: mindtrack
+    password: mindtrack
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    enabled: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: local-dummy-client-id
+            client-secret: local-dummy-client-secret
+
+management:
+  otlp:
+    metrics:
+      export:
+        url: http://otel-collector:4318/v1/metrics
+        step: 15s
+        enabled: true
+    tracing:
+      endpoint: http://otel-collector:4318/v1/traces
+      export:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  level:
+    com.mindtrack: DEBUG

@@ -32,3 +32,13 @@ logging:
   level:
     com.mindtrack: DEBUG
     org.hibernate.SQL: DEBUG
+
+# OpenTelemetry disabled by default in local (enable via OTEL_METRICS_ENABLED=true)
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
+    tracing:
+      export:
+        enabled: false
