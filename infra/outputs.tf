@@ -23,3 +23,18 @@ output "lambda_function_name" {
   description = "Lambda function name"
   value       = module.lambda.function_name
 }
+
+output "monitoring_dashboard_url" {
+  description = "CloudWatch overview dashboard URL"
+  value       = module.monitoring.dashboard_url
+}
+
+output "monitoring_lambda_dashboard_url" {
+  description = "CloudWatch Lambda dashboard URL"
+  value       = module.monitoring.lambda_dashboard_url
+}
+
+output "monitoring_database_dashboard_url" {
+  description = "CloudWatch Database dashboard URL"
+  value       = module.monitoring.database_dashboard_url
+}

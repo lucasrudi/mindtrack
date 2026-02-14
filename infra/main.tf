@@ -67,3 +67,18 @@ module "secrets" {
 
   name_prefix = local.name_prefix
 }
+
+module "monitoring" {
+  source = "./modules/monitoring"
+
+  name_prefix                = local.name_prefix
+  aws_region                 = var.aws_region
+  lambda_function_name       = module.lambda.function_name
+  api_gateway_id             = module.api_gateway.api_id
+  rds_cluster_identifier     = module.rds.cluster_identifier
+  rds_instance_identifier    = module.rds.instance_identifier
+  audio_bucket_name          = module.s3.audio_bucket_name
+  frontend_bucket_name       = module.s3.frontend_bucket_name
+  cloudfront_distribution_id = module.cloudfront.distribution_id
+  alarm_email                = var.alarm_email
+}

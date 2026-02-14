@@ -32,3 +32,9 @@ variable "domain_name" {
   type        = string
   default     = ""
 }
+
+variable "alarm_email" {
+  description = "Email address for CloudWatch alarm notifications (optional)"
+  type        = string
+  default     = ""
+}
