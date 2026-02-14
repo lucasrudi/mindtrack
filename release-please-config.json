@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    "backend": {
+      "release-type": "maven",
+      "component": "backend",
+      "extra-files": []
+    },
+    "frontend": {
+      "release-type": "node",
+      "component": "frontend",
+      "extra-files": []
+    },
+    "infra": {
+      "release-type": "simple",
+      "component": "infra",
+      "extra-files": []
+    }
+  },
+  "separate-pull-requests": false,
+  "group-pull-request-title-pattern": "chore: release ${version}",
+  "changelog-sections": [
+    { "type": "feat", "section": "Features" },
+    { "type": "fix", "section": "Bug Fixes" },
+    { "type": "chore", "section": "Miscellaneous" },
+    { "type": "docs", "section": "Documentation" },
+    { "type": "test", "section": "Tests" },
+    { "type": "ci", "section": "CI/CD" },
+    { "type": "infra", "section": "Infrastructure" },
+    { "type": "refactor", "section": "Refactoring" }
+  ]
+}
