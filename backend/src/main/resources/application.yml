@@ -43,3 +43,16 @@ management:
       endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
       export:
         enabled: ${OTEL_TRACING_ENABLED:false}
+
+mindtrack:
+  ai:
+    api-key: ${CLAUDE_API_KEY:dummy-key-for-local}
+    api-url: https://api.anthropic.com/v1/messages
+    model: claude-sonnet-4-20250514
+    token-tiers:
+      quick-checkin: 200
+      coaching: 500
+      session-summary: 1500
+    cache:
+      ttl-hours: 24
+      max-size: 500

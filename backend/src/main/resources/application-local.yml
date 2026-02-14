@@ -42,3 +42,8 @@ management:
     tracing:
       export:
         enabled: false
+
+mindtrack:
+  ai:
+    api-key: dummy-key-for-local
+    model: claude-sonnet-4-20250514
