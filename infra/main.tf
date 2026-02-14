@@ -13,29 +13,29 @@ module "iam" {
 module "s3" {
   source = "./modules/s3"
 
-  name_prefix             = local.name_prefix
-  cloudfront_oai_iam_arn  = module.cloudfront.oai_iam_arn
+  name_prefix            = local.name_prefix
+  cloudfront_oai_iam_arn = module.cloudfront.oai_iam_arn
 }
 
 module "rds" {
   source = "./modules/rds"
 
-  name_prefix        = local.name_prefix
-  min_capacity       = var.db_min_capacity
-  max_capacity       = var.db_max_capacity
-  lambda_sg_id       = module.lambda.security_group_id
+  name_prefix  = local.name_prefix
+  min_capacity = var.db_min_capacity
+  max_capacity = var.db_max_capacity
+  lambda_sg_id = module.lambda.security_group_id
 }
 
 module "lambda" {
   source = "./modules/lambda"
 
-  name_prefix    = local.name_prefix
-  memory_size    = var.lambda_memory_size
-  role_arn       = module.iam.lambda_role_arn
-  rds_endpoint   = module.rds.cluster_endpoint
-  rds_port       = module.rds.cluster_port
-  rds_sg_id      = module.rds.security_group_id
-  secrets_arns   = module.secrets.secret_arns
+  name_prefix  = local.name_prefix
+  memory_size  = var.lambda_memory_size
+  role_arn     = module.iam.lambda_role_arn
+  rds_endpoint = module.rds.cluster_endpoint
+  rds_port     = module.rds.cluster_port
+  rds_sg_id    = module.rds.security_group_id
+  secrets_arns = module.secrets.secret_arns
 }
 
 module "api_gateway" {
@@ -49,10 +49,10 @@ module "api_gateway" {
 module "cloudfront" {
   source = "./modules/cloudfront"
 
-  name_prefix             = local.name_prefix
-  frontend_bucket_domain  = module.s3.frontend_bucket_domain
-  frontend_bucket_id      = module.s3.frontend_bucket_id
-  domain_name             = var.domain_name
+  name_prefix            = local.name_prefix
+  frontend_bucket_domain = module.s3.frontend_bucket_domain
+  frontend_bucket_id     = module.s3.frontend_bucket_id
+  domain_name            = var.domain_name
 }
 
 module "eventbridge" {
