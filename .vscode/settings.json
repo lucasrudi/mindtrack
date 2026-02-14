@@ -68,5 +68,6 @@
     "frontend/node_modules": true,
     "frontend/dist": true,
     "infra/.terraform": true
-  }
+  },
+  "snyk.advanced.autoSelectOrganization": true
 }

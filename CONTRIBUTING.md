@@ -36,7 +36,7 @@ Examples:
 
 1. Create a feature branch from `main`
 2. Make changes with tests
-3. Ensure all pre-push checks pass (tests, lint, terraform validate)
+3. Ensure all pre-commit and pre-push checks pass (lint, tests, terraform validate)
 4. Open a PR targeting `main`
 5. Wait for CI to pass and get code review
 6. Squash merge into `main`
@@ -82,11 +82,58 @@ Examples:
 - Shell script validation (`infra/tests/unit/validate.sh`)
 - Terratest for integration tests (`infra/tests/integration/`)
 
+## Pre-Commit Hooks
+
+The pre-commit hook (`.githooks/pre-commit`) runs fast lint checks on every commit:
+- **Java:** Checkstyle (only if `.java` files staged)
+- **Frontend:** ESLint + Prettier (only if `frontend/src/` files staged)
+- **Terraform:** `terraform fmt -check` (only if `.tf` files staged)
+
+These are much faster than the pre-push checks and catch formatting issues early.
+
 ## Pre-Push Hooks
 
 The pre-push hook (`.githooks/pre-push`) runs automatically and blocks pushes if:
 - Backend tests fail
 - Frontend lint or tests fail
 - Terraform format/validate checks fail
+- Snyk finds high/critical vulnerabilities (requires Snyk CLI installed)
 
 Configure hooks with: `git config core.hooksPath .githooks`
+
+## Security Scanning
+
+[Snyk](https://snyk.io/) is integrated into the pre-push hook to scan for dependency vulnerabilities:
+
+```bash
+# Install Snyk CLI
+npm install -g snyk
+snyk auth  # authenticate with your Snyk account
+
+# Manual scan
+snyk test --file=backend/pom.xml
+snyk test --file=frontend/package.json
+```
+
+The pre-push hook only blocks on high/critical severity vulnerabilities. If Snyk CLI is not installed, the scan is skipped with a warning.
+
+## Releases
+
+Releases are automated via [release-please](https://github.com/googleapis/release-please). Your commit messages directly drive versioning:
+
+| Commit prefix | Version bump | Example |
+|---------------|-------------|---------|
+| `feat:` | minor (0.1.0 → 0.2.0) | `feat: add interview audio upload` |
+| `fix:` | patch (0.1.0 → 0.1.1) | `fix: resolve JWT expiry bug` |
+| `feat!:` | major (0.1.0 → 1.0.0) | `feat!: redesign auth flow` |
+| `chore:`, `docs:`, etc. | no release | `chore: update dependencies` |
+
+Backend, frontend, and infra are versioned independently based on which files changed.
+
+## Dependency Updates
+
+[Renovate](https://www.mend.io/renovate/) automatically creates PRs for dependency updates:
+- **Minor/patch updates** are auto-merged (runs on weekends)
+- **Major updates** require manual review (labeled `breaking`)
+- Dependencies are grouped by layer (backend, frontend, infra, github-actions)
+- Vulnerability alerts create immediate PRs (labeled `security`)

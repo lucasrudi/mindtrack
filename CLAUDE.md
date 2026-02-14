@@ -10,7 +10,7 @@ MindTrack is a personal mental health tracking application. It tracks psychiatri
 - **Frontend:** Vue.js 3 (Composition API), TypeScript, Vite, Pinia, Vue Router, Chart.js
 - **Database:** Aurora Serverless v2 MySQL (prod), H2 in-memory (local)
 - **Infrastructure:** Terraform, AWS Lambda (SnapStart), API Gateway, CloudFront, S3, EventBridge, Secrets Manager
-- **CI/CD:** GitHub Actions, SonarCloud
+- **CI/CD:** GitHub Actions, release-please, SonarCloud, Renovate
 
 ## Architecture
 
@@ -54,12 +54,30 @@ bash infra/tests/unit/validate.sh
 - **TypeScript/Vue:** ESLint + Prettier, 2-space indent, no semicolons, single quotes. Config: `frontend/eslint.config.js`
 - **Terraform:** `terraform fmt`, tflint, tfsec. 2-space indent.
 
+## Git Hooks
+
+- **Pre-commit** (`.githooks/pre-commit`): Runs Checkstyle (Java), ESLint + Prettier (frontend), terraform fmt (infra) on staged files. Fast, lint-only.
+- **Pre-push** (`.githooks/pre-push`): Runs full test suites (mvn test, npm test:unit, tflint, tfsec) + Snyk vulnerability scan. Slower but comprehensive.
+- Setup: `git config core.hooksPath .githooks` (done by `./setup.sh`)
+
+## IDE Support
+
+Both VSCode (`.vscode/`) and IntelliJ (`.idea/codeStyles/`) are configured with matching conventions.
+- **VSCode:** settings.json, extensions.json, launch.json, tasks.json
+- Eclipse formatter: `config/checkstyle/eclipse-formatter.xml` (used by VSCode Java extension)
+
 ## Branch Strategy
 
 - `main` — production branch, deploys automatically
 - `feature/*` — feature development
 - `bugfix/*` — bug fixes
 - Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `infra:`
+
+## Versioning
+
+Uses release-please with Conventional Commits. Backend, frontend, and infra versioned independently.
+- Config: `release-please-config.json`, `.release-please-manifest.json`
+- Pipeline: `.github/workflows/release.yml` creates release PRs, `.github/workflows/deploy.yml` deploys on release publish.
 
 ## Important Files
 
@@ -68,17 +86,24 @@ bash infra/tests/unit/validate.sh
 | `backend/pom.xml` | Maven config with all dependencies and plugins |
 | `backend/src/main/resources/application-local.yml` | Local dev config (H2, no Flyway) |
 | `backend/src/main/resources/db/migration/V1__initial_schema.sql` | Database schema + seed data |
+| `backend/src/main/resources/db/migration/V2__seed_admin_user.sql` | Default admin user seed |
 | `frontend/vite.config.ts` | Vite config with API proxy |
 | `frontend/src/router/index.ts` | All frontend routes |
 | `infra/main.tf` | Terraform module composition |
+| `infra/modules/github/` | GitHub repo config (Terraform) |
 | `docker/docker-compose.yml` | Local dev with MySQL + LocalStack |
 | `sonar-project.properties` | SonarCloud analysis config |
-| `.githooks/pre-push` | Pre-push validation hook |
+| `release-please-config.json` | Release-please monorepo config |
+| `renovate.json` | Renovate dependency update config |
+| `.snyk` | Snyk vulnerability policy |
+| `.githooks/pre-commit` | Pre-commit lint hook |
+| `.githooks/pre-push` | Pre-push validation + Snyk hook |
 
 ## Database
 
 - **Local:** H2 in-memory with MySQL compatibility mode. DDL auto-generated (`create-drop`). Flyway disabled.
 - **Production:** Aurora Serverless v2 MySQL. Flyway migrations enabled. DDL validation only.
+- **Default admin:** V2 migration seeds an admin user (`admin@mindtrack.app`) if none exists.
 
 ## Environment Variables (Production)
 
