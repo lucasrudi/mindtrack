@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      backend--release_created: ${{ steps.release.outputs['backend--release_created'] }}
+      frontend--release_created: ${{ steps.release.outputs['frontend--release_created'] }}
+      infra--release_created: ${{ steps.release.outputs['infra--release_created'] }}
+      backend--tag_name: ${{ steps.release.outputs['backend--tag_name'] }}
+      frontend--tag_name: ${{ steps.release.outputs['frontend--tag_name'] }}
+      infra--tag_name: ${{ steps.release.outputs['infra--tag_name'] }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
