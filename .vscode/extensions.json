@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "redhat.java",
+    "vscjava.vscode-java-pack",
+    "vscjava.vscode-spring-boot-dashboard",
+    "vmware.vscode-spring-boot",
+    "shengchen.vscode-checkstyle",
+    "vue.volar",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "hashicorp.terraform",
+    "editorconfig.editorconfig",
+    "eamodio.gitlens",
+    "ms-azuretools.vscode-docker",
+    "snyk-security.snyk-vulnerability-scanner"
+  ]
+}

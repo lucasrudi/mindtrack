@@ -1,0 +1,83 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Backend: Compile",
+      "type": "shell",
+      "command": "mvn compile -q",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "group": "build",
+      "problemMatcher": "$javac"
+    },
+    {
+      "label": "Backend: Test",
+      "type": "shell",
+      "command": "mvn verify -B",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "group": "test",
+      "problemMatcher": "$javac"
+    },
+    {
+      "label": "Backend: Checkstyle",
+      "type": "shell",
+      "command": "mvn checkstyle:check -q",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Frontend: Dev Server",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Frontend: Lint",
+      "type": "shell",
+      "command": "npm run lint",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "group": "test",
+      "problemMatcher": ["$eslint-stylish"]
+    },
+    {
+      "label": "Frontend: Test",
+      "type": "shell",
+      "command": "npm run test:unit -- --run",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Frontend: Build",
+      "type": "shell",
+      "command": "npm run build",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Infra: Validate",
+      "type": "shell",
+      "command": "terraform fmt -check -recursive && terraform init -backend=false && terraform validate",
+      "options": { "cwd": "${workspaceFolder}/infra" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker: Up",
+      "type": "shell",
+      "command": "docker compose up --build -d",
+      "options": { "cwd": "${workspaceFolder}/docker" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker: Down",
+      "type": "shell",
+      "command": "docker compose down",
+      "options": { "cwd": "${workspaceFolder}/docker" },
+      "problemMatcher": []
+    }
+  ]
+}

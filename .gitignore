@@ -13,6 +13,13 @@ backend/target/
 *.iws
 out/
 
+# VSCode (keep shared configs)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
 # Node / npm
 frontend/node_modules/
 frontend/dist/

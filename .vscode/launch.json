@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot (local)",
+      "request": "launch",
+      "mainClass": "com.mindtrack.MindTrackApplication",
+      "projectName": "mindtrack",
+      "args": "--spring.profiles.active=local",
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/.env.local"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot (debug)",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005
+    },
+    {
+      "type": "chrome",
+      "name": "Vue Dev (Chrome)",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/frontend/src"
+    }
+  ]
+}

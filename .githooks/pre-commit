@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -e
+
+echo "=== Pre-commit checks ==="
+
+# Determine repo root
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Get list of staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+# --- Backend lint (Checkstyle) ---
+STAGED_JAVA=$(echo "$STAGED_FILES" | grep '\.java$' || true)
+if [ -n "$STAGED_JAVA" ]; then
+    echo ">> Checking Java code style..."
+    cd "$REPO_ROOT/backend"
+    mvn checkstyle:check -q 2>&1 || {
+        echo "!! Checkstyle violations found. Fix them before committing."
+        exit 1
+    }
+    cd "$REPO_ROOT"
+    echo ">> Java code style OK."
+fi
+
+# --- Frontend lint (ESLint + Prettier) ---
+STAGED_FRONTEND=$(echo "$STAGED_FILES" | grep '^frontend/src/.*\.\(ts\|vue\|js\|tsx\)$' || true)
+if [ -n "$STAGED_FRONTEND" ]; then
+    echo ">> Checking frontend code style..."
+    cd "$REPO_ROOT/frontend"
+    npx eslint . --max-warnings 0 2>&1 || {
+        echo "!! ESLint errors found. Fix them before committing."
+        exit 1
+    }
+    npx prettier --check "src/**/*.{ts,vue,js,tsx,css,scss}" 2>&1 || {
+        echo "!! Prettier formatting issues found. Run 'npm run format' to fix."
+        exit 1
+    }
+    cd "$REPO_ROOT"
+    echo ">> Frontend code style OK."
+fi
+
+# --- Infra lint (terraform fmt) ---
+STAGED_TF=$(echo "$STAGED_FILES" | grep '^infra/.*\.tf$' || true)
+if [ -n "$STAGED_TF" ]; then
+    echo ">> Checking Terraform formatting..."
+    terraform -chdir="$REPO_ROOT/infra" fmt -check -recursive 2>&1 || {
+        echo "!! Terraform formatting issues found. Run 'terraform fmt -recursive' in infra/."
+        exit 1
+    }
+    echo ">> Terraform formatting OK."
+fi
+
+echo "=== Pre-commit checks passed ==="

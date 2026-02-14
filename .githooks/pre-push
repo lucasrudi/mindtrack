@@ -37,4 +37,30 @@ if [ -d "infra" ]; then
     echo ">> Terraform checks passed."
 fi
 
+# Snyk vulnerability scan
+if command -v snyk &> /dev/null; then
+    echo ">> Running Snyk vulnerability scan..."
+
+    if [ -d "backend" ]; then
+        echo "   Scanning backend dependencies..."
+        snyk test --file=backend/pom.xml --severity-threshold=high 2>&1 || {
+            echo "!! Snyk found high/critical vulnerabilities in backend. Fix them before pushing."
+            exit 1
+        }
+    fi
+
+    if [ -d "frontend" ] && [ -f "frontend/package.json" ]; then
+        echo "   Scanning frontend dependencies..."
+        snyk test --file=frontend/package.json --severity-threshold=high 2>&1 || {
+            echo "!! Snyk found high/critical vulnerabilities in frontend. Fix them before pushing."
+            exit 1
+        }
+    fi
+
+    echo ">> Snyk scan passed."
+else
+    echo ">> Snyk CLI not installed, skipping vulnerability scan."
+    echo "   Install with: npm install -g snyk && snyk auth"
+fi
+
 echo "=== All pre-push checks passed ==="
