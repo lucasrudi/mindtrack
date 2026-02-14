@@ -45,13 +45,9 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build & Test
-        working-directory: backend
-        run: mvn verify -B
-
       - name: Package
         working-directory: backend
-        run: mvn package -DskipTests -q
+        run: mvn package -DskipTests -B -q
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -85,14 +81,6 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
-
-      - name: Lint
-        working-directory: frontend
-        run: npm run lint
-
-      - name: Unit tests
-        working-directory: frontend
-        run: npm run test:unit -- --run
 
       - name: Build
         working-directory: frontend

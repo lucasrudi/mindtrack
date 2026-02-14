@@ -1,23 +1,17 @@
-name: Feature Branch CI
+name: Verify
 
 on:
   push:
     branches:
-      - 'feature/**'
-      - 'bugfix/**'
-      - 'chore/**'
-  pull_request:
-    branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
-  backend:
-    name: Backend Build & Test
+  backend-verify:
+    name: Backend Verify
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'pull_request' ||
-      contains(github.event.head_commit.modified, 'backend/') ||
-      contains(github.event.head_commit.added, 'backend/')
     steps:
       - uses: actions/checkout@v4
 
@@ -34,17 +28,14 @@ jobs:
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: backend-coverage
           path: backend/target/site/jacoco/
 
-  frontend:
-    name: Frontend Build & Test
+  frontend-verify:
+    name: Frontend Verify
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'pull_request' ||
-      contains(github.event.head_commit.modified, 'frontend/') ||
-      contains(github.event.head_commit.added, 'frontend/')
     steps:
       - uses: actions/checkout@v4
 
@@ -61,7 +52,7 @@ jobs:
 
       - name: Lint
         working-directory: frontend
-        run: npm run lint
+        run: npx eslint . --max-warnings 0
 
       - name: Unit tests
         working-directory: frontend
@@ -73,17 +64,14 @@ jobs:
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: frontend-coverage
           path: frontend/coverage/
 
-  infra:
-    name: Terraform Validate
+  infra-verify:
+    name: Infrastructure Verify
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'pull_request' ||
-      contains(github.event.head_commit.modified, 'infra/') ||
-      contains(github.event.head_commit.added, 'infra/')
     steps:
       - uses: actions/checkout@v4
 
@@ -116,11 +104,10 @@ jobs:
         with:
           working_directory: infra
 
-  security:
+  security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
-    needs: [backend, frontend]
-    if: always() && (needs.backend.result == 'success' || needs.frontend.result == 'success')
+    needs: [backend-verify, frontend-verify]
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -136,14 +123,12 @@ jobs:
         uses: snyk/actions/setup@master
 
       - name: Snyk test backend
-        if: needs.backend.result == 'success'
         working-directory: backend
         run: snyk test --file=pom.xml --severity-threshold=high
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk test frontend
-        if: needs.frontend.result == 'success'
         working-directory: frontend
         run: snyk test --file=package.json --severity-threshold=high
         env:
@@ -152,8 +137,8 @@ jobs:
   sonar:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
-    needs: [backend, frontend]
-    if: always() && (needs.backend.result == 'success' || needs.frontend.result == 'success')
+    needs: [backend-verify, frontend-verify]
+    if: always() && (needs.backend-verify.result == 'success' || needs.frontend-verify.result == 'success')
     steps:
       - uses: actions/checkout@v4
         with:
@@ -161,14 +146,14 @@ jobs:
 
       - name: Download backend coverage
         uses: actions/download-artifact@v4
-        if: needs.backend.result == 'success'
+        if: needs.backend-verify.result == 'success'
         with:
           name: backend-coverage
           path: backend/target/site/jacoco/
 
       - name: Download frontend coverage
         uses: actions/download-artifact@v4
-        if: needs.frontend.result == 'success'
+        if: needs.frontend-verify.result == 'success'
         with:
           name: frontend-coverage
           path: frontend/coverage/
