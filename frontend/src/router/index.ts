@@ -71,6 +71,24 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/journal/new',
+      name: 'journal-new',
+      component: () => import('@/views/JournalFormView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/journal/:id',
+      name: 'journal-detail',
+      component: () => import('@/views/JournalDetailView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/journal/:id/edit',
+      name: 'journal-edit',
+      component: () => import('@/views/JournalFormView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/goals',
       name: 'goals',
       component: () => import('@/views/GoalsView.vue'),
