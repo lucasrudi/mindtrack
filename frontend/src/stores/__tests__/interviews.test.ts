@@ -51,7 +51,7 @@ describe('useInterviewsStore', () => {
   beforeEach(async () => {
     setActivePinia(createPinia())
     const module = await import('@/services/api')
-    api = module.default as typeof api
+    api = module.default as unknown as typeof api
     vi.clearAllMocks()
   })
 

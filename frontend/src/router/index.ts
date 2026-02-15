@@ -53,6 +53,18 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/activities/new',
+      name: 'activity-new',
+      component: () => import('@/views/ActivityFormView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/activities/:id/edit',
+      name: 'activity-edit',
+      component: () => import('@/views/ActivityFormView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/journal',
       name: 'journal',
       component: () => import('@/views/JournalView.vue'),

@@ -85,7 +85,7 @@ describe('InterviewFormView', () => {
 
   it('submits form and navigates to detail', async () => {
     const { default: api } = await import('@/services/api')
-    const mockApi = api as { post: ReturnType<typeof vi.fn> }
+    const mockApi = api as unknown as { post: ReturnType<typeof vi.fn> }
     mockApi.post.mockResolvedValue({
       data: { id: 5, interviewDate: '2025-01-15' },
     })
