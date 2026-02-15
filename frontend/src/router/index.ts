@@ -95,6 +95,24 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/goals/new',
+      name: 'goal-new',
+      component: () => import('@/views/GoalFormView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/goals/:id',
+      name: 'goal-detail',
+      component: () => import('@/views/GoalDetailView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/goals/:id/edit',
+      name: 'goal-edit',
+      component: () => import('@/views/GoalFormView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/chat',
       name: 'chat',
       component: () => import('@/views/ChatView.vue'),
