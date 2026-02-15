@@ -11,13 +11,17 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -38,8 +42,12 @@ class ChatControllerTest {
     @MockitoBean
     private ConversationService conversationService;
 
+    private static UsernamePasswordAuthenticationToken mockAuth() {
+        return new UsernamePasswordAuthenticationToken(
+                1L, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+    }
+
     @Test
-    @WithMockUser
     void shouldReturnAiResponse() throws Exception {
         ChatResponse response = new ChatResponse(1L, 10L, "Hello! How are you?", false, 150);
         when(conversationService.chat(eq(1L), any(ChatRequest.class))).thenReturn(response);
@@ -48,6 +56,7 @@ class ChatControllerTest {
 
         mockMvc.perform(post("/api/ai/chat")
                         .with(csrf())
+                        .with(authentication(mockAuth()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -57,7 +66,6 @@ class ChatControllerTest {
     }
 
     @Test
-    @WithMockUser
     void shouldReturnCachedResponse() throws Exception {
         ChatResponse response = new ChatResponse(1L, 10L, "Cached summary", true, 1200);
         when(conversationService.chat(eq(1L), any(ChatRequest.class))).thenReturn(response);
@@ -66,6 +74,7 @@ class ChatControllerTest {
 
         mockMvc.perform(post("/api/ai/chat")
                         .with(csrf())
+                        .with(authentication(mockAuth()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -73,33 +82,39 @@ class ChatControllerTest {
     }
 
     @Test
-    @WithMockUser
     void shouldRejectEmptyMessage() throws Exception {
         ChatRequest request = new ChatRequest(null, "", ConversationType.COACHING);
 
         mockMvc.perform(post("/api/ai/chat")
                         .with(csrf())
+                        .with(authentication(mockAuth()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser
     void shouldListConversations() throws Exception {
         when(conversationService.listConversations(1L)).thenReturn(java.util.List.of());
 
-        mockMvc.perform(get("/api/ai/conversations"))
+        mockMvc.perform(get("/api/ai/conversations")
+                        .with(authentication(mockAuth())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
 
     @Test
-    @WithMockUser
     void shouldReturn404ForMissingConversation() throws Exception {
         when(conversationService.getConversation(999L)).thenReturn(null);
 
-        mockMvc.perform(get("/api/ai/conversations/999"))
+        mockMvc.perform(get("/api/ai/conversations/999")
+                        .with(authentication(mockAuth())))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturn401ForUnauthenticatedRequest() throws Exception {
+        mockMvc.perform(get("/api/ai/conversations"))
+                .andExpect(status().isUnauthorized());
     }
 }

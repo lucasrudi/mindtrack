@@ -29,6 +29,18 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('mindtrack_token')
   }
 
+  async function fetchCurrentUser() {
+    if (!token.value) return
+
+    try {
+      const { default: api } = await import('@/services/api')
+      const response = await api.get('/auth/me')
+      user.value = response.data
+    } catch {
+      logout()
+    }
+  }
+
   return {
     token,
     user,
@@ -36,5 +48,6 @@ export const useAuthStore = defineStore('auth', () => {
     setToken,
     setUser,
     logout,
+    fetchCurrentUser,
   }
 })

@@ -44,6 +44,9 @@ management:
         enabled: false
 
 mindtrack:
+  auth:
+    jwt-secret: local-dev-secret-key-for-testing-purposes-only-minimum-256-bits!
+    frontend-url: http://localhost:3000
   ai:
     api-key: dummy-key-for-local
     model: claude-sonnet-4-20250514

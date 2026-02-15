@@ -45,6 +45,10 @@ management:
         enabled: ${OTEL_TRACING_ENABLED:false}
 
 mindtrack:
+  auth:
+    jwt-secret: ${JWT_SECRET:default-dev-secret-key-change-in-prod-256bit!}
+    jwt-expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+    frontend-url: ${FRONTEND_URL:http://localhost:3000}
   ai:
     api-key: ${CLAUDE_API_KEY:dummy-key-for-local}
     api-url: https://api.anthropic.com/v1/messages

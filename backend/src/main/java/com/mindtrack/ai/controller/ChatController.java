@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,9 +43,9 @@ public class ChatController {
      * @return the AI response
      */
     @PostMapping("/chat")
-    public ResponseEntity<ChatResponse> chat(@RequestBody @Valid ChatRequest request) {
-        // TODO: get userId from SecurityContext once auth module is implemented
-        Long userId = 1L;
+    public ResponseEntity<ChatResponse> chat(@RequestBody @Valid ChatRequest request,
+                                             Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
 
         ChatResponse response = conversationService.chat(userId, request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -56,9 +57,8 @@ public class ChatController {
      * @return list of conversations
      */
     @GetMapping("/conversations")
-    public ResponseEntity<List<ConversationDto>> listConversations() {
-        // TODO: get userId from SecurityContext once auth module is implemented
-        Long userId = 1L;
+    public ResponseEntity<List<ConversationDto>> listConversations(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
 
         List<ConversationDto> conversations = conversationService.listConversations(userId);
         return ResponseEntity.ok(conversations);

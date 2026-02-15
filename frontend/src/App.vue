@@ -1,29 +1,34 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { computed, onMounted } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
+import AppNavbar from '@/components/layout/AppNavbar.vue'
+import { useAuthStore } from '@/stores/auth'
+
+const route = useRoute()
+const auth = useAuthStore()
+
+const showNavbar = computed(() => {
+  return route.meta.requiresAuth === true
+})
+
+onMounted(async () => {
+  if (auth.isAuthenticated && !auth.user) {
+    await auth.fetchCurrentUser()
+  }
+})
 </script>
 
 <template>
   <div id="mindtrack-app">
-    <RouterView />
+    <AppNavbar v-if="showNavbar" />
+    <main :class="{ 'has-navbar': showNavbar }">
+      <RouterView />
+    </main>
   </div>
 </template>
 
 <style>
-#mindtrack-app {
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    'Fira Sans',
-    'Droid Sans',
-    'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.has-navbar {
+  padding-top: 0;
 }
 </style>
