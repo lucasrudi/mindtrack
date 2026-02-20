@@ -19,4 +19,7 @@ public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> 
             Long userId, LocalDate logDate);
 
     Optional<ActivityLog> findByIdAndActivity_UserId(Long id, Long userId);
+
+    List<ActivityLog> findByActivity_UserIdAndLogDateBetween(
+            Long userId, LocalDate startDate, LocalDate endDate);
 }
