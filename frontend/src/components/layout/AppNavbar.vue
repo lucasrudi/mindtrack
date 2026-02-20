@@ -26,6 +26,9 @@ function handleLogout() {
         <router-link to="/goals" class="nav-link">Goals</router-link>
         <router-link to="/interviews" class="nav-link">Interviews</router-link>
         <router-link to="/chat" class="nav-link">AI Chat</router-link>
+        <router-link v-if="auth.isAdmin" to="/admin" class="nav-link nav-link--admin">
+          Admin
+        </router-link>
       </div>
 
       <div class="navbar-actions">
@@ -114,6 +117,15 @@ function handleLogout() {
 
 .nav-link--subtle {
   color: var(--color-gray-500);
+}
+
+.nav-link--admin {
+  color: var(--color-warning, #d97706);
+}
+
+.nav-link--admin.router-link-active {
+  color: var(--color-warning, #d97706);
+  background-color: #fffbeb;
 }
 
 .btn-logout {
