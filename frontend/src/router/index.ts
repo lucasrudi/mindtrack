@@ -134,7 +134,7 @@ const router = createRouter({
       path: '/therapist',
       name: 'therapist',
       component: () => import('@/views/TherapistView.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresTherapist: true },
     },
   ],
 })
@@ -147,6 +147,10 @@ router.beforeEach((to) => {
   }
 
   if (to.meta.requiresAdmin && !auth.isAdmin) {
+    return { name: 'dashboard' }
+  }
+
+  if (to.meta.requiresTherapist && !auth.isTherapist) {
     return { name: 'dashboard' }
   }
 

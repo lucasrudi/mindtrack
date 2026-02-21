@@ -29,6 +29,9 @@ function handleLogout() {
         <router-link v-if="auth.isAdmin" to="/admin" class="nav-link nav-link--admin">
           Admin
         </router-link>
+        <router-link v-if="auth.isTherapist" to="/therapist" class="nav-link nav-link--therapist">
+          Patients
+        </router-link>
       </div>
 
       <div class="navbar-actions">
@@ -126,6 +129,15 @@ function handleLogout() {
 .nav-link--admin.router-link-active {
   color: var(--color-warning, #d97706);
   background-color: #fffbeb;
+}
+
+.nav-link--therapist {
+  color: var(--color-success, #059669);
+}
+
+.nav-link--therapist.router-link-active {
+  color: var(--color-success, #059669);
+  background-color: #f0fdf4;
 }
 
 .btn-logout {

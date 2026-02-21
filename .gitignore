@@ -57,3 +57,9 @@ frontend/coverage/
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .github/instructions/snyk_rules.instructions.md
+
+# Agents
+.agents/
+
+# Claude
+.claude/

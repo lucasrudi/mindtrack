@@ -14,6 +14,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!token.value)
   const isAdmin = computed(() => user.value?.role === 'ADMIN')
+  const isTherapist = computed(() => user.value?.role === 'THERAPIST')
 
   function setToken(newToken: string) {
     token.value = newToken
@@ -47,6 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     isAuthenticated,
     isAdmin,
+    isTherapist,
     setToken,
     setUser,
     logout,
