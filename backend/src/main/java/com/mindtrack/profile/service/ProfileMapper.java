@@ -40,6 +40,7 @@ public class ProfileMapper {
         response.setNotificationPrefs(parseJson(profile.getNotificationPrefs()));
         response.setTelegramChatId(profile.getTelegramChatId());
         response.setWhatsappNumber(profile.getWhatsappNumber());
+        response.setTutorialCompleted(profile.isTutorialCompleted());
         return response;
     }
 
@@ -53,6 +54,9 @@ public class ProfileMapper {
         profile.setNotificationPrefs(serializeJson(request.getNotificationPrefs()));
         profile.setTelegramChatId(request.getTelegramChatId());
         profile.setWhatsappNumber(request.getWhatsappNumber());
+        if (request.getTutorialCompleted() != null) {
+            profile.setTutorialCompleted(request.getTutorialCompleted());
+        }
     }
 
     private Map<String, Object> parseJson(String json) {

@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue'
 import { useAnalyticsStore } from '@/stores/analytics'
+import { useProfileStore } from '@/stores/profile'
+import { useTutorial } from '@/composables/useTutorial'
 import MoodTrendChart from '@/components/charts/MoodTrendChart.vue'
 import ActivityCompletionChart from '@/components/charts/ActivityCompletionChart.vue'
 import GoalProgressChart from '@/components/charts/GoalProgressChart.vue'
+import TutorialOverlay from '@/components/tutorial/TutorialOverlay.vue'
 
 const store = useAnalyticsStore()
+const profileStore = useProfileStore()
+const { start: startTutorial } = useTutorial()
 
 const presets = [
   { label: '7 days', days: 7 },
@@ -45,6 +50,16 @@ onMounted(async () => {
     await store.fetchAll()
   } catch {
     // Error state handled by store
+  }
+
+  // Check if tutorial should be shown
+  try {
+    await profileStore.fetchProfile()
+    if (profileStore.profile && !profileStore.profile.tutorialCompleted) {
+      startTutorial()
+    }
+  } catch {
+    // Profile fetch failure shouldn't block dashboard
   }
 })
 
@@ -140,6 +155,8 @@ watch(
         </div>
       </div>
     </template>
+
+    <TutorialOverlay />
   </div>
 </template>
 

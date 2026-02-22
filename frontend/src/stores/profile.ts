@@ -18,6 +18,7 @@ export interface UserProfile {
   notificationPrefs: NotificationPrefs | null
   telegramChatId: string | null
   whatsappNumber: string | null
+  tutorialCompleted: boolean
 }
 
 export interface ProfileForm {
@@ -27,6 +28,7 @@ export interface ProfileForm {
   notificationPrefs: NotificationPrefs | null
   telegramChatId: string | null
   whatsappNumber: string | null
+  tutorialCompleted?: boolean
 }
 
 export const useProfileStore = defineStore('profile', () => {

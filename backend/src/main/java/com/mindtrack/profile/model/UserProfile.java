@@ -39,6 +39,9 @@ public class UserProfile {
     @Column(name = "whatsapp_number", length = 20)
     private String whatsappNumber;
 
+    @Column(name = "tutorial_completed", nullable = false)
+    private boolean tutorialCompleted;
+
     public UserProfile() {
     }
 
@@ -104,5 +107,13 @@ public class UserProfile {
 
     public void setWhatsappNumber(String whatsappNumber) {
         this.whatsappNumber = whatsappNumber;
+    }
+
+    public boolean isTutorialCompleted() {
+        return tutorialCompleted;
+    }
+
+    public void setTutorialCompleted(boolean tutorialCompleted) {
+        this.tutorialCompleted = tutorialCompleted;
     }
 }

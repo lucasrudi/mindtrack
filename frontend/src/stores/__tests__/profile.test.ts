@@ -11,6 +11,7 @@ const mockProfile = {
   notificationPrefs: { emailNotifications: true, pushNotifications: false, reminderTime: '09:00' },
   telegramChatId: '123456',
   whatsappNumber: '+1234567890',
+  tutorialCompleted: true,
 }
 
 vi.mock('@/services/api', () => ({

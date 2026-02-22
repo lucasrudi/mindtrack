@@ -13,6 +13,7 @@ public class ProfileRequest {
     private Map<String, Object> notificationPrefs;
     private String telegramChatId;
     private String whatsappNumber;
+    private Boolean tutorialCompleted;
 
     public ProfileRequest() {
     }
@@ -63,5 +64,13 @@ public class ProfileRequest {
 
     public void setWhatsappNumber(String whatsappNumber) {
         this.whatsappNumber = whatsappNumber;
+    }
+
+    public Boolean getTutorialCompleted() {
+        return tutorialCompleted;
+    }
+
+    public void setTutorialCompleted(Boolean tutorialCompleted) {
+        this.tutorialCompleted = tutorialCompleted;
     }
 }

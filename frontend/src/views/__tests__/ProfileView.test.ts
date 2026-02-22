@@ -16,6 +16,7 @@ const mockProfile = {
   notificationPrefs: { emailNotifications: true, pushNotifications: false, reminderTime: '09:00' },
   telegramChatId: '123456',
   whatsappNumber: '+1234567890',
+  tutorialCompleted: true,
 }
 
 const mockGet = vi.fn().mockResolvedValue({ data: mockProfile })
@@ -67,7 +68,7 @@ describe('ProfileView', () => {
 
     expect(wrapper.find('.profile-form').exists()).toBe(true)
     const sections = wrapper.findAll('.form-section')
-    expect(sections).toHaveLength(4)
+    expect(sections).toHaveLength(5)
   })
 
   it('populates form with profile data', async () => {

@@ -1,0 +1,1 @@
+ALTER TABLE user_profiles ADD COLUMN tutorial_completed BOOLEAN NOT NULL DEFAULT FALSE;

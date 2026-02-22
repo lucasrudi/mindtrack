@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useProfileStore, type ProfileForm } from '@/stores/profile'
 
+const router = useRouter()
 const store = useProfileStore()
 const successMessage = ref('')
 
@@ -94,6 +96,15 @@ function unlinkTelegram() {
 
 function unlinkWhatsapp() {
   form.value.whatsappNumber = null
+}
+
+async function replayTutorial() {
+  try {
+    await store.updateProfile({ tutorialCompleted: false })
+    router.push('/dashboard')
+  } catch {
+    // Error handled by store
+  }
 }
 </script>
 
@@ -222,6 +233,18 @@ function unlinkWhatsapp() {
             </button>
           </div>
         </div>
+      </section>
+
+      <!-- Tutorial -->
+      <section class="form-section">
+        <h2>Tutorial</h2>
+        <p class="tutorial-description">
+          Take a guided tour of MindTrack's features. The tutorial will walk you through the key
+          areas of the app.
+        </p>
+        <button type="button" class="btn btn-secondary" @click="replayTutorial">
+          Replay Tutorial
+        </button>
       </section>
 
       <div class="form-actions">
@@ -440,5 +463,11 @@ function unlinkWhatsapp() {
 
 .btn-danger:hover {
   background: #fee2e2;
+}
+
+.tutorial-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  margin-bottom: var(--space-4);
 }
 </style>
