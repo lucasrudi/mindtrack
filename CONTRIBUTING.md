@@ -16,10 +16,10 @@
 
 ## Commit Messages
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+Follow [Conventional Commits](https://www.conventionalcommits.org/) **prefixed with the GitHub issue ID**:
 
 ```
-<type>: <description>
+#<issue-id> <type>(<scope>): <description>
 
 [optional body]
 ```
@@ -27,10 +27,13 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 Types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `ci`, `infra`
 
 Examples:
-- `feat: add interview audio upload endpoint`
-- `fix: resolve JWT token expiry race condition`
-- `chore: update Spring Boot to 3.4.3`
-- `infra: add CloudWatch alarms for Lambda errors`
+- `#17 chore: review and fix TODOs across codebase`
+- `#18 test: add integration tests for interview module`
+- `#4 feat(interview): add audio upload endpoint`
+- `#1 fix(auth): resolve JWT token expiry race condition`
+
+The `#<issue-id>` prefix is validated by the `commit-msg` hook (`.githooks/commit-msg`).
+Commits without an issue prefix will be rejected — use `#0` only for housekeeping with no associated issue.
 
 ## Pull Request Process
 

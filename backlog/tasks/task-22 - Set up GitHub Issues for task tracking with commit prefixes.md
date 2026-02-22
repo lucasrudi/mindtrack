@@ -1,7 +1,7 @@
 ---
 id: 22
 title: Set up GitHub Issues for task tracking with commit prefixes
-status: To Do
+status: Done
 priority: high
 labels:
   - devops

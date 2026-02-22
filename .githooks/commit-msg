@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# commit-msg hook: validates that commit messages start with a GitHub issue reference.
+# Format: #<number> <type>[(<scope>)]: <description>
+# Use #0 for housekeeping commits with no associated issue.
+
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Skip merge commits, revert commits, and fixup/squash commits
+if echo "$COMMIT_MSG" | grep -qE "^(Merge |Revert |fixup! |squash! )"; then
+    exit 0
+fi
+
+# Skip release-please automated commits
+if echo "$COMMIT_MSG" | grep -qE "^chore\(release\)"; then
+    exit 0
+fi
+
+# Validate pattern: #<number> followed by conventional commit type
+if ! echo "$COMMIT_MSG" | grep -qE "^#[0-9]+ (feat|fix|chore|docs|test|refactor|ci|infra|style|perf|build)(\([^)]+\))?: .+"; then
+    echo ""
+    echo "!! Commit message does not follow the required format."
+    echo ""
+    echo "   Expected: #<issue-id> <type>[(<scope>)]: <description>"
+    echo "   Examples:"
+    echo "     #17 chore: review and fix TODOs"
+    echo "     #18 test(interview): add integration tests"
+    echo "     #0  chore: housekeeping with no issue"
+    echo ""
+    echo "   Your message: $COMMIT_MSG"
+    echo ""
+    exit 1
+fi
+
+exit 0
