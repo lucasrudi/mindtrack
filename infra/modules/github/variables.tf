@@ -33,7 +33,9 @@ variable "required_status_checks" {
   default = [
     "Backend Build & Test",
     "Frontend Build & Test",
-    "Terraform Validate"
+    "Terraform Validate",
+    "Branch Name Check",
+    "Code Review"
   ]
 }
 
@@ -93,7 +95,6 @@ variable "actions_secrets" {
   description = "Map of GitHub Actions secrets to create (name => plaintext value). Values are sensitive."
   type        = map(string)
   default     = {}
-  sensitive   = true
 }
 
 variable "actions_variables" {

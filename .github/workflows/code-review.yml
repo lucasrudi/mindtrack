@@ -1,0 +1,39 @@
+name: Code Review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: Code Review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Code Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          direct_prompt: |
+            Review this pull request for the MindTrack application. Focus on:
+            1. Correctness and potential bugs
+            2. Security vulnerabilities (OWASP Top 10 — auth, injection, data exposure)
+            3. Adherence to project conventions:
+               - Java: Google Checkstyle, 4-space indent, 120-char line width
+               - TypeScript/Vue: ESLint+Prettier, 2-space indent, no semicolons, single quotes
+               - Terraform: terraform fmt style, tflint-clean
+            4. Test coverage — are new behaviors tested?
+            5. Performance — any obvious N+1 queries, blocking calls, or memory issues?
+
+            Post your review as a single PR comment. Lead with a one-line summary verdict
+            (LGTM / Minor issues / Major issues). List findings grouped by severity
+            (Critical → High → Medium → Low). For each finding, include file, line range,
+            and a concrete suggestion.

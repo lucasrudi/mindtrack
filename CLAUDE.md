@@ -66,9 +66,13 @@ Both VSCode (`.vscode/`) and IntelliJ (`.idea/codeStyles/`) are configured with 
 ## Branch Strategy
 
 - `main` — production branch, deploys automatically
-- `feature/*` — feature development
-- `bugfix/*` — bug fixes
-- Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `infra:`
+- `feature/{issue-id}-{description}` — feature development (e.g., `feature/42-add-user-auth`)
+- `bugfix/{issue-id}-{description}` — bug fixes (e.g., `bugfix/17-fix-login`)
+- Other types: `chore/`, `docs/`, `test/`, `refactor/`, `ci/`, `infra/`, etc.
+- Every branch and commit requires a real GitHub issue — always create one before starting work. Never use `#0` as a placeholder.
+
+Branch name format: `{type}/{issue-id}-{description}` — enforced by the "Branch Name Check" CI gate.
+Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`, `ci:`, `infra:`
 
 ## Versioning
 
