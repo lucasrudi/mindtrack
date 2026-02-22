@@ -1,7 +1,7 @@
 ---
 id: 20
 title: Add Snyk scanning, alerts, and code style enforcement
-status: To Do
+status: Done
 priority: high
 labels:
   - security

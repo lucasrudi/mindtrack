@@ -9,6 +9,7 @@ definition_of_done:
   - Code reviewed
   - Documentation updated
   - No regressions introduced
+  - Code pushed to remote
 dateFormat: "yyyy-mm-dd hh:mm"
 autoCommit: false
 zeroPaddedIds: true

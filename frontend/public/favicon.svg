@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- M lettermark -->
+  <path d="M108 350 L108 150 L256 272 L404 150 L404 350"
+        fill="none" stroke="white" stroke-width="52"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- EKG heartbeat pulse line — represents tracking -->
+  <polyline points="52,420 148,420 184,368 224,472 264,384 300,420 460,420"
+            fill="none" stroke="#34d399" stroke-width="26"
+            stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

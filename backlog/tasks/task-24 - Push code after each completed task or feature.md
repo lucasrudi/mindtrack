@@ -1,7 +1,7 @@
 ---
 id: 24
 title: Push code after each completed task or feature
-status: To Do
+status: Done
 priority: medium
 labels:
   - devops

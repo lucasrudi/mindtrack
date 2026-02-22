@@ -1,7 +1,7 @@
 ---
 id: 21
 title: Create product icon
-status: To Do
+status: Done
 priority: medium
 labels:
   - frontend

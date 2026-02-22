@@ -108,7 +108,6 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-latest
     needs: [backend-verify, frontend-verify]
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
