@@ -63,3 +63,6 @@ frontend/coverage/
 
 # Claude
 .claude/
+
+# Git worktrees
+.worktrees/
