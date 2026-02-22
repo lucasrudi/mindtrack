@@ -89,7 +89,9 @@ export function useTutorial() {
     isActive.value = false
     currentStepIndex.value = 0
     try {
-      await profileStore.updateProfile({ tutorialCompleted: true })
+      await profileStore.updateProfile({ tutorialCompleted: true } as unknown as Parameters<
+        typeof profileStore.updateProfile
+      >[0])
     } catch {
       // Profile update is best-effort
     }
@@ -99,7 +101,9 @@ export function useTutorial() {
     isActive.value = false
     currentStepIndex.value = 0
     try {
-      await profileStore.updateProfile({ tutorialCompleted: true })
+      await profileStore.updateProfile({ tutorialCompleted: true } as unknown as Parameters<
+        typeof profileStore.updateProfile
+      >[0])
     } catch {
       // Profile update is best-effort
     }
