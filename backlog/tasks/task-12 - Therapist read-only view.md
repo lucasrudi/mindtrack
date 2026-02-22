@@ -1,7 +1,7 @@
 ---
 id: 12
 title: Therapist read-only view
-status: To Do
+status: Done
 priority: medium
 labels:
   - backend

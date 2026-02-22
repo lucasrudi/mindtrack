@@ -1,7 +1,7 @@
 ---
 id: 16
 title: Quick tutorial for new users
-status: To Do
+status: Done
 priority: medium
 labels:
   - frontend

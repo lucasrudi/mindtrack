@@ -1,7 +1,7 @@
 ---
 id: 10
 title: WhatsApp Business API integration
-status: To Do
+status: Done
 priority: medium
 labels:
   - messaging

@@ -1,7 +1,7 @@
 ---
 id: 6
 title: Journal entries
-status: To Do
+status: Done
 priority: medium
 labels:
   - backend

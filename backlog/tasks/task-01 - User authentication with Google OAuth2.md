@@ -1,7 +1,7 @@
 ---
 id: 1
 title: User authentication with Google OAuth2
-status: To Do
+status: Done
 priority: critical
 labels:
   - auth

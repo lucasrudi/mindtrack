@@ -1,7 +1,7 @@
 ---
 id: 5
 title: Activity tracking
-status: To Do
+status: Done
 priority: high
 labels:
   - backend

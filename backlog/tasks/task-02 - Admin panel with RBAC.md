@@ -1,7 +1,7 @@
 ---
 id: 2
 title: Admin panel with RBAC
-status: To Do
+status: Done
 priority: high
 labels:
   - admin

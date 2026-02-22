@@ -1,7 +1,7 @@
 ---
 id: 7
 title: Goals and milestones
-status: To Do
+status: Done
 priority: medium
 labels:
   - backend

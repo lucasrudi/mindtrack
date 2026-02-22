@@ -1,7 +1,7 @@
 ---
 id: 9
 title: Telegram bot integration
-status: To Do
+status: Done
 priority: medium
 labels:
   - messaging

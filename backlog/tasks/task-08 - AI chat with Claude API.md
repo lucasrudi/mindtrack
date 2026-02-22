@@ -1,7 +1,7 @@
 ---
 id: 8
 title: AI chat with Claude API
-status: To Do
+status: Done
 priority: critical
 labels:
   - ai

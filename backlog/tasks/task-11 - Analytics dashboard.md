@@ -1,7 +1,7 @@
 ---
 id: 11
 title: Analytics dashboard
-status: To Do
+status: Done
 priority: high
 labels:
   - backend

@@ -1,7 +1,7 @@
 ---
 id: 14
 title: Improved landing page
-status: To Do
+status: Done
 priority: high
 labels:
   - frontend

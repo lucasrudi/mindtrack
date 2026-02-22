@@ -1,7 +1,7 @@
 ---
 id: 3
 title: Interview logging with structured notes
-status: To Do
+status: Done
 priority: critical
 labels:
   - backend

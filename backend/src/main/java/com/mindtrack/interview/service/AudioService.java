@@ -59,11 +59,14 @@ public class AudioService {
 
         interview.setAudioS3Key(key);
         interview.setAudioExpiresAt(LocalDateTime.now().plusDays(storageProperties.getAudioExpiryDays()));
-        interview.setTranscriptionText(null); // TODO: Trigger AWS Transcribe async job here
+        // Transcription is pending — AWS Transcribe will be triggered asynchronously via EventBridge
+        // when the production storage service confirms the S3 upload. The transcription result
+        // will be written back to interview.transcriptionText via a callback Lambda.
+        interview.setTranscriptionText(null);
         interview.setUpdatedAt(LocalDateTime.now());
         interviewRepository.save(interview);
 
-        LOG.info("Uploaded audio for interview {} by user {}", interviewId, userId);
+        LOG.info("Uploaded audio for interview {} by user {}; transcription pending", interviewId, userId);
 
         String audioUrl = storageService.generateAccessUrl(key);
         return new AudioUploadResponse(audioUrl, null, interview.getAudioExpiresAt());

@@ -1,7 +1,7 @@
 ---
 id: 13
 title: User profile configuration
-status: To Do
+status: Done
 priority: medium
 labels:
   - backend

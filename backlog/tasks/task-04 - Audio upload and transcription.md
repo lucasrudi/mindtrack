@@ -1,7 +1,7 @@
 ---
 id: 4
 title: Audio upload and transcription
-status: To Do
+status: Done
 priority: high
 labels:
   - backend

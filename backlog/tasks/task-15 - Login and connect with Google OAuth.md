@@ -1,7 +1,7 @@
 ---
 id: 15
 title: Login and connect with Google OAuth
-status: To Do
+status: Done
 priority: critical
 labels:
   - auth
