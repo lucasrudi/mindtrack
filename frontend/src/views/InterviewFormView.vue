@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useInterviewsStore, type InterviewForm } from '@/stores/interviews'
+import AudioSection from '@/components/interview/AudioSection.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -193,6 +194,14 @@ function goBack() {
           placeholder="Additional notes about the session..."
         />
       </div>
+
+      <!-- Audio section — only shown when editing an existing interview -->
+      <AudioSection
+        v-if="isEditing && interviewId && store.currentInterview"
+        :interview-id="interviewId"
+        :has-audio="store.currentInterview.hasAudio"
+        @audio-changed="store.fetchInterview(interviewId!)"
+      />
 
       <div class="form-actions">
         <button type="button" class="btn btn-secondary" @click="goBack">Cancel</button>

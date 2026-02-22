@@ -41,6 +41,8 @@ public class InterviewMapper {
         response.setRecommendations(interview.getRecommendations());
         response.setNotes(interview.getNotes());
         response.setHasAudio(interview.getAudioS3Key() != null);
+        response.setTranscriptionText(interview.getTranscriptionText());
+        response.setAudioExpiresAt(interview.getAudioExpiresAt());
         response.setCreatedAt(interview.getCreatedAt());
         response.setUpdatedAt(interview.getUpdatedAt());
         return response;

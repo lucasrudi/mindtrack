@@ -12,8 +12,16 @@ export interface Interview {
   recommendations: string | null
   notes: string | null
   hasAudio: boolean
+  transcriptionText: string | null
+  audioExpiresAt: string | null
   createdAt: string
   updatedAt: string
+}
+
+export interface AudioResponse {
+  audioUrl: string
+  transcriptionText: string | null
+  audioExpiresAt: string | null
 }
 
 export interface InterviewForm {
@@ -118,6 +126,58 @@ export const useInterviewsStore = defineStore('interviews', () => {
     }
   }
 
+  async function uploadAudio(id: number, file: File): Promise<AudioResponse> {
+    loading.value = true
+    error.value = null
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const response = await api.post(`/interviews/${id}/audio`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      if (currentInterview.value?.id === id) {
+        currentInterview.value.hasAudio = true
+        currentInterview.value.transcriptionText = response.data.transcriptionText
+        currentInterview.value.audioExpiresAt = response.data.audioExpiresAt
+      }
+      return response.data
+    } catch (err) {
+      error.value = 'Failed to upload audio'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function getAudioUrl(id: number): Promise<AudioResponse> {
+    error.value = null
+    try {
+      const response = await api.get(`/interviews/${id}/audio`)
+      return response.data
+    } catch (err) {
+      error.value = 'Failed to load audio'
+      throw err
+    }
+  }
+
+  async function deleteAudio(id: number): Promise<void> {
+    loading.value = true
+    error.value = null
+    try {
+      await api.delete(`/interviews/${id}/audio`)
+      if (currentInterview.value?.id === id) {
+        currentInterview.value.hasAudio = false
+        currentInterview.value.transcriptionText = null
+        currentInterview.value.audioExpiresAt = null
+      }
+    } catch (err) {
+      error.value = 'Failed to delete audio'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   function clearError() {
     error.value = null
   }
@@ -133,6 +193,9 @@ export const useInterviewsStore = defineStore('interviews', () => {
     createInterview,
     updateInterview,
     deleteInterview,
+    uploadAudio,
+    getAudioUrl,
+    deleteAudio,
     clearError,
   }
 })

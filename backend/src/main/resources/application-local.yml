@@ -50,3 +50,6 @@ mindtrack:
   ai:
     api-key: dummy-key-for-local
     model: claude-sonnet-4-20250514
+  storage:
+    bucket-name: mindtrack-audio-local
+    local-storage-path: ${java.io.tmpdir}/mindtrack-audio

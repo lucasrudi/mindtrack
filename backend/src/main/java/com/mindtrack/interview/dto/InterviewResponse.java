@@ -18,6 +18,8 @@ public class InterviewResponse {
     private String recommendations;
     private String notes;
     private boolean hasAudio;
+    private String transcriptionText;
+    private LocalDateTime audioExpiresAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -94,6 +96,22 @@ public class InterviewResponse {
 
     public void setHasAudio(boolean hasAudio) {
         this.hasAudio = hasAudio;
+    }
+
+    public String getTranscriptionText() {
+        return transcriptionText;
+    }
+
+    public void setTranscriptionText(String transcriptionText) {
+        this.transcriptionText = transcriptionText;
+    }
+
+    public LocalDateTime getAudioExpiresAt() {
+        return audioExpiresAt;
+    }
+
+    public void setAudioExpiresAt(LocalDateTime audioExpiresAt) {
+        this.audioExpiresAt = audioExpiresAt;
     }
 
     public LocalDateTime getCreatedAt() {
