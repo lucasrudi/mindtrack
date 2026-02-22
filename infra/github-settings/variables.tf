@@ -25,5 +25,5 @@ variable "required_status_checks" {
 
 variable "required_approvals" {
   type    = number
-  default = 1
+  default = 0
 }
