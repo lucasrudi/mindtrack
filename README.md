@@ -347,20 +347,32 @@ See `.github/workflows/release.yml` and `.github/workflows/deploy.yml`.
 
 ### GitHub Repository Secrets
 
-Configure these in your repo's **Settings** > **Secrets and variables** > **Actions**:
+GitHub Actions secrets and variables are managed via Terraform (see `infra/modules/github/`). Pass them when applying:
+
+```bash
+terraform apply -var-file=environments/prod.tfvars \
+  -var='actions_secrets={"AWS_ACCESS_KEY_ID":"...","AWS_SECRET_ACCESS_KEY":"...","SONAR_TOKEN":"...","SNYK_TOKEN":"..."}'
+```
+
+Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
+
+**Secrets:**
 
 | Secret | Source | Purpose |
 |--------|--------|---------|
 | `AWS_ACCESS_KEY_ID` | AWS IAM (or use OIDC) | CI/CD AWS access |
 | `AWS_SECRET_ACCESS_KEY` | AWS IAM (or use OIDC) | CI/CD AWS access |
 | `SONAR_TOKEN` | [SonarCloud](https://sonarcloud.io/) > My Account > Security | Code quality analysis |
+| `SNYK_TOKEN` | [Snyk](https://app.snyk.io/) > Account settings | Vulnerability scanning |
 
-Configure these as **Variables** (not secrets):
+**Variables:**
 
 | Variable | Example | Purpose |
 |----------|---------|---------|
 | `FRONTEND_BUCKET` | `mindtrack-prod-frontend` | S3 bucket for frontend deploy |
 | `CLOUDFRONT_DISTRIBUTION_ID` | `E1234ABCDE` | CloudFront invalidation |
+
+See `.env.example` for the full list of application environment variables.
 
 ## Release & Versioning
 

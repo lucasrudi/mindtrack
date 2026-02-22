@@ -88,3 +88,16 @@ variable "labels" {
     }
   }
 }
+
+variable "actions_secrets" {
+  description = "Map of GitHub Actions secrets to create (name => plaintext value). Values are sensitive."
+  type        = map(string)
+  default     = {}
+  sensitive   = true
+}
+
+variable "actions_variables" {
+  description = "Map of GitHub Actions variables to create (name => value)"
+  type        = map(string)
+  default     = {}
+}

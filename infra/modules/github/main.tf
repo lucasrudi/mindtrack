@@ -75,3 +75,25 @@ resource "github_issue_label" "labels" {
   color       = each.value.color
   description = each.value.description
 }
+
+# ------------------------------------
+# GitHub Actions Secrets
+# ------------------------------------
+resource "github_actions_secret" "secrets" {
+  for_each = var.actions_secrets
+
+  repository      = github_repository.this.name
+  secret_name     = each.key
+  plaintext_value = each.value
+}
+
+# ------------------------------------
+# GitHub Actions Variables
+# ------------------------------------
+resource "github_actions_variable" "variables" {
+  for_each = var.actions_variables
+
+  repository    = github_repository.this.name
+  variable_name = each.key
+  value         = each.value
+}
