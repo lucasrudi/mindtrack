@@ -138,6 +138,78 @@ public class ConversationService {
                 .orElse(null);
     }
 
+    /**
+     * Processes a chat message on a specific channel (Telegram, WhatsApp).
+     * Creates or reuses the most recent conversation for the given channel.
+     *
+     * @param userId the user ID
+     * @param request the chat request
+     * @param channel the messaging channel
+     * @return the AI response
+     */
+    @Transactional
+    public ChatResponse chatWithChannel(Long userId, ChatRequest request, Channel channel) {
+        ConversationType type = request.getType();
+
+        // Check cache
+        String fingerprint = contextBuilder.generateFingerprint(userId);
+        ChatResponse cached = responseCache.get(userId, type, fingerprint);
+        if (cached != null) {
+            LOG.info("Returning cached response for user={} type={} channel={}", userId, type, channel);
+            return new ChatResponse(
+                    cached.conversationId(),
+                    cached.messageId(),
+                    cached.content(),
+                    true,
+                    cached.tokensUsed()
+            );
+        }
+
+        // Get or create a channel-specific conversation
+        Conversation conversation = getOrCreateChannelConversation(userId, channel);
+
+        // Save user message
+        Message userMessage = new Message(conversation, MessageRole.USER, request.getMessage());
+        messageRepository.save(userMessage);
+
+        // Build context and history
+        String systemPrompt = contextBuilder.buildSystemPrompt(userId);
+        List<MessageDto> history = messageRepository
+                .findByConversationIdOrderByCreatedAtAsc(conversation.getId())
+                .stream()
+                .map(m -> new MessageDto(m.getId(), m.getRole(), m.getContent(), m.getCreatedAt()))
+                .toList();
+
+        // Call Claude API
+        ChatResponse aiResponse = claudeApiClient.sendMessage(systemPrompt, history, type);
+
+        // Save AI response
+        Message assistantMessage = new Message(conversation, MessageRole.ASSISTANT, aiResponse.content());
+        messageRepository.save(assistantMessage);
+
+        ChatResponse response = new ChatResponse(
+                conversation.getId(),
+                assistantMessage.getId(),
+                aiResponse.content(),
+                false,
+                aiResponse.tokensUsed()
+        );
+
+        responseCache.put(userId, type, fingerprint, response);
+
+        return response;
+    }
+
+    private Conversation getOrCreateChannelConversation(Long userId, Channel channel) {
+        List<Conversation> existing = conversationRepository
+                .findByUserIdAndChannelOrderByStartedAtDesc(userId, channel);
+        if (!existing.isEmpty()) {
+            return existing.get(0);
+        }
+        Conversation conversation = new Conversation(userId, channel);
+        return conversationRepository.save(conversation);
+    }
+
     private Conversation getOrCreateConversation(Long userId, Long conversationId) {
         if (conversationId != null) {
             return conversationRepository.findById(conversationId)

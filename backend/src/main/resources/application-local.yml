@@ -53,3 +53,11 @@ mindtrack:
   storage:
     bucket-name: mindtrack-audio-local
     local-storage-path: ${java.io.tmpdir}/mindtrack-audio
+  messaging:
+    telegram:
+      bot-token: ""
+      webhook-secret: ""
+    whatsapp:
+      api-token: ""
+      verify-token: local-verify-token
+      phone-number-id: ""
