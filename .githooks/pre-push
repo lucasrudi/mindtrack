@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -e
 
+# Ensure Homebrew Java and Maven are available in non-interactive shells
+# (JAVA_HOME is normally set via ~/.zshrc which isn't sourced by git hooks)
+if [ -z "$JAVA_HOME" ]; then
+    HOMEBREW_JDK="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home"
+    if [ -d "$HOMEBREW_JDK" ]; then
+        export JAVA_HOME="$HOMEBREW_JDK"
+    fi
+fi
+export PATH="/opt/homebrew/bin:$PATH"
+
 echo "=== Pre-push checks ==="
 
 # Backend tests
