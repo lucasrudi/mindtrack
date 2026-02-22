@@ -17,7 +17,7 @@ echo "=== Pre-push checks ==="
 if [ -d "backend" ]; then
     echo ">> Running backend tests..."
     cd backend
-    mvn test -q
+    mvn test -q -Djacoco.skip=true
     cd ..
     echo ">> Backend tests passed."
 fi
