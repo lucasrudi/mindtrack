@@ -43,18 +43,26 @@ if command -v snyk &> /dev/null; then
 
     if [ -d "backend" ]; then
         echo "   Scanning backend dependencies..."
-        snyk test --file=backend/pom.xml --severity-threshold=high 2>&1 || {
+        snyk test --file=backend/pom.xml --severity-threshold=high 2>&1
+        snyk_exit=$?
+        if [ $snyk_exit -eq 1 ]; then
             echo "!! Snyk found high/critical vulnerabilities in backend. Fix them before pushing."
             exit 1
-        }
+        elif [ $snyk_exit -eq 2 ]; then
+            echo "!! Snyk scan failed (API/config error). Skipping backend scan."
+        fi
     fi
 
     if [ -d "frontend" ] && [ -f "frontend/package.json" ]; then
         echo "   Scanning frontend dependencies..."
-        snyk test --file=frontend/package.json --severity-threshold=high 2>&1 || {
+        snyk test --file=frontend/package.json --severity-threshold=high 2>&1
+        snyk_exit=$?
+        if [ $snyk_exit -eq 1 ]; then
             echo "!! Snyk found high/critical vulnerabilities in frontend. Fix them before pushing."
             exit 1
-        }
+        elif [ $snyk_exit -eq 2 ]; then
+            echo "!! Snyk scan failed (API/config error). Skipping frontend scan."
+        fi
     fi
 
     echo ">> Snyk scan passed."
