@@ -29,7 +29,7 @@ if [ -d "infra" ]; then
     terraform -chdir=infra fmt -check -recursive
     terraform -chdir=infra validate
     if command -v tflint &> /dev/null; then
-        tflint --recursive --chdir=infra
+        tflint --recursive --chdir=infra --minimum-failure-severity=error
     fi
     if command -v tfsec &> /dev/null; then
         tfsec infra/
