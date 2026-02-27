@@ -95,6 +95,10 @@ jobs:
       - name: Setup tflint
         uses: terraform-linters/setup-tflint@v4
 
+      - name: Init tflint
+        working-directory: infra
+        run: tflint --init
+
       - name: Run tflint
         working-directory: infra
         run: tflint --recursive --minimum-failure-severity=error
