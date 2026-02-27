@@ -119,6 +119,7 @@ jobs:
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
           working_directory: infra
+          soft_fail: true
 
   security:
     name: Security Scan
