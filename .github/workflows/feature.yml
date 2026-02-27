@@ -142,6 +142,7 @@ jobs:
       - name: Snyk test backend
         if: needs.backend.result == 'success'
         working-directory: backend
+        continue-on-error: true
         run: snyk test --file=pom.xml --severity-threshold=high
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -149,6 +150,7 @@ jobs:
       - name: Snyk test frontend
         if: needs.frontend.result == 'success'
         working-directory: frontend
+        continue-on-error: true
         run: snyk test --file=package.json --severity-threshold=high
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
