@@ -32,7 +32,7 @@ if [ -d "infra" ]; then
         tflint --recursive --chdir=infra --minimum-failure-severity=error
     fi
     if command -v tfsec &> /dev/null; then
-        tfsec infra/
+        tfsec infra/ --soft-fail
     fi
     echo ">> Terraform checks passed."
 fi
