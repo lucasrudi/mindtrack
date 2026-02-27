@@ -20,6 +20,14 @@ spring:
   flyway:
     enabled: false
 
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+      credentials:
+        access-key: local-dummy-access-key
+        secret-key: local-dummy-secret-key
+
   security:
     oauth2:
       client:
