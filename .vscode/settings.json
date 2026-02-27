@@ -69,5 +69,6 @@
     "frontend/dist": true,
     "infra/.terraform": true
   },
-  "snyk.advanced.autoSelectOrganization": true
+  "snyk.advanced.autoSelectOrganization": true,
+  "snyk.advanced.organization": "2d4b734e-7b2a-4729-8428-e67d00c716cb"
 }
