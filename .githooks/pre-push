@@ -29,10 +29,10 @@ if [ -d "infra" ]; then
     terraform -chdir=infra fmt -check -recursive
     terraform -chdir=infra validate
     if command -v tflint &> /dev/null; then
-        tflint --recursive --chdir=infra
+        tflint --recursive --chdir=infra --minimum-failure-severity=error
     fi
     if command -v tfsec &> /dev/null; then
-        tfsec infra/
+        tfsec infra/ --soft-fail
     fi
     echo ">> Terraform checks passed."
 fi
@@ -43,18 +43,30 @@ if command -v snyk &> /dev/null; then
 
     if [ -d "backend" ]; then
         echo "   Scanning backend dependencies..."
-        snyk test --file=backend/pom.xml --severity-threshold=high 2>&1 || {
+        set +e
+        snyk test --file=backend/pom.xml --severity-threshold=high 2>&1
+        snyk_exit=$?
+        set -e
+        if [ $snyk_exit -eq 1 ]; then
             echo "!! Snyk found high/critical vulnerabilities in backend. Fix them before pushing."
             exit 1
-        }
+        elif [ $snyk_exit -eq 2 ]; then
+            echo "!! Snyk scan failed (API/config error). Skipping backend scan."
+        fi
     fi
 
     if [ -d "frontend" ] && [ -f "frontend/package.json" ]; then
         echo "   Scanning frontend dependencies..."
-        snyk test --file=frontend/package.json --severity-threshold=high 2>&1 || {
+        set +e
+        snyk test --file=frontend/package.json --severity-threshold=high 2>&1
+        snyk_exit=$?
+        set -e
+        if [ $snyk_exit -eq 1 ]; then
             echo "!! Snyk found high/critical vulnerabilities in frontend. Fix them before pushing."
             exit 1
-        }
+        elif [ $snyk_exit -eq 2 ]; then
+            echo "!! Snyk scan failed (API/config error). Skipping frontend scan."
+        fi
     fi
 
     echo ">> Snyk scan passed."

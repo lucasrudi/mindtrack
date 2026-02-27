@@ -29,10 +29,7 @@ cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=local
 cd frontend && npm run dev
 ```
 
-Note: Maven requires explicit JAVA_HOME on this machine:
-```bash
-JAVA_HOME="/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home" /opt/homebrew/bin/mvn <command>
-```
+Note: Maven uses OpenJDK 25 (Homebrew) with `JAVA_HOME` set in `~/.zshrc`.
 
 ## Running Tests
 

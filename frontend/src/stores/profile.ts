@@ -52,7 +52,7 @@ export const useProfileStore = defineStore('profile', () => {
     }
   }
 
-  async function updateProfile(form: ProfileForm) {
+  async function updateProfile(form: Partial<ProfileForm>) {
     saving.value = true
     error.value = null
     try {

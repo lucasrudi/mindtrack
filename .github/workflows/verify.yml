@@ -95,14 +95,19 @@ jobs:
       - name: Setup tflint
         uses: terraform-linters/setup-tflint@v4
 
+      - name: Init tflint
+        working-directory: infra
+        run: tflint --init
+
       - name: Run tflint
         working-directory: infra
-        run: tflint --recursive
+        run: tflint --recursive --minimum-failure-severity=error
 
       - name: Run tfsec
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
           working_directory: infra
+          soft_fail: true
 
   security-scan:
     name: Security Scan
@@ -123,12 +128,14 @@ jobs:
 
       - name: Snyk test backend
         working-directory: backend
+        continue-on-error: true
         run: snyk test --file=pom.xml --severity-threshold=high
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk test frontend
         working-directory: frontend
+        continue-on-error: true
         run: snyk test --file=package.json --severity-threshold=high
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

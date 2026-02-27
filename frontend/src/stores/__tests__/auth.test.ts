@@ -114,7 +114,7 @@ describe('useAuthStore', () => {
     it('does not fetch if no token', async () => {
       const store = useAuthStore()
       const module = await import('@/services/api')
-      const api = module.default as { get: ReturnType<typeof vi.fn> }
+      const api = module.default as unknown as { get: ReturnType<typeof vi.fn> }
 
       await store.fetchCurrentUser()
 
@@ -126,7 +126,7 @@ describe('useAuthStore', () => {
       store.setToken('valid-token')
 
       const module = await import('@/services/api')
-      const api = module.default as { get: ReturnType<typeof vi.fn> }
+      const api = module.default as unknown as { get: ReturnType<typeof vi.fn> }
       const userData = { id: '1', email: 'test@test.com', name: 'Test', role: 'USER' }
       api.get.mockResolvedValueOnce({ data: userData })
 
@@ -140,7 +140,7 @@ describe('useAuthStore', () => {
       store.setToken('expired-token')
 
       const module = await import('@/services/api')
-      const api = module.default as { get: ReturnType<typeof vi.fn> }
+      const api = module.default as unknown as { get: ReturnType<typeof vi.fn> }
       api.get.mockRejectedValueOnce(new Error('Unauthorized'))
 
       await store.fetchCurrentUser()

@@ -80,11 +80,11 @@ resource "github_issue_label" "labels" {
 # GitHub Actions Secrets
 # ------------------------------------
 resource "github_actions_secret" "secrets" {
-  for_each = var.actions_secrets
+  for_each = nonsensitive(toset(keys(var.actions_secrets)))
 
   repository      = github_repository.this.name
   secret_name     = each.key
-  plaintext_value = each.value
+  plaintext_value = var.actions_secrets[each.key]
 }
 
 # ------------------------------------
