@@ -1,5 +1,67 @@
 # Snyk policy file
 # https://snyk.io/docs/using-snyk-policy/
 version: v1.25.0
-ignore: {}
+ignore:
+  # No fix available in any current Spring Boot / Tomcat / Spring Framework version (as of 2026-02-27).
+  # Reviewed and accepted for 90 days. Revisit when upstream patches are released.
+  SNYK-JAVA-COMMYSQL-9725315:
+    - '*':
+        reason: >-
+          No fix available in mysql-connector-j 9.2.0 (latest). Revisit when
+          a patched version is released upstream.
+        expires: '2026-05-28T00:00:00.000Z'
+  SNYK-JAVA-ORGAPACHETOMCATEMBED-10674391:
+    - '*':
+        reason: >-
+          No fix available in tomcat-embed-core 10.1.42 (latest managed by
+          Spring Boot 3.5.3). Revisit when Tomcat releases a patch.
+        expires: '2026-05-28T00:00:00.000Z'
+  SNYK-JAVA-ORGAPACHETOMCATEMBED-10676855:
+    - '*':
+        reason: >-
+          No fix available in tomcat-embed-core 10.1.42 (latest managed by
+          Spring Boot 3.5.3). Revisit when Tomcat releases a patch.
+        expires: '2026-05-28T00:00:00.000Z'
+  SNYK-JAVA-ORGAPACHETOMCATEMBED-11799152:
+    - '*':
+        reason: >-
+          No fix available in tomcat-embed-core 10.1.42 (latest managed by
+          Spring Boot 3.5.3). Revisit when Tomcat releases a patch.
+        expires: '2026-05-28T00:00:00.000Z'
+  SNYK-JAVA-ORGAPACHETOMCATEMBED-13733966:
+    - '*':
+        reason: >-
+          No fix available in tomcat-embed-core 10.1.42 (latest managed by
+          Spring Boot 3.5.3). Revisit when Tomcat releases a patch.
+        expires: '2026-05-28T00:00:00.000Z'
+  SNYK-JAVA-ORGAPACHETOMCATEMBED-15307781:
+    - '*':
+        reason: >-
+          Newly disclosed CVE with no fix available yet in any Tomcat 10.1.x
+          release. Revisit when upstream patch is available.
+        expires: '2026-05-28T00:00:00.000Z'
+  SNYK-JAVA-ORGAPACHETOMCATEMBED-15307822:
+    - '*':
+        reason: >-
+          Newly disclosed CVE with no fix available yet in any Tomcat 10.1.x
+          release. Revisit when upstream patch is available.
+        expires: '2026-05-28T00:00:00.000Z'
+  SNYK-JAVA-ORGSPRINGFRAMEWORK-12008931:
+    - '*':
+        reason: >-
+          No fix available in spring-beans 6.2.8 (latest managed by Spring Boot
+          3.5.3). Revisit when Spring Framework releases a patch.
+        expires: '2026-05-28T00:00:00.000Z'
+  SNYK-JAVA-ORGSPRINGFRAMEWORK-12817817:
+    - '*':
+        reason: >-
+          No fix available in spring-core 6.2.8 (latest managed by Spring Boot
+          3.5.3). Revisit when Spring Framework releases a patch.
+        expires: '2026-05-28T00:00:00.000Z'
+  SNYK-JAVA-ORGSPRINGFRAMEWORKSECURITY-12817818:
+    - '*':
+        reason: >-
+          No fix available in spring-security-core 6.5.1 (latest managed by
+          Spring Boot 3.5.3). Revisit when Spring Security releases a patch.
+        expires: '2026-05-28T00:00:00.000Z'
 patch: {}
