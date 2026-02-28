@@ -145,6 +145,7 @@ jobs:
         if: needs.backend.result == 'success'
         working-directory: backend
         run: |
+          if [ -z "$SNYK_TOKEN" ]; then echo "SNYK_TOKEN not set, skipping" && exit 0; fi
           snyk test --file=pom.xml --severity-threshold=high; code=$?
           if [ $code -eq 1 ]; then echo "Snyk found vulnerabilities" && exit 1; fi
           if [ $code -eq 2 ]; then echo "Snyk scan skipped (quota/API error)" && exit 0; fi
@@ -155,6 +156,7 @@ jobs:
         if: needs.frontend.result == 'success'
         working-directory: frontend
         run: |
+          if [ -z "$SNYK_TOKEN" ]; then echo "SNYK_TOKEN not set, skipping" && exit 0; fi
           snyk test --file=package.json --severity-threshold=high; code=$?
           if [ $code -eq 1 ]; then echo "Snyk found vulnerabilities" && exit 1; fi
           if [ $code -eq 2 ]; then echo "Snyk scan skipped (quota/API error)" && exit 0; fi
