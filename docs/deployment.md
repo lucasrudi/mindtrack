@@ -179,6 +179,7 @@ Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
 | `SONAR_TOKEN` | [SonarCloud](https://sonarcloud.io/) > My Account > Security | Code quality analysis |
 | `SNYK_TOKEN` | [Snyk](https://app.snyk.io/) > Account settings | Vulnerability scanning |
 | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/) > API Keys | Claude code-review in CI |
+| `RENOVATE_TOKEN` | GitHub PAT (classic) with `repo` scope | Renovate dependency updates |
 
 **Variables:**
 
