@@ -24,6 +24,11 @@ output "lambda_function_name" {
   value       = module.lambda.function_name
 }
 
+output "github_actions_role_arn" {
+  description = "IAM role ARN for GitHub Actions OIDC — set as AWS_ROLE_ARN Actions variable"
+  value       = module.iam.github_actions_role_arn
+}
+
 output "monitoring_dashboard_url" {
   description = "CloudWatch overview dashboard URL"
   value       = module.monitoring.dashboard_url

@@ -62,21 +62,35 @@ See `.github/workflows/release.yml` and `.github/workflows/deploy.yml`.
 
 ### AWS
 
-1. **Create a CI/CD IAM user** (for GitHub Actions):
+GitHub Actions authenticates to AWS via **OIDC** — no long-lived access keys are stored as secrets. The IAM OIDC provider and GitHub Actions role are managed by Terraform in `infra/modules/iam/`.
+
+1. **Apply the prod Terraform environment** (creates the OIDC provider + scoped IAM role):
 
    ```bash
-   aws iam create-user --user-name mindtrack-ci
-   aws iam attach-user-policy --user-name mindtrack-ci \
-     --policy-arn arn:aws:iam::aws:policy/AdministratorAccess  # scope down in production
-   aws iam create-access-key --user-name mindtrack-ci
+   cd infra
+   terraform init
+   terraform apply -var-file=environments/prod.tfvars
    ```
 
-   Save the `AccessKeyId` and `SecretAccessKey` for GitHub secrets.
+2. **Get the role ARN** from Terraform output:
 
-2. **Recommended: Use OIDC instead of access keys** for GitHub Actions:
-   - Create an IAM Identity Provider for `token.actions.githubusercontent.com`
-   - Create an IAM role with trust policy for your GitHub repo
-   - Reference in workflows with `aws-actions/configure-aws-credentials@v4` using `role-to-assume`
+   ```bash
+   terraform output github_actions_role_arn
+   ```
+
+3. **Set `AWS_ROLE_ARN` as a GitHub Actions variable** via the GitHub settings Terraform:
+
+   ```bash
+   terraform -chdir=infra/github-settings apply \
+     -var='repository_name=mindtrack' \
+     -var='actions_variables={"AWS_ROLE_ARN":"<role-arn-from-step-2>"}'
+   ```
+
+   Or manually in **Settings** > **Secrets and variables** > **Actions** > **Variables**.
+
+The deploy workflow (`deploy.yml`) uses `role-to-assume: ${{ vars.AWS_ROLE_ARN }}` and already has `id-token: write` permissions. No key rotation needed.
+
+> **Note:** `create_oidc_provider = true` is set only in `prod.tfvars`. The OIDC provider is AWS account-scoped; setting it to `false` in `dev.tfvars` prevents a conflict if both environments share the same account.
 
 ### Google OAuth2
 
@@ -174,8 +188,6 @@ Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
 
 | Secret | Source | Purpose |
 |--------|--------|---------|
-| `AWS_ACCESS_KEY_ID` | AWS IAM (or use OIDC) | CI/CD AWS access |
-| `AWS_SECRET_ACCESS_KEY` | AWS IAM (or use OIDC) | CI/CD AWS access |
 | `SONAR_TOKEN` | [SonarCloud](https://sonarcloud.io/) > My Account > Security | Code quality analysis |
 | `SNYK_TOKEN` | [Snyk](https://app.snyk.io/) > Account settings | Vulnerability scanning |
 | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/) > API Keys | Claude code-review in CI |
@@ -185,6 +197,7 @@ Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
 
 | Variable | Example | Purpose |
 |----------|---------|---------|
+| `AWS_ROLE_ARN` | `arn:aws:iam::123456789012:role/mindtrack-prod-github-actions` | OIDC role for deploy workflow |
 | `FRONTEND_BUCKET` | `mindtrack-prod-frontend` | S3 bucket for frontend deploy |
 | `CLOUDFRONT_DISTRIBUTION_ID` | `E1234ABCDE` | CloudFront invalidation |
 
@@ -203,16 +216,14 @@ Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
 ### Provisioning a new environment
 
 ```bash
-cd infra/envs/dev
+cd infra
 terraform init
-terraform apply -var-file=dev.tfvars
-# Retrieve credentials and store in GitHub Actions secrets
-terraform output -raw ci_access_key_id
-terraform output -raw ci_secret_access_key
+terraform apply -var-file=environments/dev.tfvars
+# Retrieve the GitHub Actions role ARN and set it as an Actions variable
+terraform output github_actions_role_arn
 ```
 
-Add to GitHub secrets: `AWS_ACCESS_KEY_ID_DEV`, `AWS_SECRET_ACCESS_KEY_DEV`
-(and same for test: `AWS_ACCESS_KEY_ID_TEST`, `AWS_SECRET_ACCESS_KEY_TEST`)
+Set the output as the `AWS_ROLE_ARN` Actions variable for the environment.
 
 ### IAM Policy Summary
 

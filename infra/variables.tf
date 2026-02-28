@@ -38,3 +38,19 @@ variable "alarm_email" {
   type        = string
   default     = ""
 }
+
+variable "github_org" {
+  description = "GitHub organization or username that owns the repository"
+  type        = string
+}
+
+variable "github_repo" {
+  description = "GitHub repository name"
+  type        = string
+}
+
+variable "create_oidc_provider" {
+  description = "Whether to create the GitHub OIDC Identity Provider. Set true in exactly one environment per AWS account."
+  type        = bool
+  default     = false
+}

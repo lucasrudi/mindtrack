@@ -5,9 +5,12 @@ locals {
 module "iam" {
   source = "./modules/iam"
 
-  name_prefix      = local.name_prefix
-  audio_bucket_arn = module.s3.audio_bucket_arn
-  secrets_arns     = module.secrets.secret_arns
+  name_prefix          = local.name_prefix
+  audio_bucket_arn     = module.s3.audio_bucket_arn
+  secrets_arns         = module.secrets.secret_arns
+  github_org           = var.github_org
+  github_repo          = var.github_repo
+  create_oidc_provider = var.create_oidc_provider
 }
 
 module "s3" {

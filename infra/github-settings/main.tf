@@ -24,4 +24,5 @@ module "github" {
   required_status_checks = var.required_status_checks
   required_approvals     = var.required_approvals
   actions_secrets        = var.actions_secrets
+  actions_variables      = var.actions_variables
 }

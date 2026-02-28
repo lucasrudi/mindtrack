@@ -36,3 +36,9 @@ variable "actions_secrets" {
   default     = {}
   sensitive   = true
 }
+
+variable "actions_variables" {
+  description = "Map of GitHub Actions variables (name => value). Not sensitive — includes AWS_ROLE_ARN for OIDC."
+  type        = map(string)
+  default     = {}
+}
