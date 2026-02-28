@@ -38,11 +38,11 @@ frontend/.vite/
 Thumbs.db
 
 # Terraform
-infra/.terraform/
-infra/*.tfstate
-infra/*.tfstate.backup
-infra/*.tfplan
-infra/.terraform.lock.hcl
+infra/**/.terraform/
+infra/**/*.tfstate
+infra/**/*.tfstate.backup
+infra/**/*.tfplan
+infra/**/.terraform.lock.hcl
 
 # Docker
 docker/data/
