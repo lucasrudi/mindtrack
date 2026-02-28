@@ -74,6 +74,21 @@ Both VSCode (`.vscode/`) and IntelliJ (`.idea/codeStyles/`) are configured with 
 Branch name format: `{type}/{issue-id}-{description}` — enforced by the "Branch Name Check" CI gate.
 Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`, `ci:`, `infra:`
 
+## CI/CD Workflows
+
+| Workflow | File | Trigger | Purpose |
+|----------|------|---------|---------|
+| Feature CI | `feature.yml` | Push to non-main branches | Build, test, lint, tflint, tfsec, SonarCloud, Snyk |
+| Verify | `verify.yml` | Push to `main` | Same as feature CI but on main |
+| Branch Name Check | `branch-check.yml` | PR to `main` | Enforces `{type}/{issue-id}-{description}` — required gate |
+| Code Review | `code-review.yml` | PR to `main` | Claude posts a structured review comment — required gate |
+| Auto Merge | `auto-merge.yml` | PR opened to `main` | Enables squash auto-merge automatically |
+| GitHub Config Sync | `github-config-sync.yml` | Manual / push to `infra/github-settings/` | Applies Terraform for repo settings (branch protection, required checks) |
+| Release | `release.yml` | Push to `main` | release-please creates/updates release PRs |
+| Deploy | `deploy.yml` | GitHub Release published | Deploys backend + frontend to AWS |
+
+**Required secrets:** `ANTHROPIC_API_KEY` (code review), `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` (GitHub config sync), `SNYK_TOKEN`, `SONAR_TOKEN`.
+
 ## Versioning
 
 Uses release-please with Conventional Commits. Backend, frontend, and infra versioned independently.
