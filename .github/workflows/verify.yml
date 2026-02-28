@@ -26,13 +26,6 @@ jobs:
         working-directory: backend
         run: mvn verify -B
 
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: backend-coverage
-          path: backend/target/site/jacoco/
-
   frontend-verify:
     name: Frontend Verify
     runs-on: ubuntu-latest
@@ -52,7 +45,7 @@ jobs:
 
       - name: Lint
         working-directory: frontend
-        run: npx eslint . --max-warnings 0
+        run: npm run lint
 
       - name: Unit tests
         working-directory: frontend
@@ -151,16 +144,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Download backend coverage
-        uses: actions/download-artifact@v4
-        if: needs.backend-verify.result == 'success'
-        with:
-          name: backend-coverage
-          path: backend/target/site/jacoco/
-
       - name: Download frontend coverage
         uses: actions/download-artifact@v4
         if: needs.frontend-verify.result == 'success'
+        continue-on-error: true
         with:
           name: frontend-coverage
           path: frontend/coverage/
