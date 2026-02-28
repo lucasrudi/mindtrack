@@ -189,3 +189,38 @@ Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
 | `CLOUDFRONT_DISTRIBUTION_ID` | `E1234ABCDE` | CloudFront invalidation |
 
 > See [Environment Variables](environment-variables.md) for the complete reference of all application and CI environment variables.
+
+---
+
+## Environment Matrix
+
+| Environment | Purpose | State Key | IAM User | Lambda Role |
+|-------------|---------|-----------|----------|-------------|
+| `dev` | Developer manual testing | `mindtrack/dev/terraform.tfstate` | `mindtrack-dev-ci` | `mindtrack-dev-app` |
+| `test` | CI integration tests | `mindtrack/test/terraform.tfstate` | `mindtrack-test-ci` | `mindtrack-test-app` |
+| `prod` | Production | `terraform.tfstate` | `mindtrack-ci` | `mindtrack-prod-lambda-role` |
+
+### Provisioning a new environment
+
+```bash
+cd infra/envs/dev
+terraform init
+terraform apply -var-file=dev.tfvars
+# Retrieve credentials and store in GitHub Actions secrets
+terraform output -raw ci_access_key_id
+terraform output -raw ci_secret_access_key
+```
+
+Add to GitHub secrets: `AWS_ACCESS_KEY_ID_DEV`, `AWS_SECRET_ACCESS_KEY_DEV`
+(and same for test: `AWS_ACCESS_KEY_ID_TEST`, `AWS_SECRET_ACCESS_KEY_TEST`)
+
+### IAM Policy Summary
+
+Each environment's CI user (`mindtrack-{env}-ci`) can:
+- Update Lambda functions prefixed `mindtrack-{env}-*`
+- Read/write S3 buckets prefixed `mindtrack-{env}-*`
+- Invalidate CloudFront distributions
+
+Each environment's CI user explicitly **cannot**:
+- Access prod S3, Lambda, or Secrets Manager paths
+- Read secrets from `/mindtrack/prod/*`
