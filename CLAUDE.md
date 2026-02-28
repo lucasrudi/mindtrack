@@ -103,6 +103,19 @@ Uses release-please with Conventional Commits. Backend, frontend, and infra vers
 - Config: `release-please-config.json`, `.release-please-manifest.json`
 - Pipeline: `.github/workflows/release.yml` creates release PRs, `.github/workflows/deploy.yml` deploys on release publish.
 
+## Docs Structure
+
+Extended documentation lives in `docs/` — README.md is a concise landing page that links to these:
+
+| File | Contents |
+|------|----------|
+| `docs/architecture.md` | System diagram, tech stack table, backend module breakdown |
+| `docs/getting-started.md` | Prerequisites, local dev Option A (H2) and Option B (Docker) |
+| `docs/testing.md` | Backend, frontend, and infra test commands |
+| `docs/deployment.md` | First-time AWS setup, Terraform init, all secrets provisioning |
+| `docs/release.md` | release-please workflow and Conventional Commits rules |
+| `docs/sonar-quality-gates.md` | SonarCloud quality gate configuration |
+
 ## Important Files
 
 | File | Purpose |
