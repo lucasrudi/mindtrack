@@ -112,7 +112,7 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-latest
     needs: [backend-verify, frontend-verify]
-    if: secrets.SNYK_TOKEN != ''
+    if: always()
     steps:
       - uses: actions/checkout@v4
 
@@ -150,7 +150,7 @@ jobs:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
     needs: [backend-verify, frontend-verify]
-    if: needs.backend-verify.result == 'success' && needs.frontend-verify.result == 'success' && secrets.SONAR_TOKEN != ''
+    if: needs.backend-verify.result == 'success' && needs.frontend-verify.result == 'success'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -171,6 +171,7 @@ jobs:
           path: backend/target/site/jacoco/
 
       - name: SonarCloud Scan
+        if: ${{ secrets.SONAR_TOKEN != '' }}
         uses: SonarSource/sonarcloud-github-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
