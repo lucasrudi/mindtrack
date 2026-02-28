@@ -188,4 +188,4 @@ Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
 | `FRONTEND_BUCKET` | `mindtrack-prod-frontend` | S3 bucket for frontend deploy |
 | `CLOUDFRONT_DISTRIBUTION_ID` | `E1234ABCDE` | CloudFront invalidation |
 
-See `.env.example` for the full list of application environment variables.
+> See [Environment Variables](environment-variables.md) for the complete reference of all application and CI environment variables.

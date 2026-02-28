@@ -25,6 +25,7 @@ The AI component can proactively reach out via Telegram or WhatsApp to check in 
 | [Testing](docs/testing.md) | Running backend, frontend, and infrastructure tests |
 | [Deployment](docs/deployment.md) | AWS setup, Terraform, and secrets provisioning |
 | [Release & Versioning](docs/release.md) | release-please and Conventional Commits workflow |
+| [Environment Variables](docs/environment-variables.md) | All env vars for local dev, CI, and production |
 | [Contributing](CONTRIBUTING.md) | Branch naming, commit conventions, PR process |
 
 ## Project Structure
