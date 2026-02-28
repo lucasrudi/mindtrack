@@ -127,6 +127,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [backend, frontend]
     if: needs.backend.result == 'success' && needs.frontend.result == 'success' && secrets.SNYK_TOKEN != ''
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -143,16 +144,20 @@ jobs:
       - name: Snyk test backend
         if: needs.backend.result == 'success'
         working-directory: backend
-        continue-on-error: true
-        run: snyk test --file=pom.xml --severity-threshold=high
+        run: |
+          snyk test --file=pom.xml --severity-threshold=high; code=$?
+          if [ $code -eq 1 ]; then echo "Snyk found vulnerabilities" && exit 1; fi
+          if [ $code -eq 2 ]; then echo "Snyk scan skipped (quota/API error)" && exit 0; fi
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk test frontend
         if: needs.frontend.result == 'success'
         working-directory: frontend
-        continue-on-error: true
-        run: snyk test --file=package.json --severity-threshold=high
+        run: |
+          snyk test --file=package.json --severity-threshold=high; code=$?
+          if [ $code -eq 1 ]; then echo "Snyk found vulnerabilities" && exit 1; fi
+          if [ $code -eq 2 ]; then echo "Snyk scan skipped (quota/API error)" && exit 0; fi
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 

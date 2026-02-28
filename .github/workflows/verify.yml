@@ -128,15 +128,19 @@ jobs:
 
       - name: Snyk test backend
         working-directory: backend
-        continue-on-error: true
-        run: snyk test --file=pom.xml --severity-threshold=high
+        run: |
+          snyk test --file=pom.xml --severity-threshold=high; code=$?
+          if [ $code -eq 1 ]; then echo "Snyk found vulnerabilities" && exit 1; fi
+          if [ $code -eq 2 ]; then echo "Snyk scan skipped (quota/API error)" && exit 0; fi
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk test frontend
         working-directory: frontend
-        continue-on-error: true
-        run: snyk test --file=package.json --severity-threshold=high
+        run: |
+          snyk test --file=package.json --severity-threshold=high; code=$?
+          if [ $code -eq 1 ]; then echo "Snyk found vulnerabilities" && exit 1; fi
+          if [ $code -eq 2 ]; then echo "Snyk scan skipped (quota/API error)" && exit 0; fi
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
