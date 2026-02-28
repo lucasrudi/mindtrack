@@ -14,6 +14,12 @@ terraform -chdir="$INFRA_DIR" init -backend=false
 echo ">> Validating..."
 terraform -chdir="$INFRA_DIR" validate
 
+echo ">> Initializing github-settings (no backend)..."
+terraform -chdir="$INFRA_DIR/github-settings" init -backend=false
+
+echo ">> Validating github-settings..."
+terraform -chdir="$INFRA_DIR/github-settings" validate
+
 if command -v tflint &> /dev/null; then
     echo ">> Running tflint..."
     tflint --recursive --chdir="$INFRA_DIR"

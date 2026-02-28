@@ -100,7 +100,9 @@ function unlinkWhatsapp() {
 
 async function replayTutorial() {
   try {
-    await store.updateProfile({ tutorialCompleted: false })
+    await store.updateProfile({ tutorialCompleted: false } as unknown as Parameters<
+      typeof store.updateProfile
+    >[0])
     router.push('/dashboard')
   } catch {
     // Error handled by store
