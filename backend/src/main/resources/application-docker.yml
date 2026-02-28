@@ -18,8 +18,9 @@ spring:
       client:
         registration:
           google:
-            client-id: local-dummy-client-id
-            client-secret: local-dummy-client-secret
+            client-id: ${GOOGLE_CLIENT_ID:local-dummy-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:local-dummy-client-secret}
+            redirect-uri: "{baseUrl}/api/login/oauth2/code/{registrationId}"
 
 management:
   otlp:

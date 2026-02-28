@@ -6,9 +6,11 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.backend
     ports:
-      - "8080:8080"
+      - '8080:8080'
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - GOOGLE_CLIENT_ID=856765088772-trj5j6mitk4vkj77h0u6a5ddbr7pjl8i.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=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
     depends_on:
       - mysql
       - otel-collector
@@ -20,7 +22,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.frontend
     ports:
-      - "3000:80"
+      - '3000:80'
     depends_on:
       - backend
     networks:
@@ -29,7 +31,7 @@ services:
   mysql:
     image: mysql:8.0
     ports:
-      - "3306:3306"
+      - '3306:3306'
     environment:
       MYSQL_ROOT_PASSWORD: mindtrack
       MYSQL_DATABASE: mindtrack
@@ -43,7 +45,7 @@ services:
   localstack:
     image: localstack/localstack:3
     ports:
-      - "4566:4566"
+      - '4566:4566'
     environment:
       - SERVICES=s3,secretsmanager
       - DEFAULT_REGION=us-east-1
@@ -54,11 +56,11 @@ services:
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.114.0
-    command: ["--config=/etc/otel-collector-config.yml"]
+    command: ['--config=/etc/otel-collector-config.yml']
     ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-      - "8889:8889"   # Prometheus exporter
+      - '4317:4317' # OTLP gRPC
+      - '4318:4318' # OTLP HTTP
+      - '8889:8889' # Prometheus exporter
     volumes:
       - ./otel/otel-collector-config.yml:/etc/otel-collector-config.yml:ro
     depends_on:
@@ -69,7 +71,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.54.1
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
@@ -85,22 +87,22 @@ services:
   tempo:
     image: grafana/tempo:2.6.1
     ports:
-      - "3200:3200"   # Tempo HTTP API
+      - '3200:3200' # Tempo HTTP API
     volumes:
       - ./tempo/tempo.yml:/etc/tempo/tempo.yml:ro
       - tempo_data:/var/tempo
-    command: ["-config.file=/etc/tempo/tempo.yml"]
+    command: ['-config.file=/etc/tempo/tempo.yml']
     networks:
       - mindtrack
 
   grafana:
     image: grafana/grafana:11.4.0
     ports:
-      - "3001:3000"
+      - '3001:3000'
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: mindtrack
-      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_USERS_ALLOW_SIGN_UP: 'false'
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/mindtrack-overview.json
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro

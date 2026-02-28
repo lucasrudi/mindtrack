@@ -31,7 +31,7 @@ public class GrowthMetric {
     @Column(nullable = false, length = 100)
     private String category;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(name = "metric_value", nullable = false, precision = 10, scale = 2)
     private BigDecimal value;
 
     @Column(name = "created_at", nullable = false, updatable = false)
