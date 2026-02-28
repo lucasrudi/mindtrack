@@ -27,3 +27,10 @@ variable "required_approvals" {
   type    = number
   default = 0
 }
+
+variable "actions_secrets" {
+  description = "Map of GitHub Actions secrets (name => plaintext value). Pass at apply time, never hardcode."
+  type        = map(string)
+  default     = {}
+  sensitive   = true
+}
