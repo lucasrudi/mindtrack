@@ -1,7 +1,7 @@
 ---
 id: 18
 title: Integration and functional tests for the backend
-status: To Do
+status: Done
 priority: high
 labels:
   - backend

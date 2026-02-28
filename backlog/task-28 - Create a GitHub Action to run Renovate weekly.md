@@ -1,7 +1,7 @@
 ---
 id: 28
 title: Create a GitHub Action to run Renovate weekly
-status: To Do
+status: Done
 priority: medium
 labels:
   - ci

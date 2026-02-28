@@ -1,7 +1,7 @@
 ---
 id: 30
 title: Create full deploy stage workflow
-status: To Do
+status: Done
 priority: high
 labels:
   - ci

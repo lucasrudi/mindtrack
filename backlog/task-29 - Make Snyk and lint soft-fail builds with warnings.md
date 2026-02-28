@@ -1,7 +1,7 @@
 ---
 id: 29
 title: Make Snyk and lint soft-fail builds with warnings
-status: To Do
+status: Done
 priority: medium
 labels:
   - ci

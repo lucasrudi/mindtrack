@@ -1,7 +1,7 @@
 ---
 id: 32
 title: Create daily clean build and verify workflow
-status: To Do
+status: Done
 priority: medium
 labels:
   - ci

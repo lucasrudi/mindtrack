@@ -1,7 +1,7 @@
 ---
 id: 25
 title: Add SNYK_TOKEN and SONAR_TOKEN to infra github config
-status: To Do
+status: Done
 priority: high
 labels:
   - infra

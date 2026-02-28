@@ -1,7 +1,7 @@
 ---
 id: 33
 title: Create daily Snyk monitor workflow
-status: To Do
+status: Done
 priority: medium
 labels:
   - ci

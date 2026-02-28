@@ -1,7 +1,7 @@
 ---
 id: 27
 title: Protect main branch and update infra github config
-status: To Do
+status: Done
 priority: high
 labels:
   - infra

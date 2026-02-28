@@ -1,7 +1,7 @@
 ---
 id: 26
 title: Generate code documentation site and publish on release
-status: To Do
+status: Done
 priority: medium
 labels:
   - docs

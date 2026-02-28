@@ -1,7 +1,7 @@
 ---
 id: 31
 title: Add environment variables section to README
-status: To Do
+status: Done
 priority: low
 labels:
   - docs
