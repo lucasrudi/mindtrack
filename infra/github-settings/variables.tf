@@ -13,7 +13,8 @@ variable "topics" {
 }
 
 variable "required_status_checks" {
-  type = list(string)
+  description = "CI job names that must pass before a PR can be merged into main."
+  type        = list(string)
   default = [
     "Backend Build & Test",
     "Frontend Build & Test",
@@ -24,8 +25,9 @@ variable "required_status_checks" {
 }
 
 variable "required_approvals" {
-  type    = number
-  default = 0
+  description = "Number of pull request approvals required before merging."
+  type        = number
+  default     = 0
 }
 
 variable "actions_secrets" {
