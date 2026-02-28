@@ -35,6 +35,9 @@ resource "github_repository" "this" {
 
   vulnerability_alerts = true
 
+  # Allow GitHub Actions (release-please, auto-merge) to create and approve PRs
+  actions_can_approve_pull_request_reviews = true
+
   lifecycle {
     prevent_destroy = true
   }
