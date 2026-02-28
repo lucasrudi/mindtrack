@@ -6,7 +6,7 @@ MindTrack is a personal mental health tracking application. It tracks psychiatri
 
 ## Tech Stack
 
-- **Backend:** Java 21, Spring Boot 3.4.2, Maven, Spring Security (OAuth2 + JWT), Spring Data JPA, Flyway
+- **Backend:** Java 21, Spring Boot 3.5.3, Maven, Spring Security (OAuth2 + JWT), Spring Data JPA, Flyway
 - **Frontend:** Vue.js 3 (Composition API), TypeScript, Vite, Pinia, Vue Router, Chart.js
 - **Database:** Aurora Serverless v2 MySQL (prod), H2 in-memory (local)
 - **Infrastructure:** Terraform, AWS Lambda (SnapStart), API Gateway, CloudFront, S3, EventBridge, Secrets Manager
