@@ -27,6 +27,7 @@ The AI component can proactively reach out via Telegram or WhatsApp to check in 
 | [Release & Versioning](docs/release.md) | release-please and Conventional Commits workflow |
 | [Environment Variables](docs/environment-variables.md) | All env vars for local dev, CI, and production |
 | [Contributing](CONTRIBUTING.md) | Branch naming, commit conventions, PR process |
+| [API Docs](https://lucasrudi.github.io/claude-first-test/) | Generated Javadoc (published on each backend release) |
 
 ## Project Structure
 

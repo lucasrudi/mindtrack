@@ -9,3 +9,7 @@ This project uses [release-please](https://github.com/googleapis/release-please)
 Backend, frontend, and infrastructure are versioned independently. When you push to `main`, release-please creates a release PR. Merging it publishes GitHub Releases and triggers deploys for changed components only.
 
 Config: `release-please-config.json`, `.release-please-manifest.json`.
+
+## Documentation Publishing
+
+On every backend release, the deploy workflow automatically generates Javadoc and publishes it to GitHub Pages at `https://lucasrudi.github.io/claude-first-test/`. No manual step is needed — merging the release-please PR triggers the release, which triggers the deploy.
