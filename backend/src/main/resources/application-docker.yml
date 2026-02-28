@@ -13,6 +13,17 @@ spring:
   flyway:
     enabled: true
 
+  cloud:
+    aws:
+      region:
+        static: us-east-1
+      credentials:
+        access-key: local-dummy-access-key
+        secret-key: local-dummy-secret-key
+      s3:
+        endpoint: http://localstack:4566
+        path-style-access-enabled: true
+
   security:
     oauth2:
       client:

@@ -165,7 +165,7 @@ CREATE TABLE growth_metrics (
     user_id BIGINT NOT NULL,
     metric_date DATE NOT NULL,
     category VARCHAR(100) NOT NULL,
-    value DECIMAL(10, 2) NOT NULL,
+    metric_value DECIMAL(10, 2) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_gm_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
