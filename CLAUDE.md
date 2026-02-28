@@ -51,6 +51,14 @@ bash infra/tests/unit/validate.sh
 - **TypeScript/Vue:** ESLint + Prettier, 2-space indent, no semicolons, single quotes. Config: `frontend/eslint.config.js`
 - **Terraform:** `terraform fmt`, tflint, tfsec. 2-space indent.
 
+## Worktrees
+
+Worktrees are stored in `.worktrees/` (gitignored). Each branch gets its own worktree directory, e.g. `.worktrees/feature-42-add-auth`.
+
+- A branch checked out in a worktree cannot be checked out again in the main tree — work from the worktree path directly
+- Use `git -C .worktrees/<name> <command>` to run git commands without changing directory
+- Stash unstaged changes before rebasing: `git -C .worktrees/<name> stash`
+
 ## Git Hooks
 
 - **Pre-commit** (`.githooks/pre-commit`): Runs Checkstyle (Java), ESLint + Prettier (frontend), terraform fmt (infra) on staged files. Fast, lint-only.
