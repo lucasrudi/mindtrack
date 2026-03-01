@@ -45,6 +45,19 @@ public class Goal {
     @Column(nullable = false)
     private GoalStatus status = GoalStatus.NOT_STARTED;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "validation_status", nullable = false)
+    private GoalValidationStatus validationStatus = GoalValidationStatus.PENDING_VALIDATION;
+
+    @Column(name = "validated_by")
+    private Long validatedBy;
+
+    @Column(name = "validated_at")
+    private LocalDateTime validatedAt;
+
+    @Column(name = "created_by")
+    private Long createdBy;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -111,6 +124,38 @@ public class Goal {
 
     public void setStatus(GoalStatus status) {
         this.status = status;
+    }
+
+    public GoalValidationStatus getValidationStatus() {
+        return validationStatus;
+    }
+
+    public void setValidationStatus(GoalValidationStatus validationStatus) {
+        this.validationStatus = validationStatus;
+    }
+
+    public Long getValidatedBy() {
+        return validatedBy;
+    }
+
+    public void setValidatedBy(Long validatedBy) {
+        this.validatedBy = validatedBy;
+    }
+
+    public LocalDateTime getValidatedAt() {
+        return validatedAt;
+    }
+
+    public void setValidatedAt(LocalDateTime validatedAt) {
+        this.validatedAt = validatedAt;
+    }
+
+    public Long getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(Long createdBy) {
+        this.createdBy = createdBy;
     }
 
     public LocalDateTime getCreatedAt() {
