@@ -3,6 +3,7 @@ package com.mindtrack.onboarding.controller;
 import com.mindtrack.goals.dto.GoalResponse;
 import com.mindtrack.onboarding.dto.SurveyRequest;
 import com.mindtrack.onboarding.service.OnboardingService;
+import com.mindtrack.profile.service.ProfileService;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class OnboardingController {
 
     private final OnboardingService onboardingService;
+    private final ProfileService profileService;
 
-    public OnboardingController(OnboardingService onboardingService) {
+    public OnboardingController(OnboardingService onboardingService,
+                                ProfileService profileService) {
         this.onboardingService = onboardingService;
+        this.profileService = profileService;
     }
 
     /**
@@ -34,5 +38,15 @@ public class OnboardingController {
             Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(onboardingService.generateGoalsFromSurvey(userId, request));
+    }
+
+    /**
+     * Skips the onboarding survey, marking onboarding complete without generating goals.
+     */
+    @PostMapping("/skip")
+    public ResponseEntity<Void> skip(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        profileService.skipOnboarding(userId);
+        return ResponseEntity.ok().build();
     }
 }
