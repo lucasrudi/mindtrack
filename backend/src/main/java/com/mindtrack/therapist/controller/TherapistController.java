@@ -7,6 +7,7 @@ import com.mindtrack.interview.dto.InterviewResponse;
 import com.mindtrack.journal.dto.JournalEntryResponse;
 import com.mindtrack.therapist.dto.PatientDetailResponse;
 import com.mindtrack.therapist.dto.PatientSummaryResponse;
+import com.mindtrack.therapist.model.TherapistPatientStatus;
 import com.mindtrack.therapist.service.TherapistService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -85,6 +86,28 @@ public class TherapistController {
             @PathVariable Long patientId, Authentication authentication) {
         Long therapistId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(therapistService.getPatientGoals(therapistId, patientId));
+    }
+
+    /**
+     * Approves a pending patient request (PENDING → ACTIVE).
+     */
+    @PostMapping("/patients/{patientId}/accept")
+    public ResponseEntity<Void> acceptPatient(@PathVariable Long patientId,
+                                              Authentication authentication) {
+        Long therapistId = (Long) authentication.getPrincipal();
+        therapistService.setPatientStatus(therapistId, patientId, TherapistPatientStatus.ACTIVE);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Rejects a pending patient request (PENDING → INACTIVE).
+     */
+    @PostMapping("/patients/{patientId}/reject")
+    public ResponseEntity<Void> rejectPatient(@PathVariable Long patientId,
+                                              Authentication authentication) {
+        Long therapistId = (Long) authentication.getPrincipal();
+        therapistService.setPatientStatus(therapistId, patientId, TherapistPatientStatus.INACTIVE);
+        return ResponseEntity.ok().build();
     }
 
     /**

@@ -22,6 +22,7 @@ import com.mindtrack.journal.repository.JournalEntryRepository;
 import com.mindtrack.journal.service.JournalMapper;
 import com.mindtrack.therapist.dto.PatientDetailResponse;
 import com.mindtrack.therapist.dto.PatientSummaryResponse;
+import com.mindtrack.therapist.model.TherapistPatient;
 import com.mindtrack.therapist.model.TherapistPatientStatus;
 import com.mindtrack.therapist.repository.TherapistPatientRepository;
 import java.time.LocalDateTime;
@@ -173,6 +174,21 @@ public class TherapistService {
         return journalEntryRepository
                 .findByUserIdAndSharedWithTherapistOrderByEntryDateDesc(patientId, true)
                 .stream().map(journalMapper::toResponse).toList();
+    }
+
+    /**
+     * Sets the status of a therapist-patient relationship (e.g. approve PENDING → ACTIVE).
+     */
+    @Transactional
+    public void setPatientStatus(Long therapistId, Long patientId,
+                                 TherapistPatientStatus newStatus) {
+        TherapistPatient rel = therapistPatientRepository
+                .findByTherapistIdAndPatientId(therapistId, patientId)
+                .orElseThrow(() -> new IllegalArgumentException("Relationship not found"));
+        rel.setStatus(newStatus);
+        therapistPatientRepository.save(rel);
+        LOG.info("Set therapist-patient status: therapist={} patient={} status={}",
+                therapistId, patientId, newStatus);
     }
 
     /**
