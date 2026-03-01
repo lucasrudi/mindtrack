@@ -177,6 +177,23 @@ public class TherapistService {
     }
 
     /**
+     * Lists patients in PENDING status (awaiting therapist approval).
+     */
+    public List<PatientSummaryResponse> listPendingPatients(Long therapistId) {
+        LOG.info("Listing pending patients for therapist {}", therapistId);
+        return therapistPatientRepository
+                .findByTherapistIdAndStatus(therapistId, TherapistPatientStatus.PENDING)
+                .stream()
+                .map(rel -> {
+                    User patient = userRepository.findById(rel.getPatientId())
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "Patient not found: " + rel.getPatientId()));
+                    return therapistMapper.toPatientSummary(patient, 0, 0, 0, null);
+                })
+                .toList();
+    }
+
+    /**
      * Sets the status of a therapist-patient relationship (e.g. approve PENDING → ACTIVE).
      */
     @Transactional

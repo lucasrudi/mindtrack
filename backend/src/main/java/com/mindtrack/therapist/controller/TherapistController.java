@@ -49,6 +49,16 @@ public class TherapistController {
     }
 
     /**
+     * Lists patients pending the therapist's approval.
+     */
+    @GetMapping("/patients/pending")
+    public ResponseEntity<List<PatientSummaryResponse>> listPendingPatients(
+            Authentication authentication) {
+        Long therapistId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(therapistService.listPendingPatients(therapistId));
+    }
+
+    /**
      * Gets detailed data for a specific patient.
      */
     @GetMapping("/patients/{patientId}")
