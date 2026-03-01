@@ -48,6 +48,18 @@ public class ProfileService {
         return profileMapper.toResponse(saved);
     }
 
+    /**
+     * Marks the onboarding flow as completed for the given user.
+     */
+    @Transactional
+    public void completeOnboarding(Long userId) {
+        LOG.info("Marking onboarding complete for user {}", userId);
+        UserProfile profile = profileRepository.findByUserId(userId)
+                .orElseGet(() -> createDefaultProfile(userId));
+        profile.setOnboardingCompleted(true);
+        profileRepository.save(profile);
+    }
+
     private UserProfile createDefaultProfile(Long userId) {
         LOG.info("Creating default profile for user {}", userId);
         UserProfile profile = new UserProfile();

@@ -18,5 +18,10 @@ public enum ConversationType {
     /**
      * Comprehensive post-interview summary or weekly report. Budget: ~1500 tokens.
      */
-    SESSION_SUMMARY
+    SESSION_SUMMARY,
+
+    /**
+     * Guided first-login chat to propose initial goals. Budget: ~1000 tokens.
+     */
+    ONBOARDING
 }

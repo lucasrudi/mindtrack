@@ -122,6 +122,7 @@ public class AiProperties {
             case QUICK_CHECKIN -> tokenTiers.getQuickCheckin();
             case COACHING -> tokenTiers.getCoaching();
             case SESSION_SUMMARY -> tokenTiers.getSessionSummary();
+            case ONBOARDING -> 1000;
         };
     }
 }

@@ -42,6 +42,9 @@ public class UserProfile {
     @Column(name = "tutorial_completed", nullable = false)
     private boolean tutorialCompleted;
 
+    @Column(name = "onboarding_completed", nullable = false)
+    private boolean onboardingCompleted;
+
     public UserProfile() {
     }
 
@@ -115,5 +118,13 @@ public class UserProfile {
 
     public void setTutorialCompleted(boolean tutorialCompleted) {
         this.tutorialCompleted = tutorialCompleted;
+    }
+
+    public boolean isOnboardingCompleted() {
+        return onboardingCompleted;
+    }
+
+    public void setOnboardingCompleted(boolean onboardingCompleted) {
+        this.onboardingCompleted = onboardingCompleted;
     }
 }
