@@ -68,7 +68,7 @@ public class OnboardingService {
             saved.add(goalMapper.toGoalResponse(goalRepository.save(goal)));
         }
 
-        profileService.completeOnboarding(userId);
+        profileService.completeSurvey(userId);
         LOG.info("Created {} onboarding goals for user {}", saved.size(), userId);
         return saved;
     }

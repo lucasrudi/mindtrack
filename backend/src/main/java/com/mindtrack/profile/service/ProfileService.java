@@ -60,6 +60,31 @@ public class ProfileService {
         profileRepository.save(profile);
     }
 
+    /**
+     * Marks both the survey and onboarding as completed for the given user.
+     */
+    @Transactional
+    public void completeSurvey(Long userId) {
+        LOG.info("Marking survey and onboarding complete for user {}", userId);
+        UserProfile profile = profileRepository.findByUserId(userId)
+                .orElseGet(() -> createDefaultProfile(userId));
+        profile.setOnboardingCompleted(true);
+        profile.setSurveyCompleted(true);
+        profileRepository.save(profile);
+    }
+
+    /**
+     * Marks onboarding as skipped (complete without survey) for the given user.
+     */
+    @Transactional
+    public void skipOnboarding(Long userId) {
+        LOG.info("Marking onboarding skipped for user {}", userId);
+        UserProfile profile = profileRepository.findByUserId(userId)
+                .orElseGet(() -> createDefaultProfile(userId));
+        profile.setOnboardingCompleted(true);
+        profileRepository.save(profile);
+    }
+
     private UserProfile createDefaultProfile(Long userId) {
         LOG.info("Creating default profile for user {}", userId);
         UserProfile profile = new UserProfile();

@@ -55,7 +55,7 @@ class OnboardingServiceTest {
         assertTrue(goals.size() >= 1 && goals.size() <= 5);
         goals.forEach(g ->
                 assertEquals(GoalValidationStatus.PENDING_VALIDATION, g.getValidationStatus()));
-        verify(profileService).completeOnboarding(1L);
+        verify(profileService).completeSurvey(1L);
     }
 
     @Test
