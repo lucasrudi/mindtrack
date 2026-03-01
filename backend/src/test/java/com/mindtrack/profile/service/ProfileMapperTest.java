@@ -9,8 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ProfileMapperTest {
 
@@ -90,6 +92,30 @@ class ProfileMapperTest {
         profileMapper.applyRequest(request, profile);
 
         assertNull(profile.getNotificationPrefs());
+    }
+
+    @Test
+    void shouldMapSurveyCompletedToResponse() {
+        UserProfile profile = new UserProfile();
+        profile.setUserId(1L);
+        profile.setSurveyCompleted(true);
+        profile.setOnboardingCompleted(true);
+
+        ProfileResponse response = profileMapper.toResponse(profile);
+
+        assertTrue(response.isSurveyCompleted());
+        assertTrue(response.isOnboardingCompleted());
+    }
+
+    @Test
+    void shouldDefaultSurveyCompletedToFalse() {
+        UserProfile profile = new UserProfile();
+        profile.setUserId(1L);
+
+        ProfileResponse response = profileMapper.toResponse(profile);
+
+        assertFalse(response.isSurveyCompleted());
+        assertFalse(response.isOnboardingCompleted());
     }
 
     private UserProfile createProfile() {

@@ -16,6 +16,8 @@ public class ProfileResponse {
     private String telegramChatId;
     private String whatsappNumber;
     private boolean tutorialCompleted;
+    private boolean onboardingCompleted;
+    private boolean surveyCompleted;
 
     public ProfileResponse() {
     }
@@ -103,5 +105,21 @@ public class ProfileResponse {
 
     public void setTutorialCompleted(boolean tutorialCompleted) {
         this.tutorialCompleted = tutorialCompleted;
+    }
+
+    public boolean isOnboardingCompleted() {
+        return onboardingCompleted;
+    }
+
+    public void setOnboardingCompleted(boolean onboardingCompleted) {
+        this.onboardingCompleted = onboardingCompleted;
+    }
+
+    public boolean isSurveyCompleted() {
+        return surveyCompleted;
+    }
+
+    public void setSurveyCompleted(boolean surveyCompleted) {
+        this.surveyCompleted = surveyCompleted;
     }
 }

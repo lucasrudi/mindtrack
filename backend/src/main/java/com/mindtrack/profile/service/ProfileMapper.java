@@ -41,6 +41,8 @@ public class ProfileMapper {
         response.setTelegramChatId(profile.getTelegramChatId());
         response.setWhatsappNumber(profile.getWhatsappNumber());
         response.setTutorialCompleted(profile.isTutorialCompleted());
+        response.setOnboardingCompleted(profile.isOnboardingCompleted());
+        response.setSurveyCompleted(profile.isSurveyCompleted());
         return response;
     }
 
