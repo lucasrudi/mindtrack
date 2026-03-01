@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { useProfileStore } from '@/stores/profile'
+import api from '@/services/api'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const profileStore = useProfileStore()
 const mode = ref<'choose' | 'survey' | 'done'>('choose')
 
 const moodBaseline = ref(5)
@@ -20,22 +25,50 @@ function toggleArea(area: string) {
   else lifeAreas.value.push(area)
 }
 
+async function selectPatient() {
+  mode.value = 'survey'
+}
+
+async function selectTherapist() {
+  submitting.value = true
+  error.value = null
+  try {
+    const res = await api.patch('/auth/me/role', { role: 'THERAPIST' })
+    await authStore.updateToken(res.data.token)
+  } catch {
+    error.value = 'Could not set therapist role. Please try again.'
+    submitting.value = false
+    return
+  }
+  submitting.value = false
+  mode.value = 'survey'
+}
+
 async function submitSurvey() {
   submitting.value = true
   error.value = null
   try {
-    await fetch('/api/onboarding/survey', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        moodBaseline: moodBaseline.value,
-        anxietyLevel: anxietyLevel.value,
-        sleepQuality: sleepQuality.value,
-        lifeAreas: lifeAreas.value,
-      }),
+    await profileStore.submitSurvey({
+      moodBaseline: moodBaseline.value,
+      anxietyLevel: anxietyLevel.value,
+      sleepQuality: sleepQuality.value,
+      lifeAreas: lifeAreas.value,
     })
     mode.value = 'done'
     setTimeout(() => router.push({ name: 'dashboard' }), 1500)
+  } catch {
+    error.value = 'Something went wrong. Please try again.'
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function skipSurvey() {
+  submitting.value = true
+  error.value = null
+  try {
+    await profileStore.skipSurvey()
+    router.push({ name: 'dashboard' })
   } catch {
     error.value = 'Something went wrong. Please try again.'
   } finally {
@@ -49,14 +82,18 @@ async function submitSurvey() {
     <div class="onboarding-card">
       <div v-if="mode === 'choose'">
         <h1 class="onboarding-title">Welcome to MindTrack</h1>
-        <p class="onboarding-subtitle">
-          Let's set up your first goals. How would you like to start?
-        </p>
+        <p class="onboarding-subtitle">How will you be using MindTrack?</p>
+        <div v-if="error" class="error-msg">{{ error }}</div>
         <div class="path-options">
-          <button class="path-btn" @click="mode = 'survey'">
-            <span class="path-icon">📋</span>
-            <strong>Quick Survey</strong>
-            <span class="path-desc">~3 minutes · Answer a few questions</span>
+          <button class="path-btn" :disabled="submitting" @click="selectPatient">
+            <span class="path-icon">👤</span>
+            <strong>I'm a Patient</strong>
+            <span class="path-desc">Track my own mental health</span>
+          </button>
+          <button class="path-btn" :disabled="submitting" @click="selectTherapist">
+            <span class="path-icon">🩺</span>
+            <strong>I'm a Therapist</strong>
+            <span class="path-desc">I work with patients</span>
           </button>
         </div>
       </div>
@@ -92,9 +129,12 @@ async function submitSurvey() {
           </div>
         </div>
 
-        <button class="submit-btn" :disabled="submitting" @click="submitSurvey">
-          {{ submitting ? 'Setting up your goals...' : 'Create My Goals' }}
-        </button>
+        <div class="survey-actions">
+          <button class="submit-btn" :disabled="submitting" @click="submitSurvey">
+            {{ submitting ? 'Setting up your goals...' : 'Create My Goals' }}
+          </button>
+          <button class="skip-btn" :disabled="submitting" @click="skipSurvey">Skip for now</button>
+        </div>
       </div>
 
       <div v-else class="done-state">
@@ -207,6 +247,29 @@ async function submitSurvey() {
 }
 .submit-btn:disabled {
   opacity: 0.6;
+  cursor: not-allowed;
+}
+.survey-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.skip-btn {
+  width: 100%;
+  padding: var(--space-2);
+  background: transparent;
+  color: var(--color-gray-500);
+  border: none;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.skip-btn:hover {
+  color: var(--color-gray-700);
+  text-decoration: underline;
+}
+.skip-btn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 .error-msg {
