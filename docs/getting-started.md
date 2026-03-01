@@ -50,6 +50,8 @@ npm run dev
 
 > Without `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, the app starts but Google login will fail with "client not found".
 
+> **Google Cloud Console:** ensure `http://localhost:3000/api/login/oauth2/code/google` is listed under **Authorized redirect URIs** on your OAuth client (APIs & Services → Credentials → your client → Edit).
+
 ### Option B: Full local stack (Docker Compose)
 
 Uses MySQL, LocalStack (S3 + Secrets Manager). Closer to production.
@@ -94,4 +96,4 @@ GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-client-secret
 ```
 
-Also ensure `http://localhost:3000/api/login/oauth2/code/google` is listed under **Authorized redirect URIs** in your OAuth client.
+Also add `http://localhost:3000/api/login/oauth2/code/google` under **Authorized redirect URIs** in your OAuth client (APIs & Services → Credentials → your client → Edit). Login will fail with `redirect_uri_mismatch` without this.
