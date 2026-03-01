@@ -22,19 +22,6 @@ public class ProfileResponse {
     public ProfileResponse() {
     }
 
-    public ProfileResponse(Long id, Long userId, String displayName, String avatarUrl,
-                           String timezone, Map<String, Object> notificationPrefs,
-                           String telegramChatId, String whatsappNumber) {
-        this.id = id;
-        this.userId = userId;
-        this.displayName = displayName;
-        this.avatarUrl = avatarUrl;
-        this.timezone = timezone;
-        this.notificationPrefs = notificationPrefs;
-        this.telegramChatId = telegramChatId;
-        this.whatsappNumber = whatsappNumber;
-    }
-
     public Long getId() {
         return id;
     }

@@ -109,10 +109,15 @@ class ProfileControllerTest {
         request.setTelegramChatId("telegram123");
         request.setWhatsappNumber("+81901234567");
 
-        ProfileResponse response = new ProfileResponse(1L, 1L, "Full Name",
-                "https://example.com/avatar.jpg", "Asia/Tokyo",
-                Map.of("emailNotifications", true, "pushNotifications", false),
-                "telegram123", "+81901234567");
+        ProfileResponse response = new ProfileResponse();
+        response.setId(1L);
+        response.setUserId(1L);
+        response.setDisplayName("Full Name");
+        response.setAvatarUrl("https://example.com/avatar.jpg");
+        response.setTimezone("Asia/Tokyo");
+        response.setNotificationPrefs(Map.of("emailNotifications", true, "pushNotifications", false));
+        response.setTelegramChatId("telegram123");
+        response.setWhatsappNumber("+81901234567");
         when(profileService.updateProfile(eq(1L), any(ProfileRequest.class))).thenReturn(response);
 
         mockMvc.perform(put("/api/profile")
