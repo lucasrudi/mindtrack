@@ -6,9 +6,11 @@ import com.mindtrack.activity.repository.ActivityRepository;
 import com.mindtrack.activity.service.ActivityMapper;
 import com.mindtrack.auth.repository.UserRepository;
 import com.mindtrack.common.model.User;
+import com.mindtrack.goals.dto.GoalRequest;
 import com.mindtrack.goals.dto.GoalResponse;
 import com.mindtrack.goals.model.Goal;
 import com.mindtrack.goals.model.GoalStatus;
+import com.mindtrack.goals.model.GoalValidationStatus;
 import com.mindtrack.goals.repository.GoalRepository;
 import com.mindtrack.goals.service.GoalMapper;
 import com.mindtrack.interview.dto.InterviewResponse;
@@ -59,7 +61,7 @@ class TherapistServiceTest {
     private ActivityMapper activityMapper;
     @Mock
     private GoalRepository goalRepository;
-    @Mock
+    @Spy
     private GoalMapper goalMapper;
     @Mock
     private JournalEntryRepository journalEntryRepository;
@@ -231,9 +233,87 @@ class TherapistServiceTest {
                 () -> therapistService.getPatientInterviews(3L, 1L));
     }
 
+    @Test
+    void shouldCreateGoalForPatientAsValidated() {
+        when(therapistPatientRepository.existsByTherapistIdAndPatientIdAndStatus(
+                1L, 2L, TherapistPatientStatus.ACTIVE)).thenReturn(true);
+        when(goalRepository.save(any(Goal.class))).thenAnswer(inv -> {
+            Goal g = inv.getArgument(0);
+            g.setId(10L);
+            return g;
+        });
+
+        GoalRequest request = new GoalRequest();
+        request.setTitle("Therapist goal");
+
+        GoalResponse result = therapistService.createGoalForPatient(1L, 2L, request);
+
+        assertEquals(10L, result.getId());
+        assertEquals(GoalValidationStatus.VALIDATED, result.getValidationStatus());
+        assertEquals(1L, result.getCreatedBy());
+    }
+
+    @Test
+    void shouldValidateGoal() {
+        Goal goal = createGoal(10L, 2L);
+        goal.setValidationStatus(GoalValidationStatus.PENDING_VALIDATION);
+        when(therapistPatientRepository.existsByTherapistIdAndPatientIdAndStatus(
+                1L, 2L, TherapistPatientStatus.ACTIVE)).thenReturn(true);
+        when(goalRepository.findByIdAndUserId(10L, 2L)).thenReturn(Optional.of(goal));
+        when(goalRepository.save(any(Goal.class))).thenReturn(goal);
+
+        GoalResponse result = therapistService.validateGoal(1L, 2L, 10L);
+
+        assertEquals(GoalValidationStatus.VALIDATED, result.getValidationStatus());
+        assertEquals(1L, result.getValidatedBy());
+    }
+
+    @Test
+    void shouldRejectGoal() {
+        Goal goal = createGoal(10L, 2L);
+        when(therapistPatientRepository.existsByTherapistIdAndPatientIdAndStatus(
+                1L, 2L, TherapistPatientStatus.ACTIVE)).thenReturn(true);
+        when(goalRepository.findByIdAndUserId(10L, 2L)).thenReturn(Optional.of(goal));
+        when(goalRepository.save(any(Goal.class))).thenReturn(goal);
+
+        GoalResponse result = therapistService.rejectGoal(1L, 2L, 10L);
+
+        assertEquals(GoalValidationStatus.REJECTED, result.getValidationStatus());
+    }
+
+    @Test
+    void shouldEditGoalAndSetOverridden() {
+        Goal goal = createGoal(10L, 2L);
+        goal.setValidationStatus(GoalValidationStatus.PENDING_VALIDATION);
+        GoalRequest request = new GoalRequest();
+        request.setTitle("Updated by therapist");
+
+        when(therapistPatientRepository.existsByTherapistIdAndPatientIdAndStatus(
+                1L, 2L, TherapistPatientStatus.ACTIVE)).thenReturn(true);
+        when(goalRepository.findByIdAndUserId(10L, 2L)).thenReturn(Optional.of(goal));
+        when(goalRepository.save(any(Goal.class))).thenReturn(goal);
+
+        GoalResponse result = therapistService.editGoalForPatient(1L, 2L, 10L, request);
+
+        assertEquals(GoalValidationStatus.OVERRIDDEN, result.getValidationStatus());
+        assertEquals(1L, result.getValidatedBy());
+    }
+
     private void mockActiveRelationship(Long therapistId, Long patientId) {
         when(therapistPatientRepository.existsByTherapistIdAndPatientIdAndStatus(
                 therapistId, patientId, TherapistPatientStatus.ACTIVE)).thenReturn(true);
+    }
+
+    private Goal createGoal(Long goalId, Long userId) {
+        Goal goal = new Goal();
+        goal.setId(goalId);
+        goal.setUserId(userId);
+        goal.setTitle("Test goal");
+        goal.setStatus(GoalStatus.NOT_STARTED);
+        goal.setValidationStatus(GoalValidationStatus.PENDING_VALIDATION);
+        goal.setCreatedAt(LocalDateTime.now());
+        goal.setUpdatedAt(LocalDateTime.now());
+        return goal;
     }
 
     private User createUser(Long id, String name, String email) {

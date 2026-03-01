@@ -1,5 +1,9 @@
 package com.mindtrack.therapist.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mindtrack.goals.dto.GoalRequest;
+import com.mindtrack.goals.dto.GoalResponse;
+import com.mindtrack.goals.model.GoalValidationStatus;
 import com.mindtrack.therapist.dto.PatientDetailResponse;
 import com.mindtrack.therapist.dto.PatientSummaryResponse;
 import com.mindtrack.therapist.service.TherapistService;
@@ -9,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
@@ -16,9 +21,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -29,6 +37,9 @@ class TherapistControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockitoBean
     private TherapistService therapistService;
@@ -130,6 +141,52 @@ class TherapistControllerTest {
         mockMvc.perform(get("/api/therapist/patients")
                         .with(authentication(adminAuth())))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldCreateGoalForPatient() throws Exception {
+        GoalRequest request = new GoalRequest();
+        request.setTitle("New therapy goal");
+        GoalResponse response = new GoalResponse();
+        response.setId(5L);
+        response.setTitle("New therapy goal");
+        response.setValidationStatus(GoalValidationStatus.VALIDATED);
+
+        when(therapistService.createGoalForPatient(eq(3L), eq(1L), any()))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/api/therapist/patients/1/goals")
+                        .with(authentication(therapistAuth()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.validationStatus").value("VALIDATED"));
+    }
+
+    @Test
+    void shouldValidateGoalForPatient() throws Exception {
+        GoalResponse response = new GoalResponse();
+        response.setId(10L);
+        response.setValidationStatus(GoalValidationStatus.VALIDATED);
+        when(therapistService.validateGoal(3L, 1L, 10L)).thenReturn(response);
+
+        mockMvc.perform(post("/api/therapist/patients/1/goals/10/validate")
+                        .with(authentication(therapistAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.validationStatus").value("VALIDATED"));
+    }
+
+    @Test
+    void shouldRejectGoalForPatient() throws Exception {
+        GoalResponse response = new GoalResponse();
+        response.setId(10L);
+        response.setValidationStatus(GoalValidationStatus.REJECTED);
+        when(therapistService.rejectGoal(3L, 1L, 10L)).thenReturn(response);
+
+        mockMvc.perform(post("/api/therapist/patients/1/goals/10/reject")
+                        .with(authentication(therapistAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.validationStatus").value("REJECTED"));
     }
 
     @Test

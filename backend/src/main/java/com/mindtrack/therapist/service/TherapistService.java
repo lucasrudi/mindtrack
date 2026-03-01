@@ -6,9 +6,11 @@ import com.mindtrack.activity.repository.ActivityRepository;
 import com.mindtrack.activity.service.ActivityMapper;
 import com.mindtrack.auth.repository.UserRepository;
 import com.mindtrack.common.model.User;
+import com.mindtrack.goals.dto.GoalRequest;
 import com.mindtrack.goals.dto.GoalResponse;
 import com.mindtrack.goals.model.Goal;
 import com.mindtrack.goals.model.GoalStatus;
+import com.mindtrack.goals.model.GoalValidationStatus;
 import com.mindtrack.goals.repository.GoalRepository;
 import com.mindtrack.goals.service.GoalMapper;
 import com.mindtrack.interview.dto.InterviewResponse;
@@ -22,10 +24,12 @@ import com.mindtrack.therapist.dto.PatientDetailResponse;
 import com.mindtrack.therapist.dto.PatientSummaryResponse;
 import com.mindtrack.therapist.model.TherapistPatientStatus;
 import com.mindtrack.therapist.repository.TherapistPatientRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service for therapist read-only patient data access.
@@ -169,6 +173,87 @@ public class TherapistService {
         return journalEntryRepository
                 .findByUserIdAndSharedWithTherapistOrderByEntryDateDesc(patientId, true)
                 .stream().map(journalMapper::toResponse).toList();
+    }
+
+    /**
+     * Creates a goal for a patient, pre-validated by the therapist.
+     */
+    @Transactional
+    public GoalResponse createGoalForPatient(Long therapistId, Long patientId, GoalRequest request) {
+        LOG.info("Therapist {} creating goal for patient {}", therapistId, patientId);
+        validateTherapistPatientRelationship(therapistId, patientId);
+
+        Goal goal = new Goal();
+        goal.setUserId(patientId);
+        goal.setCreatedAt(LocalDateTime.now());
+        goal.setUpdatedAt(LocalDateTime.now());
+        goal.setValidationStatus(GoalValidationStatus.VALIDATED);
+        goal.setCreatedBy(therapistId);
+        goal.setValidatedBy(therapistId);
+        goal.setValidatedAt(LocalDateTime.now());
+        goalMapper.applyRequest(request, goal);
+
+        Goal saved = goalRepository.save(goal);
+        return goalMapper.toGoalResponse(saved);
+    }
+
+    /**
+     * Edits a patient's goal and marks it as OVERRIDDEN by the therapist.
+     */
+    @Transactional
+    public GoalResponse editGoalForPatient(Long therapistId, Long patientId,
+                                           Long goalId, GoalRequest request) {
+        LOG.info("Therapist {} editing goal {} for patient {}", therapistId, goalId, patientId);
+        validateTherapistPatientRelationship(therapistId, patientId);
+
+        Goal goal = goalRepository.findByIdAndUserId(goalId, patientId)
+                .orElseThrow(() -> new IllegalArgumentException("Goal not found: " + goalId));
+        goalMapper.applyRequest(request, goal);
+        goal.setValidationStatus(GoalValidationStatus.OVERRIDDEN);
+        goal.setValidatedBy(therapistId);
+        goal.setValidatedAt(LocalDateTime.now());
+        goal.setUpdatedAt(LocalDateTime.now());
+
+        Goal saved = goalRepository.save(goal);
+        return goalMapper.toGoalResponse(saved);
+    }
+
+    /**
+     * Validates a patient's goal.
+     */
+    @Transactional
+    public GoalResponse validateGoal(Long therapistId, Long patientId, Long goalId) {
+        LOG.info("Therapist {} validating goal {} for patient {}", therapistId, goalId, patientId);
+        validateTherapistPatientRelationship(therapistId, patientId);
+
+        Goal goal = goalRepository.findByIdAndUserId(goalId, patientId)
+                .orElseThrow(() -> new IllegalArgumentException("Goal not found: " + goalId));
+        goal.setValidationStatus(GoalValidationStatus.VALIDATED);
+        goal.setValidatedBy(therapistId);
+        goal.setValidatedAt(LocalDateTime.now());
+        goal.setUpdatedAt(LocalDateTime.now());
+
+        Goal saved = goalRepository.save(goal);
+        return goalMapper.toGoalResponse(saved);
+    }
+
+    /**
+     * Rejects a patient's goal.
+     */
+    @Transactional
+    public GoalResponse rejectGoal(Long therapistId, Long patientId, Long goalId) {
+        LOG.info("Therapist {} rejecting goal {} for patient {}", therapistId, goalId, patientId);
+        validateTherapistPatientRelationship(therapistId, patientId);
+
+        Goal goal = goalRepository.findByIdAndUserId(goalId, patientId)
+                .orElseThrow(() -> new IllegalArgumentException("Goal not found: " + goalId));
+        goal.setValidationStatus(GoalValidationStatus.REJECTED);
+        goal.setValidatedBy(therapistId);
+        goal.setValidatedAt(LocalDateTime.now());
+        goal.setUpdatedAt(LocalDateTime.now());
+
+        Goal saved = goalRepository.save(goal);
+        return goalMapper.toGoalResponse(saved);
     }
 
     private void validateTherapistPatientRelationship(Long therapistId, Long patientId) {

@@ -1,18 +1,23 @@
 package com.mindtrack.therapist.controller;
 
 import com.mindtrack.activity.dto.ActivityResponse;
+import com.mindtrack.goals.dto.GoalRequest;
 import com.mindtrack.goals.dto.GoalResponse;
 import com.mindtrack.interview.dto.InterviewResponse;
 import com.mindtrack.journal.dto.JournalEntryResponse;
 import com.mindtrack.therapist.dto.PatientDetailResponse;
 import com.mindtrack.therapist.dto.PatientSummaryResponse;
 import com.mindtrack.therapist.service.TherapistService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -80,6 +85,57 @@ public class TherapistController {
             @PathVariable Long patientId, Authentication authentication) {
         Long therapistId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(therapistService.getPatientGoals(therapistId, patientId));
+    }
+
+    /**
+     * Creates a goal for a patient (therapist-authored, pre-validated).
+     */
+    @PostMapping("/patients/{patientId}/goals")
+    public ResponseEntity<GoalResponse> createGoalForPatient(
+            @PathVariable Long patientId,
+            @RequestBody @Valid GoalRequest request,
+            Authentication authentication) {
+        Long therapistId = (Long) authentication.getPrincipal();
+        return ResponseEntity.status(201)
+                .body(therapistService.createGoalForPatient(therapistId, patientId, request));
+    }
+
+    /**
+     * Edits a patient's goal and marks it as OVERRIDDEN.
+     */
+    @PutMapping("/patients/{patientId}/goals/{goalId}")
+    public ResponseEntity<GoalResponse> editGoalForPatient(
+            @PathVariable Long patientId,
+            @PathVariable Long goalId,
+            @RequestBody @Valid GoalRequest request,
+            Authentication authentication) {
+        Long therapistId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(
+                therapistService.editGoalForPatient(therapistId, patientId, goalId, request));
+    }
+
+    /**
+     * Validates a patient's goal.
+     */
+    @PostMapping("/patients/{patientId}/goals/{goalId}/validate")
+    public ResponseEntity<GoalResponse> validateGoal(
+            @PathVariable Long patientId,
+            @PathVariable Long goalId,
+            Authentication authentication) {
+        Long therapistId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(therapistService.validateGoal(therapistId, patientId, goalId));
+    }
+
+    /**
+     * Rejects a patient's goal.
+     */
+    @PostMapping("/patients/{patientId}/goals/{goalId}/reject")
+    public ResponseEntity<GoalResponse> rejectGoal(
+            @PathVariable Long patientId,
+            @PathVariable Long goalId,
+            Authentication authentication) {
+        Long therapistId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(therapistService.rejectGoal(therapistId, patientId, goalId));
     }
 
     /**
