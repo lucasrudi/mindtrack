@@ -19,6 +19,7 @@ export interface UserProfile {
   telegramChatId: string | null
   whatsappNumber: string | null
   tutorialCompleted: boolean
+  onboardingCompleted: boolean
 }
 
 export interface ProfileForm {

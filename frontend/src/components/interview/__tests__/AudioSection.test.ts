@@ -32,7 +32,7 @@ describe('AudioSection', () => {
     const wrapper = mountComponent()
     expect(wrapper.find('.upload-area').exists()).toBe(true)
     expect(wrapper.find('.audio-player').exists()).toBe(false)
-    expect(wrapper.text()).toContain('Click to upload audio recording')
+    expect(wrapper.text()).toContain('Or click to upload a file')
   })
 
   it('shows audio player when audio exists', async () => {

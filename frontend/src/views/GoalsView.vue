@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useGoalsStore, type GoalStatus } from '@/stores/goals'
+import { useGoalsStore, type GoalStatus, type GoalValidationStatus } from '@/stores/goals'
 
 const router = useRouter()
 const store = useGoalsStore()
@@ -50,6 +50,16 @@ function formatDate(dateStr: string | null): string {
   const date = new Date(dateStr + 'T00:00:00')
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
+
+function validationLabel(status: GoalValidationStatus): string {
+  const labels: Record<GoalValidationStatus, string> = {
+    PENDING_VALIDATION: '⬜ Awaiting review',
+    VALIDATED: '✅ Validated',
+    OVERRIDDEN: '✏️ Modified',
+    REJECTED: '❌ Not approved',
+  }
+  return labels[status] ?? status
+}
 </script>
 
 <template>
@@ -89,9 +99,18 @@ function formatDate(dateStr: string | null): string {
           >
             <div class="goal-header">
               <h3 class="goal-title">{{ goal.title }}</h3>
-              <span :class="['status-badge', statusClass(goal.status)]">
-                {{ statusLabel(goal.status) }}
-              </span>
+              <div class="goal-badges">
+                <span :class="['status-badge', statusClass(goal.status)]">
+                  {{ statusLabel(goal.status) }}
+                </span>
+                <span
+                  v-if="goal.validationStatus"
+                  class="validation-chip"
+                  :class="`validation-chip--${goal.validationStatus.toLowerCase()}`"
+                >
+                  {{ validationLabel(goal.validationStatus) }}
+                </span>
+              </div>
             </div>
             <p v-if="goal.description" class="goal-desc">{{ goal.description }}</p>
             <div class="goal-meta">
@@ -357,5 +376,41 @@ function formatDate(dateStr: string | null): string {
   font-size: var(--font-size-xs);
   color: var(--color-gray-500);
   white-space: nowrap;
+}
+
+.goal-badges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.validation-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.validation-chip--pending_validation {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.validation-chip--validated {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.validation-chip--overridden {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.validation-chip--rejected {
+  background: #fee2e2;
+  color: #991b1b;
 }
 </style>

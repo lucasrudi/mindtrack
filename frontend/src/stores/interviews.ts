@@ -22,6 +22,7 @@ export interface AudioResponse {
   audioUrl: string
   transcriptionText: string | null
   audioExpiresAt: string | null
+  transcriptionStatus: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | null
 }
 
 export interface InterviewForm {

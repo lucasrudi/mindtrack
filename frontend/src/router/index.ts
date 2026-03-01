@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useProfileStore } from '@/stores/profile'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -136,11 +137,24 @@ const router = createRouter({
       component: () => import('@/views/TherapistView.vue'),
       meta: { requiresAuth: true, requiresTherapist: true },
     },
+    {
+      path: '/onboarding',
+      name: 'onboarding',
+      component: () => import('@/views/OnboardingView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/invite/:token',
+      name: 'invite',
+      component: () => import('@/views/InviteView.vue'),
+      meta: { requiresAuth: false },
+    },
   ],
 })
 
 router.beforeEach((to) => {
   const auth = useAuthStore()
+  const profileStore = useProfileStore()
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'landing' }
@@ -156,6 +170,16 @@ router.beforeEach((to) => {
 
   if (to.name === 'landing' && auth.isAuthenticated) {
     return { name: 'dashboard' }
+  }
+
+  if (
+    to.meta.requiresAuth &&
+    auth.isAuthenticated &&
+    to.name !== 'onboarding' &&
+    profileStore.profile &&
+    !profileStore.profile.onboardingCompleted
+  ) {
+    return { name: 'onboarding' }
   }
 })
 

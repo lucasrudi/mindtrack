@@ -10,6 +10,8 @@ export interface DashboardSummary {
   totalGoals: number
   completedGoals: number
   activeGoals: number
+  validatedGoals: number
+  pendingValidationGoals: number
 }
 
 export interface MoodTrend {

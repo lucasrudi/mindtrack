@@ -137,6 +137,20 @@ watch(
         </div>
       </div>
 
+      <!-- Goal Validation Cards -->
+      <div class="validation-cards">
+        <div class="validation-card">
+          <span class="vcard-icon">✅</span>
+          <span class="vcard-count">{{ store.summary.validatedGoals }}</span>
+          <span class="vcard-label">Validated Goals</span>
+        </div>
+        <div class="validation-card">
+          <span class="vcard-icon">⬜</span>
+          <span class="vcard-count">{{ store.summary.pendingValidationGoals }}</span>
+          <span class="vcard-label">Pending Review</span>
+        </div>
+      </div>
+
       <!-- Charts -->
       <div class="charts-section">
         <div class="chart-card chart-card--full">
@@ -347,6 +361,43 @@ watch(
 
 .btn-secondary:hover {
   background: var(--color-gray-200);
+}
+
+/* Goal Validation Cards */
+.validation-cards {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.validation-card {
+  flex: 1;
+  min-width: 140px;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.vcard-icon {
+  font-size: 1.5rem;
+}
+
+.vcard-count {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-gray-900);
+}
+
+.vcard-label {
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  text-align: center;
 }
 
 /* Responsive */

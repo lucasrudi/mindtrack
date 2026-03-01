@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import api from '@/services/api'
 
 export type GoalStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'PAUSED' | 'CANCELLED'
+export type GoalValidationStatus = 'PENDING_VALIDATION' | 'VALIDATED' | 'OVERRIDDEN' | 'REJECTED'
 
 export interface Milestone {
   id: number
@@ -22,6 +23,7 @@ export interface Goal {
   category: string | null
   targetDate: string | null
   status: GoalStatus
+  validationStatus: GoalValidationStatus | null
   totalMilestones: number
   completedMilestones: number
   milestones: Milestone[]
