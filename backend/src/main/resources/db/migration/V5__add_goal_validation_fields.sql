@@ -1,0 +1,7 @@
+-- V5__add_goal_validation_fields.sql
+ALTER TABLE goals
+  ADD COLUMN validation_status ENUM('PENDING_VALIDATION','VALIDATED','OVERRIDDEN','REJECTED')
+      NOT NULL DEFAULT 'PENDING_VALIDATION',
+  ADD COLUMN validated_by  BIGINT NULL,
+  ADD COLUMN validated_at  TIMESTAMP NULL,
+  ADD COLUMN created_by    BIGINT NULL;
