@@ -28,6 +28,14 @@ public interface StorageService {
     String generateAccessUrl(String key);
 
     /**
+     * Downloads a file from storage and returns its bytes.
+     *
+     * @param key the storage key
+     * @return the file content as a byte array
+     */
+    byte[] download(String key);
+
+    /**
      * Deletes a file from storage.
      *
      * @param key the storage key

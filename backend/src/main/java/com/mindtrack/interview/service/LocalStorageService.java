@@ -53,6 +53,16 @@ public class LocalStorageService implements StorageService {
     }
 
     @Override
+    public byte[] download(String key) {
+        try {
+            Path filePath = storagePath.resolve(key);
+            return Files.readAllBytes(filePath);
+        } catch (IOException ex) {
+            throw new RuntimeException("Failed to read file: " + key, ex);
+        }
+    }
+
+    @Override
     public void delete(String key) {
         try {
             Path filePath = storagePath.resolve(key);

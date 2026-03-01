@@ -2,6 +2,8 @@ package com.mindtrack.interview.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -52,6 +54,10 @@ public class Interview {
 
     @Column(name = "audio_expires_at")
     private LocalDateTime audioExpiresAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transcription_status")
+    private TranscriptionStatus transcriptionStatus;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -172,5 +178,13 @@ public class Interview {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public TranscriptionStatus getTranscriptionStatus() {
+        return transcriptionStatus;
+    }
+
+    public void setTranscriptionStatus(TranscriptionStatus transcriptionStatus) {
+        this.transcriptionStatus = transcriptionStatus;
     }
 }

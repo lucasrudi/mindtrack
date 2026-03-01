@@ -7,10 +7,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
@@ -63,6 +65,17 @@ public class S3StorageService implements StorageService {
         PresignedGetObjectRequest presigned = s3Presigner.presignGetObject(presignRequest);
         LOG.debug("Generated presigned URL for key: {}", key);
         return presigned.url().toString();
+    }
+
+    @Override
+    public byte[] download(String key) {
+        GetObjectRequest getRequest = GetObjectRequest.builder()
+                .bucket(storageProperties.getBucketName())
+                .key(key)
+                .build();
+        ResponseBytes<GetObjectResponse> responseBytes = s3Client.getObjectAsBytes(getRequest);
+        LOG.debug("Downloaded file from S3: {}/{}", storageProperties.getBucketName(), key);
+        return responseBytes.asByteArray();
     }
 
     @Override

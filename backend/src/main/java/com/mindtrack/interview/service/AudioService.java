@@ -3,6 +3,7 @@ package com.mindtrack.interview.service;
 import com.mindtrack.interview.config.StorageProperties;
 import com.mindtrack.interview.dto.AudioUploadResponse;
 import com.mindtrack.interview.model.Interview;
+import com.mindtrack.interview.model.TranscriptionStatus;
 import com.mindtrack.interview.repository.InterviewRepository;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -25,12 +26,14 @@ public class AudioService {
     private final InterviewRepository interviewRepository;
     private final StorageService storageService;
     private final StorageProperties storageProperties;
+    private final TranscriptionService transcriptionService;
 
     public AudioService(InterviewRepository interviewRepository, StorageService storageService,
-                        StorageProperties storageProperties) {
+                        StorageProperties storageProperties, TranscriptionService transcriptionService) {
         this.interviewRepository = interviewRepository;
         this.storageService = storageService;
         this.storageProperties = storageProperties;
+        this.transcriptionService = transcriptionService;
     }
 
     /**
@@ -59,14 +62,13 @@ public class AudioService {
 
         interview.setAudioS3Key(key);
         interview.setAudioExpiresAt(LocalDateTime.now().plusDays(storageProperties.getAudioExpiryDays()));
-        // Transcription is pending — AWS Transcribe will be triggered asynchronously via EventBridge
-        // when the production storage service confirms the S3 upload. The transcription result
-        // will be written back to interview.transcriptionText via a callback Lambda.
         interview.setTranscriptionText(null);
+        interview.setTranscriptionStatus(TranscriptionStatus.IN_PROGRESS);
         interview.setUpdatedAt(LocalDateTime.now());
         interviewRepository.save(interview);
 
-        LOG.info("Uploaded audio for interview {} by user {}; transcription pending", interviewId, userId);
+        LOG.info("Uploaded audio for interview {} by user {}; triggering async transcription", interviewId, userId);
+        transcriptionService.transcribeAsync(interview.getId(), key);
 
         String audioUrl = storageService.generateAccessUrl(key);
         return new AudioUploadResponse(audioUrl, null, interview.getAudioExpiresAt());
@@ -102,6 +104,7 @@ public class AudioService {
         storageService.delete(interview.getAudioS3Key());
         interview.setAudioS3Key(null);
         interview.setTranscriptionText(null);
+        interview.setTranscriptionStatus(null);
         interview.setAudioExpiresAt(null);
         interview.setUpdatedAt(LocalDateTime.now());
         interviewRepository.save(interview);

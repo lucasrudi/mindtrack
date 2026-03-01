@@ -48,6 +48,11 @@ management:
     sampling:
       probability: 1.0
 
+mindtrack:
+  ai:
+    whisper-api-url: https://api.openai.com/v1/audio/transcriptions
+    whisper-api-key: ${OPENAI_API_KEY:dummy-key-for-local}
+
 logging:
   level:
     com.mindtrack: DEBUG

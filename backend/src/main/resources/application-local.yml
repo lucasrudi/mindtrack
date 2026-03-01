@@ -59,6 +59,8 @@ mindtrack:
   ai:
     api-key: dummy-key-for-local
     model: claude-sonnet-4-20250514
+    whisper-api-url: https://api.openai.com/v1/audio/transcriptions
+    whisper-api-key: ${OPENAI_API_KEY:dummy-key-for-local}
   storage:
     bucket-name: mindtrack-audio-local
     local-storage-path: ${java.io.tmpdir}/mindtrack-audio

@@ -3,6 +3,7 @@ package com.mindtrack.interview.service;
 import com.mindtrack.interview.config.StorageProperties;
 import com.mindtrack.interview.dto.AudioUploadResponse;
 import com.mindtrack.interview.model.Interview;
+import com.mindtrack.interview.model.TranscriptionStatus;
 import com.mindtrack.interview.repository.InterviewRepository;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -26,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,6 +42,9 @@ class AudioServiceTest {
     private StorageService storageService;
 
     @Mock
+    private TranscriptionService transcriptionService;
+
+    @Mock
     private MultipartFile multipartFile;
 
     private StorageProperties storageProperties;
@@ -48,7 +53,8 @@ class AudioServiceTest {
     @BeforeEach
     void setUp() {
         storageProperties = new StorageProperties();
-        audioService = new AudioService(interviewRepository, storageService, storageProperties);
+        audioService = new AudioService(interviewRepository, storageService, storageProperties,
+                transcriptionService);
     }
 
     @Test
@@ -188,6 +194,25 @@ class AudioServiceTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> audioService.uploadAudio(999L, 1L, multipartFile));
+    }
+
+    @Test
+    void shouldSetTranscriptionStatusToInProgressAfterUpload() throws IOException {
+        Interview interview = createInterview(1L, null);
+        when(interviewRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(interview));
+        when(multipartFile.isEmpty()).thenReturn(false);
+        when(multipartFile.getSize()).thenReturn(1024L);
+        when(multipartFile.getOriginalFilename()).thenReturn("rec.webm");
+        when(multipartFile.getContentType()).thenReturn("audio/webm");
+        when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[100]));
+        when(interviewRepository.save(any(Interview.class))).thenReturn(interview);
+        when(storageService.generateAccessUrl(anyString())).thenReturn("http://s3/audio.webm");
+        doNothing().when(transcriptionService).transcribeAsync(any(), anyString());
+
+        audioService.uploadAudio(1L, 1L, multipartFile);
+
+        assertEquals(TranscriptionStatus.IN_PROGRESS, interview.getTranscriptionStatus());
+        verify(transcriptionService).transcribeAsync(any(), anyString());
     }
 
     private Interview createInterview(Long id, String audioS3Key) {
