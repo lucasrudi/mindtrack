@@ -149,4 +149,22 @@ describe('useAuthStore', () => {
       expect(store.user).toBeNull()
     })
   })
+
+  describe('updateToken', () => {
+    it('replaces token, persists to localStorage, and re-fetches user', async () => {
+      const store = useAuthStore()
+      store.setToken('old-token')
+
+      const module = await import('@/services/api')
+      const api = module.default as unknown as { get: ReturnType<typeof vi.fn> }
+      const userData = { id: '1', email: 'test@test.com', name: 'Test', role: 'THERAPIST' }
+      api.get.mockResolvedValueOnce({ data: userData })
+
+      await store.updateToken('new-token')
+
+      expect(store.token).toBe('new-token')
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('mindtrack_token', 'new-token')
+      expect(store.user?.role).toBe('THERAPIST')
+    })
+  })
 })

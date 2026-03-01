@@ -43,6 +43,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function updateToken(newToken: string) {
+    setToken(newToken)
+    await fetchCurrentUser()
+  }
+
   return {
     token,
     user,
@@ -53,5 +58,6 @@ export const useAuthStore = defineStore('auth', () => {
     setUser,
     logout,
     fetchCurrentUser,
+    updateToken,
   }
 })
