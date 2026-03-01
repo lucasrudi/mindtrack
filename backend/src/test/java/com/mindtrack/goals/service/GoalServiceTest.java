@@ -20,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.mindtrack.goals.model.GoalValidationStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -259,6 +260,20 @@ class GoalServiceTest {
 
         assertFalse(goalService.deleteMilestone(999L, 1L, 10L));
         verify(milestoneRepository, never()).delete(any());
+    }
+
+    @Test
+    void shouldCreateGoalWithPendingValidationStatus() {
+        GoalRequest request = createGoalRequest();
+        when(goalRepository.save(any(Goal.class))).thenAnswer(inv -> {
+            Goal saved = inv.getArgument(0);
+            saved.setId(1L);
+            return saved;
+        });
+
+        GoalResponse result = goalService.create(1L, request);
+
+        assertEquals(GoalValidationStatus.PENDING_VALIDATION, result.getValidationStatus());
     }
 
     private GoalRequest createGoalRequest() {

@@ -28,6 +28,10 @@ public class GoalMapper {
         response.setStatus(goal.getStatus());
         response.setCreatedAt(goal.getCreatedAt());
         response.setUpdatedAt(goal.getUpdatedAt());
+        response.setValidationStatus(goal.getValidationStatus());
+        response.setValidatedBy(goal.getValidatedBy());
+        response.setValidatedAt(goal.getValidatedAt());
+        response.setCreatedBy(goal.getCreatedBy());
 
         List<Milestone> milestones = goal.getMilestones();
         response.setTotalMilestones(milestones.size());

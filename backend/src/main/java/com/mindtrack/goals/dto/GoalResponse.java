@@ -1,6 +1,7 @@
 package com.mindtrack.goals.dto;
 
 import com.mindtrack.goals.model.GoalStatus;
+import com.mindtrack.goals.model.GoalValidationStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,6 +22,10 @@ public class GoalResponse {
     private List<MilestoneResponse> milestones;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private GoalValidationStatus validationStatus;
+    private Long validatedBy;
+    private LocalDateTime validatedAt;
+    private Long createdBy;
 
     public GoalResponse() {
     }
@@ -111,5 +116,37 @@ public class GoalResponse {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public GoalValidationStatus getValidationStatus() {
+        return validationStatus;
+    }
+
+    public void setValidationStatus(GoalValidationStatus validationStatus) {
+        this.validationStatus = validationStatus;
+    }
+
+    public Long getValidatedBy() {
+        return validatedBy;
+    }
+
+    public void setValidatedBy(Long validatedBy) {
+        this.validatedBy = validatedBy;
+    }
+
+    public LocalDateTime getValidatedAt() {
+        return validatedAt;
+    }
+
+    public void setValidatedAt(LocalDateTime validatedAt) {
+        this.validatedAt = validatedAt;
+    }
+
+    public Long getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(Long createdBy) {
+        this.createdBy = createdBy;
     }
 }

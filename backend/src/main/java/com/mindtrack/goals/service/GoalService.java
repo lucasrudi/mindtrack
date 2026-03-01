@@ -6,6 +6,7 @@ import com.mindtrack.goals.dto.MilestoneRequest;
 import com.mindtrack.goals.dto.MilestoneResponse;
 import com.mindtrack.goals.model.Goal;
 import com.mindtrack.goals.model.GoalStatus;
+import com.mindtrack.goals.model.GoalValidationStatus;
 import com.mindtrack.goals.model.Milestone;
 import com.mindtrack.goals.repository.GoalRepository;
 import com.mindtrack.goals.repository.MilestoneRepository;
@@ -45,6 +46,8 @@ public class GoalService {
         goal.setUserId(userId);
         goal.setCreatedAt(LocalDateTime.now());
         goal.setUpdatedAt(LocalDateTime.now());
+        goal.setValidationStatus(GoalValidationStatus.PENDING_VALIDATION);
+        goal.setCreatedBy(userId);
         goalMapper.applyRequest(request, goal);
 
         Goal saved = goalRepository.save(goal);

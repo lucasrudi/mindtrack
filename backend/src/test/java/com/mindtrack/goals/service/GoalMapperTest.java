@@ -6,6 +6,7 @@ import com.mindtrack.goals.dto.MilestoneRequest;
 import com.mindtrack.goals.dto.MilestoneResponse;
 import com.mindtrack.goals.model.Goal;
 import com.mindtrack.goals.model.GoalStatus;
+import com.mindtrack.goals.model.GoalValidationStatus;
 import com.mindtrack.goals.model.Milestone;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -78,6 +80,22 @@ class GoalMapperTest {
         MilestoneResponse response = mapper.toMilestoneResponse(milestone);
 
         assertTrue(response.isCompleted());
+    }
+
+    @Test
+    void shouldMapValidationFieldsToResponse() {
+        Goal goal = createGoal(1L);
+        goal.setValidationStatus(GoalValidationStatus.VALIDATED);
+        goal.setValidatedBy(99L);
+        goal.setValidatedAt(LocalDateTime.of(2026, 1, 1, 10, 0));
+        goal.setCreatedBy(1L);
+
+        GoalResponse response = mapper.toGoalResponse(goal);
+
+        assertEquals(GoalValidationStatus.VALIDATED, response.getValidationStatus());
+        assertEquals(99L, response.getValidatedBy());
+        assertNotNull(response.getValidatedAt());
+        assertEquals(1L, response.getCreatedBy());
     }
 
     @Test
