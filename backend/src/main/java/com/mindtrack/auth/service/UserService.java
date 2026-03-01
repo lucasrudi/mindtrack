@@ -82,4 +82,17 @@ public class UserService {
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    /**
+     * Changes the role of a user. Only USER and THERAPIST are permitted via self-service.
+     */
+    @Transactional
+    public User changeRole(Long userId, String roleName) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
+        user.setRole(role);
+        return userRepository.save(user);
+    }
 }
