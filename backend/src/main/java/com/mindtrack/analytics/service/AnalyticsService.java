@@ -8,6 +8,7 @@ import com.mindtrack.analytics.dto.GoalProgressResponse;
 import com.mindtrack.analytics.dto.MoodTrendResponse;
 import com.mindtrack.goals.model.Goal;
 import com.mindtrack.goals.model.GoalStatus;
+import com.mindtrack.goals.model.GoalValidationStatus;
 import com.mindtrack.goals.repository.GoalRepository;
 import com.mindtrack.journal.model.JournalEntry;
 import com.mindtrack.journal.repository.JournalEntryRepository;
@@ -81,6 +82,10 @@ public class AnalyticsService {
                 .filter(g -> g.getStatus() == GoalStatus.IN_PROGRESS
                         || g.getStatus() == GoalStatus.NOT_STARTED)
                 .count());
+        summary.setValidatedGoals(
+                goalRepository.countByUserIdAndValidationStatus(userId, GoalValidationStatus.VALIDATED));
+        summary.setPendingValidationGoals(
+                goalRepository.countByUserIdAndValidationStatus(userId, GoalValidationStatus.PENDING_VALIDATION));
 
         return summary;
     }

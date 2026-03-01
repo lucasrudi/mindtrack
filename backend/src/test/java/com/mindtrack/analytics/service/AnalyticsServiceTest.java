@@ -10,6 +10,7 @@ import com.mindtrack.analytics.dto.GoalProgressResponse;
 import com.mindtrack.analytics.dto.MoodTrendResponse;
 import com.mindtrack.goals.model.Goal;
 import com.mindtrack.goals.model.GoalStatus;
+import com.mindtrack.goals.model.GoalValidationStatus;
 import com.mindtrack.goals.repository.GoalRepository;
 import com.mindtrack.journal.model.JournalEntry;
 import com.mindtrack.journal.repository.JournalEntryRepository;
@@ -253,6 +254,27 @@ class AnalyticsServiceTest {
         List<GoalProgressResponse> result = analyticsService.getGoalProgress(USER_ID);
 
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldIncludeValidationCountsInDashboardSummary() {
+        when(journalEntryRepository.findByUserIdAndEntryDateBetweenOrderByEntryDateDesc(
+                eq(USER_ID), any(), any()))
+                .thenReturn(List.of());
+        when(activityLogRepository.findByActivity_UserIdAndLogDateBetween(
+                eq(USER_ID), any(), any()))
+                .thenReturn(List.of());
+        when(goalRepository.findByUserIdOrderByCreatedAtDesc(USER_ID))
+                .thenReturn(List.of());
+        when(goalRepository.countByUserIdAndValidationStatus(USER_ID, GoalValidationStatus.VALIDATED))
+                .thenReturn(3L);
+        when(goalRepository.countByUserIdAndValidationStatus(USER_ID, GoalValidationStatus.PENDING_VALIDATION))
+                .thenReturn(2L);
+
+        DashboardSummaryResponse result = analyticsService.getDashboardSummary(USER_ID, FROM, TO);
+
+        assertEquals(3, result.getValidatedGoals());
+        assertEquals(2, result.getPendingValidationGoals());
     }
 
     // --- Helper methods ---

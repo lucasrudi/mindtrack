@@ -12,6 +12,8 @@ public class DashboardSummaryResponse {
     private long totalGoals;
     private long completedGoals;
     private long activeGoals;
+    private long validatedGoals;
+    private long pendingValidationGoals;
 
     public DashboardSummaryResponse() {
     }
@@ -70,5 +72,21 @@ public class DashboardSummaryResponse {
 
     public void setActiveGoals(long activeGoals) {
         this.activeGoals = activeGoals;
+    }
+
+    public long getValidatedGoals() {
+        return validatedGoals;
+    }
+
+    public void setValidatedGoals(long validatedGoals) {
+        this.validatedGoals = validatedGoals;
+    }
+
+    public long getPendingValidationGoals() {
+        return pendingValidationGoals;
+    }
+
+    public void setPendingValidationGoals(long pendingValidationGoals) {
+        this.pendingValidationGoals = pendingValidationGoals;
     }
 }

@@ -2,6 +2,7 @@ package com.mindtrack.goals.repository;
 
 import com.mindtrack.goals.model.Goal;
 import com.mindtrack.goals.model.GoalStatus;
+import com.mindtrack.goals.model.GoalValidationStatus;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,6 @@ public interface GoalRepository extends JpaRepository<Goal, Long> {
     List<Goal> findByUserIdAndStatusOrderByCreatedAtDesc(Long userId, GoalStatus status);
 
     Optional<Goal> findByIdAndUserId(Long id, Long userId);
+
+    long countByUserIdAndValidationStatus(Long userId, GoalValidationStatus validationStatus);
 }
