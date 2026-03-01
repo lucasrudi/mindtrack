@@ -20,6 +20,7 @@ export interface UserProfile {
   whatsappNumber: string | null
   tutorialCompleted: boolean
   onboardingCompleted: boolean
+  surveyCompleted: boolean
 }
 
 export interface ProfileForm {
@@ -68,6 +69,44 @@ export const useProfileStore = defineStore('profile', () => {
     }
   }
 
+  async function submitSurvey(data: {
+    moodBaseline: number
+    anxietyLevel: number
+    sleepQuality: number
+    lifeAreas: string[]
+  }) {
+    saving.value = true
+    error.value = null
+    try {
+      await api.post('/onboarding/survey', data)
+      if (profile.value) {
+        profile.value.surveyCompleted = true
+        profile.value.onboardingCompleted = true
+      }
+    } catch (err) {
+      error.value = 'Failed to submit survey'
+      throw err
+    } finally {
+      saving.value = false
+    }
+  }
+
+  async function skipSurvey() {
+    saving.value = true
+    error.value = null
+    try {
+      await api.post('/onboarding/skip')
+      if (profile.value) {
+        profile.value.onboardingCompleted = true
+      }
+    } catch (err) {
+      error.value = 'Failed to skip survey'
+      throw err
+    } finally {
+      saving.value = false
+    }
+  }
+
   function clearError() {
     error.value = null
   }
@@ -79,6 +118,8 @@ export const useProfileStore = defineStore('profile', () => {
     error,
     fetchProfile,
     updateProfile,
+    submitSurvey,
+    skipSurvey,
     clearError,
   }
 })
