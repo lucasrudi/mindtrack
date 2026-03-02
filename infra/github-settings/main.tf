@@ -23,16 +23,30 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# Read the GitHub PAT from AWS Secrets Manager.
-# Bootstrap: store the token first with:
-#   aws secretsmanager create-secret \
-#     --name mindtrack/github-config-token \
+# GitHub PAT secret — Terraform manages the shell; populate the value manually:
+#   aws secretsmanager put-secret-value \
+#     --secret-id mindtrack/github-config-token \
 #     --secret-string "ghp_..."
+resource "aws_secretsmanager_secret" "gh_config_token" {
+  name        = "mindtrack/github-config-token"
+  description = "GitHub PAT (repo scope) for Terraform GitHub Config Sync"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 data "aws_secretsmanager_secret_version" "gh_config_token" {
-  secret_id = "mindtrack/github-config-token"
+  secret_id = aws_secretsmanager_secret.gh_config_token.id
 }
 
 # Import blocks ensure Terraform manages existing resources instead of re-creating them.
+# If the GitHub PAT secret was already created manually, import it:
+import {
+  to = aws_secretsmanager_secret.gh_config_token
+  id = "mindtrack/github-config-token"
+}
+
 # Terraform 1.7+ supports for_each in import blocks.
 import {
   to = module.github.github_repository.this
