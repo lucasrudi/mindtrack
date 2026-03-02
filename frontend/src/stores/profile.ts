@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
 
 export interface NotificationPrefs {
   emailNotifications?: boolean
@@ -21,6 +22,8 @@ export interface UserProfile {
   tutorialCompleted: boolean
   onboardingCompleted: boolean
   surveyCompleted: boolean
+  isPatient: boolean
+  isTherapist: boolean
 }
 
 export interface ProfileForm {
@@ -110,6 +113,25 @@ export const useProfileStore = defineStore('profile', () => {
     }
   }
 
+  async function updateRoles(isPatient: boolean, isTherapist: boolean) {
+    saving.value = true
+    error.value = null
+    try {
+      const authStore = useAuthStore()
+      const res = await api.patch('/auth/me/roles', { isPatient, isTherapist })
+      await authStore.updateToken(res.data.token)
+      if (profile.value) {
+        profile.value.isPatient = isPatient
+        profile.value.isTherapist = isTherapist
+      }
+    } catch (err) {
+      error.value = 'Failed to update roles'
+      throw err
+    } finally {
+      saving.value = false
+    }
+  }
+
   function clearError() {
     error.value = null
   }
@@ -123,6 +145,7 @@ export const useProfileStore = defineStore('profile', () => {
     updateProfile,
     submitSurvey,
     skipSurvey,
+    updateRoles,
     clearError,
   }
 })

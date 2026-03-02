@@ -54,13 +54,27 @@ describe('useAuthStore', () => {
 
     it('returns true when user has ADMIN role', () => {
       const store = useAuthStore()
-      store.setUser({ id: '1', email: 'admin@test.com', name: 'Admin', role: 'ADMIN' })
+      store.setUser({
+        id: '1',
+        email: 'admin@test.com',
+        name: 'Admin',
+        role: 'ADMIN',
+        isPatient: false,
+        isTherapist: false,
+      })
       expect(store.isAdmin).toBe(true)
     })
 
     it('returns false when user has USER role', () => {
       const store = useAuthStore()
-      store.setUser({ id: '2', email: 'user@test.com', name: 'User', role: 'USER' })
+      store.setUser({
+        id: '2',
+        email: 'user@test.com',
+        name: 'User',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: false,
+      })
       expect(store.isAdmin).toBe(false)
     })
 
@@ -71,8 +85,76 @@ describe('useAuthStore', () => {
         email: 'therapist@test.com',
         name: 'Therapist',
         role: 'THERAPIST',
+        isPatient: false,
+        isTherapist: true,
       })
       expect(store.isAdmin).toBe(false)
+    })
+  })
+
+  describe('isTherapist', () => {
+    it('returns false when no user', () => {
+      const store = useAuthStore()
+      expect(store.isTherapist).toBe(false)
+    })
+
+    it('returns true when user has isTherapist=true', () => {
+      const store = useAuthStore()
+      store.setUser({
+        id: '1',
+        email: 'therapist@test.com',
+        name: 'Therapist',
+        role: 'USER',
+        isPatient: false,
+        isTherapist: true,
+      })
+      expect(store.isTherapist).toBe(true)
+    })
+
+    it('returns false when user has isTherapist=false', () => {
+      const store = useAuthStore()
+      store.setUser({
+        id: '1',
+        email: 'user@test.com',
+        name: 'User',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: false,
+      })
+      expect(store.isTherapist).toBe(false)
+    })
+  })
+
+  describe('isPatient', () => {
+    it('returns false when no user', () => {
+      const store = useAuthStore()
+      expect(store.isPatient).toBe(false)
+    })
+
+    it('returns true when user has isPatient=true', () => {
+      const store = useAuthStore()
+      store.setUser({
+        id: '1',
+        email: 'patient@test.com',
+        name: 'Patient',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: false,
+      })
+      expect(store.isPatient).toBe(true)
+    })
+
+    it('returns false when user has isPatient=false', () => {
+      const store = useAuthStore()
+      store.setUser({
+        id: '1',
+        email: 'user@test.com',
+        name: 'User',
+        role: 'USER',
+        isPatient: false,
+        isTherapist: false,
+      })
+      expect(store.isPatient).toBe(false)
     })
   })
 
@@ -88,7 +170,14 @@ describe('useAuthStore', () => {
   describe('setUser', () => {
     it('sets user data', () => {
       const store = useAuthStore()
-      const user = { id: '1', email: 'test@test.com', name: 'Test', role: 'USER' }
+      const user = {
+        id: '1',
+        email: 'test@test.com',
+        name: 'Test',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: false,
+      }
       store.setUser(user)
       expect(store.user).toEqual(user)
     })
@@ -98,7 +187,14 @@ describe('useAuthStore', () => {
     it('clears token, user, and localStorage', () => {
       const store = useAuthStore()
       store.setToken('token')
-      store.setUser({ id: '1', email: 'test@test.com', name: 'Test', role: 'USER' })
+      store.setUser({
+        id: '1',
+        email: 'test@test.com',
+        name: 'Test',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: false,
+      })
 
       store.logout()
 
@@ -127,7 +223,14 @@ describe('useAuthStore', () => {
 
       const module = await import('@/services/api')
       const api = module.default as unknown as { get: ReturnType<typeof vi.fn> }
-      const userData = { id: '1', email: 'test@test.com', name: 'Test', role: 'USER' }
+      const userData = {
+        id: '1',
+        email: 'test@test.com',
+        name: 'Test',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: false,
+      }
       api.get.mockResolvedValueOnce({ data: userData })
 
       await store.fetchCurrentUser()
@@ -157,14 +260,21 @@ describe('useAuthStore', () => {
 
       const module = await import('@/services/api')
       const api = module.default as unknown as { get: ReturnType<typeof vi.fn> }
-      const userData = { id: '1', email: 'test@test.com', name: 'Test', role: 'THERAPIST' }
+      const userData = {
+        id: '1',
+        email: 'test@test.com',
+        name: 'Test',
+        role: 'USER',
+        isPatient: false,
+        isTherapist: true,
+      }
       api.get.mockResolvedValueOnce({ data: userData })
 
       await store.updateToken('new-token')
 
       expect(store.token).toBe('new-token')
       expect(localStorageMock.setItem).toHaveBeenCalledWith('mindtrack_token', 'new-token')
-      expect(store.user?.role).toBe('THERAPIST')
+      expect(store.user?.isTherapist).toBe(true)
     })
   })
 })
