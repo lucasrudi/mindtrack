@@ -14,6 +14,9 @@ const showInlineSurvey = ref(false)
 const surveyMood = ref(5)
 const surveyAnxiety = ref(5)
 const surveySleep = ref(5)
+const surveyDepression = ref(5)
+const surveyStress = ref(5)
+const surveyEating = ref(5)
 const surveyAreas = ref<string[]>([])
 const LIFE_AREA_OPTIONS = ['Work', 'Relationships', 'Health', 'Fitness', 'Mindfulness', 'Hobbies']
 const surveySubmitting = ref(false)
@@ -24,6 +27,12 @@ function toggleSurveyArea(area: string) {
   const idx = surveyAreas.value.indexOf(area)
   if (idx >= 0) surveyAreas.value.splice(idx, 1)
   else surveyAreas.value.push(area)
+}
+
+function surveyScoreClass(value: number): string {
+  if (value >= 7) return 'score-green'
+  if (value >= 4) return 'score-amber'
+  return 'score-red'
 }
 
 async function switchRole() {
@@ -48,6 +57,9 @@ async function handleSurveySubmit() {
       moodBaseline: surveyMood.value,
       anxietyLevel: surveyAnxiety.value,
       sleepQuality: surveySleep.value,
+      depressionScore: surveyDepression.value,
+      stressLevel: surveyStress.value,
+      eatingHabits: surveyEating.value,
       lifeAreas: surveyAreas.value,
     })
     showInlineSurvey.value = false
@@ -266,18 +278,119 @@ async function replayTutorial() {
           <div v-if="surveyError" class="error-message">
             <p>{{ surveyError }}</p>
           </div>
-          <div class="form-group">
-            <label class="form-group-label">Current mood (1–10): {{ surveyMood }}</label>
-            <input v-model.number="surveyMood" type="range" min="1" max="10" class="slider" />
+
+          <div class="survey-categories">
+            <!-- Mental Health -->
+            <div class="health-card">
+              <div class="health-card-title">Mental Health</div>
+              <div class="health-metric">
+                <div class="metric-header">
+                  <span class="metric-label">Anxiety</span>
+                  <span class="metric-score" :class="surveyScoreClass(surveyAnxiety)">{{
+                    surveyAnxiety
+                  }}</span>
+                </div>
+                <input
+                  v-model.number="surveyAnxiety"
+                  type="range"
+                  min="1"
+                  max="10"
+                  class="metric-slider"
+                />
+              </div>
+              <div class="health-metric">
+                <div class="metric-header">
+                  <span class="metric-label">Depression</span>
+                  <span class="metric-score" :class="surveyScoreClass(surveyDepression)">{{
+                    surveyDepression
+                  }}</span>
+                </div>
+                <input
+                  v-model.number="surveyDepression"
+                  type="range"
+                  min="1"
+                  max="10"
+                  class="metric-slider"
+                />
+              </div>
+              <div class="health-metric">
+                <div class="metric-header">
+                  <span class="metric-label">Stress</span>
+                  <span class="metric-score" :class="surveyScoreClass(surveyStress)">{{
+                    surveyStress
+                  }}</span>
+                </div>
+                <input
+                  v-model.number="surveyStress"
+                  type="range"
+                  min="1"
+                  max="10"
+                  class="metric-slider"
+                />
+              </div>
+            </div>
+
+            <!-- Sleep -->
+            <div class="health-card">
+              <div class="health-card-title">Sleep</div>
+              <div class="health-metric">
+                <div class="metric-header">
+                  <span class="metric-label">Sleep quality</span>
+                  <span class="metric-score" :class="surveyScoreClass(surveySleep)">{{
+                    surveySleep
+                  }}</span>
+                </div>
+                <input
+                  v-model.number="surveySleep"
+                  type="range"
+                  min="1"
+                  max="10"
+                  class="metric-slider"
+                />
+              </div>
+            </div>
+
+            <!-- Nutrition -->
+            <div class="health-card">
+              <div class="health-card-title">Nutrition</div>
+              <div class="health-metric">
+                <div class="metric-header">
+                  <span class="metric-label">Eating habits</span>
+                  <span class="metric-score" :class="surveyScoreClass(surveyEating)">{{
+                    surveyEating
+                  }}</span>
+                </div>
+                <input
+                  v-model.number="surveyEating"
+                  type="range"
+                  min="1"
+                  max="10"
+                  class="metric-slider"
+                />
+              </div>
+            </div>
+
+            <!-- Emotional -->
+            <div class="health-card">
+              <div class="health-card-title">Emotional</div>
+              <div class="health-metric">
+                <div class="metric-header">
+                  <span class="metric-label">Overall mood</span>
+                  <span class="metric-score" :class="surveyScoreClass(surveyMood)">{{
+                    surveyMood
+                  }}</span>
+                </div>
+                <input
+                  v-model.number="surveyMood"
+                  type="range"
+                  min="1"
+                  max="10"
+                  class="metric-slider"
+                />
+              </div>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-group-label">Anxiety level (1–10): {{ surveyAnxiety }}</label>
-            <input v-model.number="surveyAnxiety" type="range" min="1" max="10" class="slider" />
-          </div>
-          <div class="form-group">
-            <label class="form-group-label">Sleep quality (1–10): {{ surveySleep }}</label>
-            <input v-model.number="surveySleep" type="range" min="1" max="10" class="slider" />
-          </div>
+
           <div class="form-group">
             <label class="form-group-label">Life areas to improve</label>
             <div class="chip-group">
@@ -691,5 +804,77 @@ async function replayTutorial() {
   background: var(--color-primary);
   color: white;
   border-color: var(--color-primary);
+}
+
+.survey-categories {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.health-card {
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--border-radius-lg, 12px);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-gray-50, #f9fafb);
+}
+
+.health-card-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-gray-500);
+  margin-bottom: var(--space-2);
+}
+
+.health-metric {
+  margin-bottom: var(--space-2);
+}
+
+.health-metric:last-child {
+  margin-bottom: 0;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-1);
+}
+
+.metric-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+}
+
+.metric-score {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  min-width: 1.5rem;
+  text-align: right;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.score-green {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.score-amber {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.score-red {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.metric-slider {
+  width: 100%;
 }
 </style>
