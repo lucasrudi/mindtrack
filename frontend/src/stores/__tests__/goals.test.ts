@@ -19,6 +19,7 @@ const sampleGoal = {
   category: 'Health',
   targetDate: '2025-06-01',
   status: 'IN_PROGRESS' as const,
+  validationStatus: null,
   totalMilestones: 2,
   completedMilestones: 1,
   milestones: [
@@ -54,6 +55,7 @@ const sampleGoal2 = {
   category: 'Fitness',
   targetDate: null,
   status: 'COMPLETED' as const,
+  validationStatus: null,
   totalMilestones: 0,
   completedMilestones: 0,
   milestones: [],
