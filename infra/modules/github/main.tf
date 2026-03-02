@@ -42,8 +42,12 @@ resource "github_repository" "this" {
 
 # ------------------------------------
 # Branch Protection
+# Requires GitHub Pro (or public repo) for private repositories.
+# Set enable_branch_protection = false on GitHub Free with private repos.
 # ------------------------------------
 resource "github_branch_protection" "main" {
+  count = var.enable_branch_protection ? 1 : 0
+
   repository_id = github_repository.this.node_id
   pattern       = "main"
 

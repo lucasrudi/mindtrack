@@ -28,16 +28,27 @@ jobs:
         with:
           terraform_version: '1.7.0'
 
+      - name: Fetch GitHub token from Secrets Manager
+        id: gh-token
+        run: |
+          TOKEN=$(aws secretsmanager get-secret-value \
+            --secret-id mindtrack/github-config-token \
+            --query SecretString --output text)
+          echo "::add-mask::${TOKEN}"
+          echo "value=${TOKEN}" >> $GITHUB_OUTPUT
+
       - name: Terraform Init
         working-directory: infra/github-settings
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_CONFIG_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.gh-token.outputs.value }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
         run: terraform init
 
       - name: Terraform Plan
         working-directory: infra/github-settings
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_CONFIG_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.gh-token.outputs.value }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
         run: |
           terraform plan \
             -var="repository_name=${{ github.event.repository.name }}" \
@@ -46,5 +57,6 @@ jobs:
       - name: Terraform Apply
         working-directory: infra/github-settings
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_CONFIG_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.gh-token.outputs.value }}
+          GITHUB_OWNER: ${{ github.repository_owner }}
         run: terraform apply tfplan

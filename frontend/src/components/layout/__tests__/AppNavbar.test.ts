@@ -77,7 +77,14 @@ describe('AppNavbar', () => {
 
   it('shows user name when authenticated', () => {
     const auth = useAuthStore()
-    auth.setUser({ id: '1', email: 'test@test.com', name: 'John Doe', role: 'USER' })
+    auth.setUser({
+      id: '1',
+      email: 'test@test.com',
+      name: 'John Doe',
+      role: 'USER',
+      isPatient: true,
+      isTherapist: false,
+    })
 
     const wrapper = mountNavbar()
     expect(wrapper.text()).toContain('John Doe')

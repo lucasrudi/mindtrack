@@ -45,6 +45,12 @@ variable "required_approvals" {
   default     = 0
 }
 
+variable "enable_branch_protection" {
+  description = "Enable branch protection rules. Requires GitHub Pro for private repositories; set to false on GitHub Free."
+  type        = bool
+  default     = true
+}
+
 variable "labels" {
   description = "Map of issue labels to create"
   type = map(object({

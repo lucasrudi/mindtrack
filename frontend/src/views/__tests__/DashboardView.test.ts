@@ -206,6 +206,8 @@ describe('DashboardView', () => {
         tutorialCompleted: true,
         onboardingCompleted: true,
         surveyCompleted: false,
+        isPatient: true,
+        isTherapist: false,
       }
       await wrapper.vm.$nextTick()
 
@@ -227,6 +229,8 @@ describe('DashboardView', () => {
         tutorialCompleted: true,
         onboardingCompleted: true,
         surveyCompleted: true,
+        isPatient: true,
+        isTherapist: false,
       }
       await wrapper.vm.$nextTick()
 
@@ -267,6 +271,8 @@ describe('DashboardView', () => {
         tutorialCompleted: true,
         onboardingCompleted: true,
         surveyCompleted: false,
+        isPatient: true,
+        isTherapist: false,
       }
       await wrapper.vm.$nextTick()
 
@@ -290,6 +296,8 @@ describe('DashboardView', () => {
         tutorialCompleted: true,
         onboardingCompleted: true,
         surveyCompleted: false,
+        isPatient: true,
+        isTherapist: false,
       }
       await wrapper.vm.$nextTick()
 
