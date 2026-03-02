@@ -2,14 +2,14 @@
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProfileStore, type ProfileForm } from '@/stores/profile'
-import { useAuthStore } from '@/stores/auth'
-import api from '@/services/api'
 
 const router = useRouter()
 const store = useProfileStore()
-const authStore = useAuthStore()
 const roleChanging = ref(false)
 const roleError = ref<string | null>(null)
+const roleSuccess = ref(false)
+const accountIsPatient = ref(true)
+const accountIsTherapist = ref(false)
 const showInlineSurvey = ref(false)
 const surveyMood = ref(5)
 const surveyAnxiety = ref(5)
@@ -35,15 +35,22 @@ function surveyScoreClass(value: number): string {
   return 'score-red'
 }
 
-async function switchRole() {
-  const newRole = authStore.user?.role === 'THERAPIST' ? 'USER' : 'THERAPIST'
+async function saveRoles() {
+  if (!accountIsPatient.value && !accountIsTherapist.value) {
+    roleError.value = 'At least one role must be selected.'
+    return
+  }
   roleChanging.value = true
   roleError.value = null
+  roleSuccess.value = false
   try {
-    const res = await api.patch('/auth/me/role', { role: newRole })
-    await authStore.updateToken(res.data.token)
+    await store.updateRoles(accountIsPatient.value, accountIsTherapist.value)
+    roleSuccess.value = true
+    setTimeout(() => {
+      roleSuccess.value = false
+    }, 3000)
   } catch {
-    roleError.value = 'Could not change role. Please try again.'
+    roleError.value = 'Could not update roles. Please try again.'
   } finally {
     roleChanging.value = false
   }
@@ -125,6 +132,9 @@ function populateForm() {
   form.value.timezone = store.profile.timezone
   form.value.telegramChatId = store.profile.telegramChatId
   form.value.whatsappNumber = store.profile.whatsappNumber
+
+  accountIsPatient.value = store.profile.isPatient ?? true
+  accountIsTherapist.value = store.profile.isTherapist ?? false
 
   const prefs = store.profile.notificationPrefs
   if (prefs) {
@@ -227,29 +237,31 @@ async function replayTutorial() {
       <!-- Account Type -->
       <section class="form-section">
         <h2>Account Type</h2>
-        <p class="field-description">
-          {{
-            authStore.user?.role === 'THERAPIST'
-              ? 'You are registered as a Therapist.'
-              : 'You are registered as a Patient.'
-          }}
-        </p>
+        <p class="field-description">Select the roles that apply to you. You can be both.</p>
         <div v-if="roleError" class="error-message">
           <p>{{ roleError }}</p>
         </div>
-        <button
-          type="button"
-          class="btn btn-secondary"
-          :disabled="roleChanging"
-          @click="switchRole"
-        >
-          {{
-            roleChanging
-              ? 'Changing...'
-              : authStore.user?.role === 'THERAPIST'
-                ? 'Switch to Patient'
-                : 'Switch to Therapist'
-          }}
+        <div v-if="roleSuccess" class="success-message">
+          <p>Roles updated successfully.</p>
+        </div>
+        <div class="role-toggle-group">
+          <label class="role-toggle-label">
+            <input v-model="accountIsPatient" type="checkbox" :disabled="roleChanging" />
+            <div>
+              <span class="role-toggle-name">Patient</span>
+              <span class="role-toggle-desc">Track my own mental health</span>
+            </div>
+          </label>
+          <label class="role-toggle-label">
+            <input v-model="accountIsTherapist" type="checkbox" :disabled="roleChanging" />
+            <div>
+              <span class="role-toggle-name">Therapist</span>
+              <span class="role-toggle-desc">I work with patients</span>
+            </div>
+          </label>
+        </div>
+        <button type="button" class="btn btn-secondary" :disabled="roleChanging" @click="saveRoles">
+          {{ roleChanging ? 'Saving...' : 'Save' }}
         </button>
       </section>
 
@@ -733,6 +745,42 @@ async function replayTutorial() {
   font-size: var(--font-size-sm);
   color: var(--color-gray-600);
   margin-bottom: var(--space-3);
+}
+
+.role-toggle-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.role-toggle-label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+}
+
+.role-toggle-label input[type='checkbox'] {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.role-toggle-name {
+  display: block;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-900);
+}
+
+.role-toggle-desc {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
 }
 
 .baseline-status {
