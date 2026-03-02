@@ -59,7 +59,5 @@ module "github" {
   })
   actions_variables = var.actions_variables
 
-  # Branch protection requires GitHub Pro for private repositories.
-  # Set to true once the repo is public or the plan is upgraded.
-  enable_branch_protection = false
+  enable_branch_protection = true
 }
