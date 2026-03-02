@@ -64,4 +64,12 @@ ignore:
           No fix available in spring-security-core 6.5.1 (latest managed by
           Spring Boot 3.5.3). Revisit when Spring Security releases a patch.
         expires: '2026-05-28T00:00:00.000Z'
+  SNYK-JAVA-COMFASTERXMLJACKSONCORE-15365924:
+    - '*':
+        reason: >-
+          Fixed in jackson-core 2.18.6 and 2.21.1. Spring Boot 3.5.3 pins
+          jackson to 2.19.x which has no patched release yet. Introduced via
+          jjwt-jackson 0.12.5. Revisit when Spring Boot upgrades jackson or
+          jjwt releases a patched version.
+        expires: '2026-05-31T00:00:00.000Z'
 patch: {}
