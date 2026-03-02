@@ -54,6 +54,21 @@ public class OnboardingService {
                     "Establish a consistent bedtime and wind-down routine", "Wellness"));
         }
 
+        if (request.getDepressionScore() != null && request.getDepressionScore() < 6) {
+            proposed.add(buildGoal(userId, "Support emotional wellbeing",
+                    "Build habits that support your mood and emotional resilience", "Mental Health"));
+        }
+
+        if (request.getStressLevel() != null && request.getStressLevel() < 6) {
+            proposed.add(buildGoal(userId, "Build stress resilience",
+                    "Develop daily practices to manage and reduce stress", "Wellness"));
+        }
+
+        if (request.getEatingHabits() != null && request.getEatingHabits() < 6) {
+            proposed.add(buildGoal(userId, "Improve nutrition habits",
+                    "Establish consistent, balanced eating patterns", "Health"));
+        }
+
         if (request.getLifeAreas() != null) {
             for (String area : request.getLifeAreas()) {
                 String title = "Improve " + area.toLowerCase();

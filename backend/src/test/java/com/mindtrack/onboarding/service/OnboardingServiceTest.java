@@ -59,6 +59,102 @@ class OnboardingServiceTest {
     }
 
     @Test
+    void shouldGenerateDepressionGoalWhenScoreBelow6() {
+        SurveyRequest request = new SurveyRequest();
+        request.setMoodBaseline(6);
+        request.setAnxietyLevel(6);
+        request.setSleepQuality(6);
+        request.setDepressionScore(5);
+
+        when(goalRepository.save(any())).thenAnswer(inv -> {
+            var g = inv.getArgument(0, com.mindtrack.goals.model.Goal.class);
+            g.setId(1L);
+            return g;
+        });
+
+        var goals = onboardingService.generateGoalsFromSurvey(1L, request);
+
+        assertTrue(goals.stream().anyMatch(g -> g.getTitle().equals("Support emotional wellbeing")));
+    }
+
+    @Test
+    void shouldNotGenerateDepressionGoalWhenScoreAtOrAbove6() {
+        SurveyRequest request = new SurveyRequest();
+        request.setMoodBaseline(6);
+        request.setAnxietyLevel(6);
+        request.setSleepQuality(6);
+        request.setDepressionScore(6);
+
+        var goals = onboardingService.generateGoalsFromSurvey(1L, request);
+
+        assertTrue(goals.stream().noneMatch(g -> g.getTitle().equals("Support emotional wellbeing")));
+    }
+
+    @Test
+    void shouldGenerateStressGoalWhenScoreBelow6() {
+        SurveyRequest request = new SurveyRequest();
+        request.setMoodBaseline(6);
+        request.setAnxietyLevel(6);
+        request.setSleepQuality(6);
+        request.setStressLevel(4);
+
+        when(goalRepository.save(any())).thenAnswer(inv -> {
+            var g = inv.getArgument(0, com.mindtrack.goals.model.Goal.class);
+            g.setId(1L);
+            return g;
+        });
+
+        var goals = onboardingService.generateGoalsFromSurvey(1L, request);
+
+        assertTrue(goals.stream().anyMatch(g -> g.getTitle().equals("Build stress resilience")));
+    }
+
+    @Test
+    void shouldNotGenerateStressGoalWhenScoreAtOrAbove6() {
+        SurveyRequest request = new SurveyRequest();
+        request.setMoodBaseline(6);
+        request.setAnxietyLevel(6);
+        request.setSleepQuality(6);
+        request.setStressLevel(7);
+
+        var goals = onboardingService.generateGoalsFromSurvey(1L, request);
+
+        assertTrue(goals.stream().noneMatch(g -> g.getTitle().equals("Build stress resilience")));
+    }
+
+    @Test
+    void shouldGenerateEatingHabitsGoalWhenScoreBelow6() {
+        SurveyRequest request = new SurveyRequest();
+        request.setMoodBaseline(6);
+        request.setAnxietyLevel(6);
+        request.setSleepQuality(6);
+        request.setEatingHabits(3);
+
+        when(goalRepository.save(any())).thenAnswer(inv -> {
+            var g = inv.getArgument(0, com.mindtrack.goals.model.Goal.class);
+            g.setId(1L);
+            return g;
+        });
+
+        var goals = onboardingService.generateGoalsFromSurvey(1L, request);
+
+        assertTrue(goals.stream().anyMatch(g -> g.getTitle().equals("Improve nutrition habits")));
+    }
+
+    @Test
+    void shouldNotGenerateEatingHabitsGoalWhenScoreAtOrAbove6() {
+        SurveyRequest request = new SurveyRequest();
+        request.setMoodBaseline(6);
+        request.setAnxietyLevel(6);
+        request.setSleepQuality(6);
+        request.setEatingHabits(8);
+
+        var goals = onboardingService.generateGoalsFromSurvey(1L, request);
+
+        assertTrue(goals.stream().noneMatch(g -> g.getTitle().equals("Improve nutrition habits")));
+    }
+
+    @Test
     void shouldCreateAtLeastOneGoalPerLifeArea() {
         SurveyRequest request = new SurveyRequest();
         request.setMoodBaseline(6);

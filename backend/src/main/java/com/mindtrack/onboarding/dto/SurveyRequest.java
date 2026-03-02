@@ -17,6 +17,10 @@ public class SurveyRequest {
     @NotNull
     private Integer sleepQuality;
 
+    private Integer depressionScore;  // 1-10, higher = better (less depressed)
+    private Integer stressLevel;      // 1-10, higher = better (less stressed)
+    private Integer eatingHabits;     // 1-10, higher = better
+
     private List<String> lifeAreas;
     private List<String> challenges;
     private List<String> goalCategories;
@@ -43,6 +47,30 @@ public class SurveyRequest {
 
     public void setSleepQuality(Integer sleepQuality) {
         this.sleepQuality = sleepQuality;
+    }
+
+    public Integer getDepressionScore() {
+        return depressionScore;
+    }
+
+    public void setDepressionScore(Integer depressionScore) {
+        this.depressionScore = depressionScore;
+    }
+
+    public Integer getStressLevel() {
+        return stressLevel;
+    }
+
+    public void setStressLevel(Integer stressLevel) {
+        this.stressLevel = stressLevel;
+    }
+
+    public Integer getEatingHabits() {
+        return eatingHabits;
+    }
+
+    public void setEatingHabits(Integer eatingHabits) {
+        this.eatingHabits = eatingHabits;
     }
 
     public List<String> getLifeAreas() {
