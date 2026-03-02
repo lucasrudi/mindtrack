@@ -43,6 +43,8 @@ public class ProfileMapper {
         response.setTutorialCompleted(profile.isTutorialCompleted());
         response.setOnboardingCompleted(profile.isOnboardingCompleted());
         response.setSurveyCompleted(profile.isSurveyCompleted());
+        response.setPatient(profile.isPatient());
+        response.setTherapist(profile.isTherapist());
         return response;
     }
 

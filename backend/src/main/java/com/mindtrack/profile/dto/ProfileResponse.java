@@ -18,6 +18,8 @@ public class ProfileResponse {
     private boolean tutorialCompleted;
     private boolean onboardingCompleted;
     private boolean surveyCompleted;
+    private boolean patient;
+    private boolean therapist;
 
     public ProfileResponse() {
     }
@@ -108,5 +110,21 @@ public class ProfileResponse {
 
     public void setSurveyCompleted(boolean surveyCompleted) {
         this.surveyCompleted = surveyCompleted;
+    }
+
+    public boolean isPatient() {
+        return patient;
+    }
+
+    public void setPatient(boolean patient) {
+        this.patient = patient;
+    }
+
+    public boolean isTherapist() {
+        return therapist;
+    }
+
+    public void setTherapist(boolean therapist) {
+        this.therapist = therapist;
     }
 }

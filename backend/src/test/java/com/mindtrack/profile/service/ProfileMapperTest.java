@@ -118,6 +118,32 @@ class ProfileMapperTest {
         assertFalse(response.isOnboardingCompleted());
     }
 
+    @Test
+    void shouldMapPatientAndTherapistFlagsWhenBothTrue() {
+        UserProfile profile = new UserProfile();
+        profile.setUserId(1L);
+        profile.setPatient(true);
+        profile.setTherapist(true);
+
+        ProfileResponse response = profileMapper.toResponse(profile);
+
+        assertTrue(response.isPatient());
+        assertTrue(response.isTherapist());
+    }
+
+    @Test
+    void shouldMapPatientAndTherapistFlagsWhenBothFalse() {
+        UserProfile profile = new UserProfile();
+        profile.setUserId(1L);
+        profile.setPatient(false);
+        profile.setTherapist(false);
+
+        ProfileResponse response = profileMapper.toResponse(profile);
+
+        assertFalse(response.isPatient());
+        assertFalse(response.isTherapist());
+    }
+
     private UserProfile createProfile() {
         UserProfile profile = new UserProfile();
         profile.setId(1L);
