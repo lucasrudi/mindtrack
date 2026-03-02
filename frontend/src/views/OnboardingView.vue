@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
 import { useProfileStore } from '@/stores/profile'
-import api from '@/services/api'
 
 const router = useRouter()
-const authStore = useAuthStore()
 const profileStore = useProfileStore()
 const mode = ref<'choose' | 'survey' | 'done'>('choose')
+
+const selectedPatient = ref(true)
+const selectedTherapist = ref(false)
 
 const moodBaseline = ref(5)
 const anxietyLevel = ref(5)
@@ -34,23 +34,21 @@ function scoreClass(value: number): string {
   return 'score-red'
 }
 
-async function selectPatient() {
-  mode.value = 'survey'
-}
-
-async function selectTherapist() {
+async function continueToSurvey() {
+  if (!selectedPatient.value && !selectedTherapist.value) {
+    error.value = 'Please select at least one role to continue.'
+    return
+  }
   submitting.value = true
   error.value = null
   try {
-    const res = await api.patch('/auth/me/role', { role: 'THERAPIST' })
-    await authStore.updateToken(res.data.token)
+    await profileStore.updateRoles(selectedPatient.value, selectedTherapist.value)
+    mode.value = 'survey'
   } catch {
-    error.value = 'Could not set therapist role. Please try again.'
+    error.value = 'Could not set roles. Please try again.'
+  } finally {
     submitting.value = false
-    return
   }
-  submitting.value = false
-  mode.value = 'survey'
 }
 
 async function submitSurvey() {
@@ -94,20 +92,27 @@ async function skipSurvey() {
     <div class="onboarding-card">
       <div v-if="mode === 'choose'">
         <h1 class="onboarding-title">Welcome to MindTrack</h1>
-        <p class="onboarding-subtitle">How will you be using MindTrack?</p>
+        <p class="onboarding-subtitle">Choose your roles (you can select both)</p>
         <div v-if="error" class="error-msg">{{ error }}</div>
-        <div class="path-options">
-          <button class="path-btn" :disabled="submitting" @click="selectPatient">
-            <span class="path-icon">👤</span>
-            <strong>I'm a Patient</strong>
-            <span class="path-desc">Track my own mental health</span>
-          </button>
-          <button class="path-btn" :disabled="submitting" @click="selectTherapist">
-            <span class="path-icon">🩺</span>
-            <strong>I'm a Therapist</strong>
-            <span class="path-desc">I work with patients</span>
-          </button>
+        <div class="role-options">
+          <label class="role-option">
+            <input v-model="selectedPatient" type="checkbox" class="role-checkbox" />
+            <div class="role-option-content">
+              <strong class="role-option-title">I'm a patient</strong>
+              <span class="role-option-desc">I want to track my own mental health</span>
+            </div>
+          </label>
+          <label class="role-option">
+            <input v-model="selectedTherapist" type="checkbox" class="role-checkbox" />
+            <div class="role-option-content">
+              <strong class="role-option-title">I'm a therapist</strong>
+              <span class="role-option-desc">I work with patients</span>
+            </div>
+          </label>
         </div>
+        <button class="submit-btn" :disabled="submitting" @click="continueToSurvey">
+          {{ submitting ? 'Setting up...' : 'Continue' }}
+        </button>
       </div>
 
       <div v-else-if="mode === 'survey'">
@@ -282,32 +287,42 @@ async function skipSurvey() {
   color: var(--color-gray-600);
   margin-bottom: var(--space-6, 1.5rem);
 }
-.path-options {
+.role-options {
   display: flex;
-  gap: var(--space-4);
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
 }
-.path-btn {
-  flex: 1;
-  min-width: 200px;
+.role-option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
   border: 2px solid var(--color-gray-200);
   border-radius: 12px;
-  padding: var(--space-5);
-  background: white;
+  padding: var(--space-4);
   cursor: pointer;
+  transition: border-color 0.2s;
+}
+.role-option:hover {
+  border-color: var(--color-primary);
+}
+.role-checkbox {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.role-option-content {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  text-align: left;
-  transition: border-color 0.2s;
 }
-.path-btn:hover {
-  border-color: var(--color-primary);
+.role-option-title {
+  font-size: 1rem;
+  color: var(--color-gray-900);
 }
-.path-icon {
-  font-size: 2rem;
-}
-.path-desc {
+.role-option-desc {
   font-size: 0.875rem;
   color: var(--color-gray-500);
 }

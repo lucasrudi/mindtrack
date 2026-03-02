@@ -12,6 +12,10 @@ const mockProfile = {
   telegramChatId: '123456',
   whatsappNumber: '+1234567890',
   tutorialCompleted: true,
+  onboardingCompleted: false,
+  surveyCompleted: false,
+  isPatient: true,
+  isTherapist: false,
 }
 
 vi.mock('@/services/api', () => ({
@@ -24,10 +28,17 @@ vi.mock('@/services/api', () => ({
   },
 }))
 
+vi.mock('@/stores/auth', () => ({
+  useAuthStore: () => ({
+    updateToken: vi.fn().mockResolvedValue(undefined),
+  }),
+}))
+
 describe('useProfileStore', () => {
   let api: {
     get: ReturnType<typeof vi.fn>
     put: ReturnType<typeof vi.fn>
+    patch: ReturnType<typeof vi.fn>
   }
 
   beforeEach(async () => {
@@ -149,6 +160,34 @@ describe('useProfileStore', () => {
       store.clearError()
 
       expect(store.error).toBeNull()
+    })
+  })
+
+  describe('updateRoles', () => {
+    it('calls PATCH /auth/me/roles and updates profile flags', async () => {
+      api.patch.mockResolvedValueOnce({ data: { token: 'new-token' } })
+      const store = useProfileStore()
+      store.profile = { ...mockProfile }
+
+      await store.updateRoles(true, true)
+
+      expect(api.patch).toHaveBeenCalledWith('/auth/me/roles', {
+        isPatient: true,
+        isTherapist: true,
+      })
+      expect(store.profile?.isPatient).toBe(true)
+      expect(store.profile?.isTherapist).toBe(true)
+      expect(store.saving).toBe(false)
+    })
+
+    it('sets error on failure', async () => {
+      api.patch.mockRejectedValueOnce(new Error('Network error'))
+      const store = useProfileStore()
+      store.profile = { ...mockProfile }
+
+      await expect(store.updateRoles(false, true)).rejects.toThrow()
+      expect(store.error).toBe('Failed to update roles')
+      expect(store.saving).toBe(false)
     })
   })
 })

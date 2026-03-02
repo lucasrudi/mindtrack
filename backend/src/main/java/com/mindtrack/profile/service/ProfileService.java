@@ -85,6 +85,20 @@ public class ProfileService {
         profileRepository.save(profile);
     }
 
+    /**
+     * Updates the patient and therapist role flags for the given user.
+     */
+    @Transactional
+    public UserProfile updateRoles(Long userId, boolean isPatient, boolean isTherapist) {
+        LOG.info("Updating roles for user {}: patient={}, therapist={}", userId, isPatient, isTherapist);
+        UserProfile profile = profileRepository.findByUserId(userId)
+                .orElseGet(() -> createDefaultProfile(userId));
+        profile.setPatient(isPatient);
+        profile.setTherapist(isTherapist);
+        profileRepository.save(profile);
+        return profile;
+    }
+
     private UserProfile createDefaultProfile(Long userId) {
         LOG.info("Creating default profile for user {}", userId);
         UserProfile profile = new UserProfile();

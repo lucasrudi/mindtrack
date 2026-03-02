@@ -48,6 +48,12 @@ public class UserProfile {
     @Column(name = "survey_completed", nullable = false)
     private boolean surveyCompleted;
 
+    @Column(name = "is_patient", nullable = false)
+    private boolean patient = true;
+
+    @Column(name = "is_therapist", nullable = false)
+    private boolean therapist = false;
+
     public UserProfile() {
     }
 
@@ -137,5 +143,21 @@ public class UserProfile {
 
     public void setSurveyCompleted(boolean surveyCompleted) {
         this.surveyCompleted = surveyCompleted;
+    }
+
+    public boolean isPatient() {
+        return patient;
+    }
+
+    public void setPatient(boolean patient) {
+        this.patient = patient;
+    }
+
+    public boolean isTherapist() {
+        return therapist;
+    }
+
+    public void setTherapist(boolean therapist) {
+        this.therapist = therapist;
     }
 }

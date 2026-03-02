@@ -1,5 +1,7 @@
 package com.mindtrack.auth.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Response DTO returned after successful authentication.
  */
@@ -9,6 +11,8 @@ public class AuthResponse {
     private String email;
     private String name;
     private String role;
+    private boolean isPatient;
+    private boolean isTherapist;
 
     public AuthResponse() {
     }
@@ -18,6 +22,16 @@ public class AuthResponse {
         this.email = email;
         this.name = name;
         this.role = role;
+    }
+
+    public AuthResponse(String token, String email, String name, String role,
+                        boolean isPatient, boolean isTherapist) {
+        this.token = token;
+        this.email = email;
+        this.name = name;
+        this.role = role;
+        this.isPatient = isPatient;
+        this.isTherapist = isTherapist;
     }
 
     public String getToken() {
@@ -50,5 +64,23 @@ public class AuthResponse {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    @JsonProperty("isPatient")
+    public boolean isPatient() {
+        return isPatient;
+    }
+
+    public void setPatient(boolean isPatient) {
+        this.isPatient = isPatient;
+    }
+
+    @JsonProperty("isTherapist")
+    public boolean isTherapist() {
+        return isTherapist;
+    }
+
+    public void setTherapist(boolean isTherapist) {
+        this.isTherapist = isTherapist;
     }
 }
