@@ -65,6 +65,7 @@ module "github" {
 
   repository_name        = var.repository_name
   repository_description = var.repository_description
+  visibility             = "public"
   topics                 = var.topics
   required_status_checks = var.required_status_checks
   required_approvals     = var.required_approvals
