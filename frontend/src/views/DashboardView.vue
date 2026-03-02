@@ -11,7 +11,12 @@ import TutorialOverlay from '@/components/tutorial/TutorialOverlay.vue'
 const store = useAnalyticsStore()
 const profileStore = useProfileStore()
 const { start: startTutorial } = useTutorial()
-const surveyPromptDismissed = ref(false)
+const surveyPromptDismissed = ref(sessionStorage.getItem('surveyPromptDismissed') === 'true')
+
+function dismissSurveyPrompt() {
+  surveyPromptDismissed.value = true
+  sessionStorage.setItem('surveyPromptDismissed', 'true')
+}
 
 const presets = [
   { label: '7 days', days: 7 },
@@ -113,8 +118,8 @@ watch(
       </div>
       <button
         class="survey-prompt-dismiss"
-        aria-label="Dismiss"
-        @click="surveyPromptDismissed = true"
+        aria-label="Dismiss wellness baseline survey prompt"
+        @click="dismissSurveyPrompt"
       >
         ✕
       </button>
@@ -433,7 +438,7 @@ watch(
   gap: var(--space-4);
   background: #fffbeb;
   border: 1px solid #fde68a;
-  border-radius: 10px;
+  border-radius: var(--border-radius-lg);
   padding: var(--space-4) var(--space-5);
   margin-bottom: var(--space-6);
 }
@@ -454,12 +459,12 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
   color: var(--color-gray-700);
 }
 
 .survey-prompt-link {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: #b45309;
   text-decoration: none;

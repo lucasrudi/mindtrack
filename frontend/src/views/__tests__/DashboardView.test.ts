@@ -4,6 +4,23 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useProfileStore } from '@/stores/profile'
 import DashboardView from '../DashboardView.vue'
 
+const sessionStorageMock = (() => {
+  let store: Record<string, string> = {}
+  return {
+    getItem: vi.fn((key: string) => store[key] ?? null),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = value
+    }),
+    removeItem: vi.fn((key: string) => {
+      delete store[key]
+    }),
+    clear: vi.fn(() => {
+      store = {}
+    }),
+  }
+})()
+vi.stubGlobal('sessionStorage', sessionStorageMock)
+
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: vi.fn() }),
   RouterLink: {
@@ -81,6 +98,8 @@ describe('DashboardView', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     mockGet.mockReset().mockResolvedValue({ data: {} })
+    vi.clearAllMocks()
+    mockGet.mockResolvedValue({ data: {} })
   })
 
   it('renders page header', () => {
@@ -170,6 +189,8 @@ describe('DashboardView', () => {
   })
 
   describe('survey prompt card', () => {
+    beforeEach(() => sessionStorageMock.clear())
+
     it('shows survey prompt when surveyCompleted is false', async () => {
       const wrapper = mount(DashboardView)
       const profileStore = useProfileStore()
@@ -278,6 +299,7 @@ describe('DashboardView', () => {
       await wrapper.vm.$nextTick()
 
       expect(wrapper.find('[data-testid="survey-prompt"]').exists()).toBe(false)
+      expect(sessionStorageMock.setItem).toHaveBeenCalledWith('surveyPromptDismissed', 'true')
     })
   })
 })
