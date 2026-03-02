@@ -2,10 +2,61 @@
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProfileStore, type ProfileForm } from '@/stores/profile'
+import { useAuthStore } from '@/stores/auth'
+import api from '@/services/api'
 
 const router = useRouter()
 const store = useProfileStore()
+const authStore = useAuthStore()
+const roleChanging = ref(false)
+const roleError = ref<string | null>(null)
+const showInlineSurvey = ref(false)
+const surveyMood = ref(5)
+const surveyAnxiety = ref(5)
+const surveySleep = ref(5)
+const surveyAreas = ref<string[]>([])
+const LIFE_AREA_OPTIONS = ['Work', 'Relationships', 'Health', 'Fitness', 'Mindfulness', 'Hobbies']
+const surveySubmitting = ref(false)
+const surveyError = ref<string | null>(null)
 const successMessage = ref('')
+
+function toggleSurveyArea(area: string) {
+  const idx = surveyAreas.value.indexOf(area)
+  if (idx >= 0) surveyAreas.value.splice(idx, 1)
+  else surveyAreas.value.push(area)
+}
+
+async function switchRole() {
+  const newRole = authStore.user?.role === 'THERAPIST' ? 'USER' : 'THERAPIST'
+  roleChanging.value = true
+  roleError.value = null
+  try {
+    const res = await api.patch('/auth/me/role', { role: newRole })
+    await authStore.updateToken(res.data.token)
+  } catch {
+    roleError.value = 'Could not change role. Please try again.'
+  } finally {
+    roleChanging.value = false
+  }
+}
+
+async function handleSurveySubmit() {
+  surveySubmitting.value = true
+  surveyError.value = null
+  try {
+    await store.submitSurvey({
+      moodBaseline: surveyMood.value,
+      anxietyLevel: surveyAnxiety.value,
+      sleepQuality: surveySleep.value,
+      lifeAreas: surveyAreas.value,
+    })
+    showInlineSurvey.value = false
+  } catch {
+    surveyError.value = 'Failed to submit survey.'
+  } finally {
+    surveySubmitting.value = false
+  }
+}
 
 const form = ref<ProfileForm>({
   displayName: null,
@@ -158,6 +209,98 @@ async function replayTutorial() {
           <div v-if="form.avatarUrl" class="avatar-preview">
             <img :src="form.avatarUrl" alt="Avatar preview" class="avatar-img" />
           </div>
+        </div>
+      </section>
+
+      <!-- Account Type -->
+      <section class="form-section">
+        <h2>Account Type</h2>
+        <p class="field-description">
+          {{
+            authStore.user?.role === 'THERAPIST'
+              ? 'You are registered as a Therapist.'
+              : 'You are registered as a Patient.'
+          }}
+        </p>
+        <div v-if="roleError" class="error-message">
+          <p>{{ roleError }}</p>
+        </div>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          :disabled="roleChanging"
+          @click="switchRole"
+        >
+          {{
+            roleChanging
+              ? 'Changing...'
+              : authStore.user?.role === 'THERAPIST'
+                ? 'Switch to Patient'
+                : 'Switch to Therapist'
+          }}
+        </button>
+      </section>
+
+      <!-- Wellness Baseline -->
+      <section id="wellness-baseline" class="form-section">
+        <h2>Wellness Baseline</h2>
+        <div class="baseline-status">
+          <span
+            :class="[
+              'baseline-badge',
+              store.profile?.surveyCompleted ? 'badge-done' : 'badge-pending',
+            ]"
+          >
+            {{ store.profile?.surveyCompleted ? 'Completed' : 'Not yet completed' }}
+          </span>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            @click="showInlineSurvey = !showInlineSurvey"
+          >
+            {{ store.profile?.surveyCompleted ? 'Redo Survey' : 'Complete Survey' }}
+          </button>
+        </div>
+
+        <div v-if="showInlineSurvey" class="inline-survey">
+          <div v-if="surveyError" class="error-message">
+            <p>{{ surveyError }}</p>
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Current mood (1–10): {{ surveyMood }}</label>
+            <input v-model.number="surveyMood" type="range" min="1" max="10" class="slider" />
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Anxiety level (1–10): {{ surveyAnxiety }}</label>
+            <input v-model.number="surveyAnxiety" type="range" min="1" max="10" class="slider" />
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Sleep quality (1–10): {{ surveySleep }}</label>
+            <input v-model.number="surveySleep" type="range" min="1" max="10" class="slider" />
+          </div>
+          <div class="form-group">
+            <label class="form-group-label">Life areas to improve</label>
+            <div class="chip-group">
+              <button
+                v-for="area in LIFE_AREA_OPTIONS"
+                :key="area"
+                type="button"
+                class="chip"
+                :class="{ 'chip-active': surveyAreas.includes(area) }"
+                @click="toggleSurveyArea(area)"
+              >
+                {{ area }}
+              </button>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary"
+            :disabled="surveySubmitting"
+            @click="handleSurveySubmit"
+          >
+            {{ surveySubmitting ? 'Saving...' : 'Save Baseline' }}
+          </button>
         </div>
       </section>
 
@@ -471,5 +614,82 @@ async function replayTutorial() {
   font-size: var(--font-size-sm);
   color: var(--color-gray-600);
   margin-bottom: var(--space-4);
+}
+
+.field-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  margin-bottom: var(--space-3);
+}
+
+.baseline-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.baseline-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 99px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.badge-done {
+  background: #f0fdf4;
+  color: var(--color-success);
+  border: 1px solid #bbf7d0;
+}
+
+.badge-pending {
+  background: #fefce8;
+  color: #854d0e;
+  border: 1px solid #fde047;
+}
+
+.inline-survey {
+  border-top: 1px solid var(--color-gray-100);
+  padding-top: var(--space-4);
+  margin-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.form-group-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+  margin-bottom: var(--space-1);
+}
+
+.slider {
+  width: 100%;
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.chip {
+  padding: var(--space-1) var(--space-3);
+  border-radius: 99px;
+  border: 1px solid var(--color-gray-300);
+  background: white;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: all 0.15s;
+}
+
+.chip-active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
 }
 </style>

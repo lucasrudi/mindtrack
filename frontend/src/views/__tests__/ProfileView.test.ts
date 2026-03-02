@@ -7,6 +7,21 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push: vi.fn() }),
 }))
 
+// Ensure localStorage is available in test environment
+const localStorageMock = {
+  getItem: vi.fn(() => null),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  length: 0,
+  key: vi.fn(() => null),
+}
+
+Object.defineProperty(globalThis, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+})
+
 const mockProfile = {
   id: 1,
   userId: 10,
@@ -34,6 +49,7 @@ vi.mock('@/services/api', () => ({
 describe('ProfileView', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    localStorageMock.getItem.mockReturnValue(null)
     mockGet.mockReset().mockResolvedValue({ data: mockProfile })
     mockPut.mockReset().mockResolvedValue({ data: mockProfile })
   })
@@ -68,7 +84,7 @@ describe('ProfileView', () => {
 
     expect(wrapper.find('.profile-form').exists()).toBe(true)
     const sections = wrapper.findAll('.form-section')
-    expect(sections).toHaveLength(5)
+    expect(sections).toHaveLength(7)
   })
 
   it('populates form with profile data', async () => {
