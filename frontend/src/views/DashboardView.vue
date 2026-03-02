@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useAnalyticsStore } from '@/stores/analytics'
 import { useProfileStore } from '@/stores/profile'
 import { useTutorial } from '@/composables/useTutorial'
@@ -11,6 +11,7 @@ import TutorialOverlay from '@/components/tutorial/TutorialOverlay.vue'
 const store = useAnalyticsStore()
 const profileStore = useProfileStore()
 const { start: startTutorial } = useTutorial()
+const surveyPromptDismissed = ref(false)
 
 const presets = [
   { label: '7 days', days: 7 },
@@ -94,6 +95,30 @@ watch(
         </button>
       </div>
     </header>
+
+    <div
+      v-if="profileStore.profile && !profileStore.profile.surveyCompleted && !surveyPromptDismissed"
+      class="survey-prompt"
+      data-testid="survey-prompt"
+    >
+      <div class="survey-prompt-content">
+        <span class="survey-prompt-icon">📋</span>
+        <div class="survey-prompt-text">
+          <strong>Complete your wellness baseline</strong>
+          <span>It only takes 2 minutes and helps us personalise your goals.</span>
+        </div>
+        <router-link to="/profile#wellness-baseline" class="survey-prompt-link">
+          Complete now →
+        </router-link>
+      </div>
+      <button
+        class="survey-prompt-dismiss"
+        aria-label="Dismiss"
+        @click="surveyPromptDismissed = true"
+      >
+        ✕
+      </button>
+    </div>
 
     <div v-if="store.error" class="error-message">
       <p>{{ store.error }}</p>
@@ -398,6 +423,66 @@ watch(
   font-size: 0.75rem;
   color: var(--color-gray-500);
   text-align: center;
+}
+
+/* Survey Prompt */
+.survey-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.survey-prompt-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+}
+
+.survey-prompt-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.survey-prompt-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.9rem;
+  color: var(--color-gray-700);
+}
+
+.survey-prompt-link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #b45309;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.survey-prompt-link:hover {
+  text-decoration: underline;
+}
+
+.survey-prompt-dismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-gray-500);
+  font-size: 1rem;
+  padding: 2px 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.survey-prompt-dismiss:hover {
+  color: var(--color-gray-700);
 }
 
 /* Responsive */

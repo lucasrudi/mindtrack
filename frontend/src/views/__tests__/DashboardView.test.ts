@@ -1,10 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { useProfileStore } from '@/stores/profile'
 import DashboardView from '../DashboardView.vue'
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  RouterLink: {
+    name: 'RouterLink',
+    props: ['to'],
+    template: '<a :href="to"><slot /></a>',
+  },
 }))
 
 const mockGet = vi.fn().mockResolvedValue({ data: {} })
@@ -161,5 +167,117 @@ describe('DashboardView', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('2 active')
+  })
+
+  describe('survey prompt card', () => {
+    it('shows survey prompt when surveyCompleted is false', async () => {
+      const wrapper = mount(DashboardView)
+      const profileStore = useProfileStore()
+      profileStore.profile = {
+        id: 1,
+        userId: 1,
+        displayName: 'Test User',
+        avatarUrl: null,
+        timezone: null,
+        notificationPrefs: null,
+        telegramChatId: null,
+        whatsappNumber: null,
+        tutorialCompleted: true,
+        onboardingCompleted: true,
+        surveyCompleted: false,
+      }
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.find('[data-testid="survey-prompt"]').exists()).toBe(true)
+    })
+
+    it('hides survey prompt when surveyCompleted is true', async () => {
+      const wrapper = mount(DashboardView)
+      const profileStore = useProfileStore()
+      profileStore.profile = {
+        id: 1,
+        userId: 1,
+        displayName: 'Test User',
+        avatarUrl: null,
+        timezone: null,
+        notificationPrefs: null,
+        telegramChatId: null,
+        whatsappNumber: null,
+        tutorialCompleted: true,
+        onboardingCompleted: true,
+        surveyCompleted: true,
+      }
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.find('[data-testid="survey-prompt"]').exists()).toBe(false)
+    })
+
+    it('hides survey prompt when profile is null', async () => {
+      const wrapper = mount(DashboardView)
+      const profileStore = useProfileStore()
+      profileStore.profile = null
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.find('[data-testid="survey-prompt"]').exists()).toBe(false)
+    })
+
+    it('survey prompt links to /profile#wellness-baseline', async () => {
+      const wrapper = mount(DashboardView, {
+        global: {
+          stubs: {
+            RouterLink: {
+              name: 'RouterLink',
+              props: ['to'],
+              template: '<a :href="to"><slot /></a>',
+            },
+          },
+        },
+      })
+      const profileStore = useProfileStore()
+      profileStore.profile = {
+        id: 1,
+        userId: 1,
+        displayName: 'Test User',
+        avatarUrl: null,
+        timezone: null,
+        notificationPrefs: null,
+        telegramChatId: null,
+        whatsappNumber: null,
+        tutorialCompleted: true,
+        onboardingCompleted: true,
+        surveyCompleted: false,
+      }
+      await wrapper.vm.$nextTick()
+
+      const link = wrapper.find('[data-testid="survey-prompt"] .survey-prompt-link')
+      expect(link.exists()).toBe(true)
+      expect(link.attributes('href')).toBe('/profile#wellness-baseline')
+    })
+
+    it('dismissing the prompt hides it', async () => {
+      const wrapper = mount(DashboardView)
+      const profileStore = useProfileStore()
+      profileStore.profile = {
+        id: 1,
+        userId: 1,
+        displayName: 'Test User',
+        avatarUrl: null,
+        timezone: null,
+        notificationPrefs: null,
+        telegramChatId: null,
+        whatsappNumber: null,
+        tutorialCompleted: true,
+        onboardingCompleted: true,
+        surveyCompleted: false,
+      }
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.find('[data-testid="survey-prompt"]').exists()).toBe(true)
+
+      await wrapper.find('.survey-prompt-dismiss').trigger('click')
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.find('[data-testid="survey-prompt"]').exists()).toBe(false)
+    })
   })
 })
