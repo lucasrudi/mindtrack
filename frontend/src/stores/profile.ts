@@ -74,6 +74,9 @@ export const useProfileStore = defineStore('profile', () => {
     anxietyLevel: number
     sleepQuality: number
     lifeAreas: string[]
+    depressionScore?: number
+    stressLevel?: number
+    eatingHabits?: number
   }) {
     saving.value = true
     error.value = null
