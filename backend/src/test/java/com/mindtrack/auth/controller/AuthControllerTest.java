@@ -4,6 +4,8 @@ import com.mindtrack.auth.service.JwtService;
 import com.mindtrack.auth.service.UserService;
 import com.mindtrack.common.model.Role;
 import com.mindtrack.common.model.User;
+import com.mindtrack.profile.model.UserProfile;
+import com.mindtrack.profile.service.ProfileService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -18,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -40,6 +43,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private JwtService jwtService;
+
+    @MockitoBean
+    private ProfileService profileService;
 
     private static UsernamePasswordAuthenticationToken mockAuth(Long userId) {
         return new UsernamePasswordAuthenticationToken(
@@ -107,6 +113,52 @@ class AuthControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void shouldUpdateBothRolesAndReturnNewToken() throws Exception {
+        User user = createUser(1L, "test@example.com", "Test User", "USER");
+        UserProfile profile = createProfile(true, true);
+        when(profileService.updateRoles(1L, true, true)).thenReturn(profile);
+        when(userService.findById(1L)).thenReturn(Optional.of(user));
+        when(jwtService.generateToken(anyLong(), anyString(), anyString(), anyBoolean(), anyBoolean()))
+                .thenReturn("new-token-both-roles");
+
+        mockMvc.perform(patch("/api/auth/me/roles")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"isPatient\":true,\"isTherapist\":true}")
+                        .with(authentication(mockAuth(1L))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("new-token-both-roles"))
+                .andExpect(jsonPath("$.isPatient").value(true))
+                .andExpect(jsonPath("$.isTherapist").value(true));
+    }
+
+    @Test
+    void shouldUpdateOnlyTherapistRoleAndReturnNewToken() throws Exception {
+        User user = createUser(1L, "test@example.com", "Test User", "USER");
+        UserProfile profile = createProfile(false, true);
+        when(profileService.updateRoles(1L, false, true)).thenReturn(profile);
+        when(userService.findById(1L)).thenReturn(Optional.of(user));
+        when(jwtService.generateToken(anyLong(), anyString(), anyString(), anyBoolean(), anyBoolean()))
+                .thenReturn("new-token-therapist-only");
+
+        mockMvc.perform(patch("/api/auth/me/roles")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"isPatient\":false,\"isTherapist\":true}")
+                        .with(authentication(mockAuth(1L))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("new-token-therapist-only"))
+                .andExpect(jsonPath("$.isPatient").value(false))
+                .andExpect(jsonPath("$.isTherapist").value(true));
+    }
+
+    @Test
+    void shouldReturn401OnRolesUpdateWhenNotAuthenticated() throws Exception {
+        mockMvc.perform(patch("/api/auth/me/roles")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"isPatient\":true,\"isTherapist\":false}"))
+                .andExpect(status().isUnauthorized());
+    }
+
     private User createUser(Long id, String email, String name, String roleName) {
         Role role = new Role(roleName);
         role.setId(1L);
@@ -118,5 +170,13 @@ class AuthControllerTest {
         user.setRole(role);
         user.setEnabled(true);
         return user;
+    }
+
+    private UserProfile createProfile(boolean isPatient, boolean isTherapist) {
+        UserProfile profile = new UserProfile();
+        profile.setUserId(1L);
+        profile.setPatient(isPatient);
+        profile.setTherapist(isTherapist);
+        return profile;
     }
 }

@@ -33,18 +33,28 @@ public class JwtService {
     }
 
     /**
-     * Generates a JWT token for the given user.
+     * Generates a JWT token for the given user with patient/therapist role flags.
      */
-    public String generateToken(Long userId, String email, String role) {
+    public String generateToken(Long userId, String email, String role,
+                                boolean isPatient, boolean isTherapist) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(userId.toString())
                 .claim("email", email)
                 .claim("role", role)
+                .claim("isPatient", isPatient)
+                .claim("isTherapist", isTherapist)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusMillis(expirationMs)))
                 .signWith(signingKey)
                 .compact();
+    }
+
+    /**
+     * Generates a JWT token for the given user (defaults: isPatient=true, isTherapist=false).
+     */
+    public String generateToken(Long userId, String email, String role) {
+        return generateToken(userId, email, role, true, false);
     }
 
     /**
@@ -69,6 +79,20 @@ public class JwtService {
     public String getRoleFromToken(String token) {
         Claims claims = parseClaims(token);
         return claims.get("role", String.class);
+    }
+
+    /**
+     * Extracts the isPatient flag from a valid JWT token.
+     */
+    public Boolean getIsPatientFromToken(String token) {
+        return parseClaims(token).get("isPatient", Boolean.class);
+    }
+
+    /**
+     * Extracts the isTherapist flag from a valid JWT token.
+     */
+    public Boolean getIsTherapistFromToken(String token) {
+        return parseClaims(token).get("isTherapist", Boolean.class);
     }
 
     /**
