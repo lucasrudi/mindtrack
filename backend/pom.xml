@@ -25,6 +25,8 @@
         <!-- Override protobuf to fix SNYK-JAVA-COMGOOGLEPROTOBUF-8055227 (fixed in 3.25.5+, 4.27.5+) -->
         <!-- 4.x required by micrometer-registry-otlp 1.15+ / opentelemetry-proto 1.5.0-alpha -->
         <protobuf-java.version>4.29.3</protobuf-java.version>
+        <!-- Override Flyway to fix SNYK-JAVA-COMFASTERXMLJACKSONCORE-15365924 (jackson-core via flyway-core 11.7.2) -->
+        <flyway.version>11.8.1</flyway.version>
 
         <!-- Sonar properties -->
         <sonar.organization>mindtrack</sonar.organization>
