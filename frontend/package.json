@@ -21,6 +21,11 @@
     "vue-chartjs": "^5.3.0",
     "vue-router": "^4.0.0"
   },
+  "overrides": {
+    "editorconfig": {
+      "minimatch": "9.0.9"
+    }
+  },
   "devDependencies": {
     "@types/node": "^22.19.13",
     "@vitejs/plugin-vue": "^5.0.0",

@@ -37,14 +37,14 @@ services:
     ports:
       - '3306:3306'
     environment:
-      MYSQL_ROOT_PASSWORD: mindtrack
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-mindtrack}
       MYSQL_DATABASE: mindtrack
-      MYSQL_USER: mindtrack
-      MYSQL_PASSWORD: mindtrack
+      MYSQL_USER: ${MYSQL_USER:-mindtrack}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-mindtrack}
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'mindtrack', '-pmindtrack']
+      test: ['CMD-SHELL', 'mysqladmin ping -h localhost -u ${MYSQL_USER:-mindtrack} -p${MYSQL_PASSWORD:-mindtrack}']
       interval: 5s
       timeout: 5s
       retries: 10
@@ -109,8 +109,8 @@ services:
     ports:
       - '3001:3000'
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: mindtrack
+      GF_SECURITY_ADMIN_USER: ${GF_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_ADMIN_PASSWORD:-mindtrack}
       GF_USERS_ALLOW_SIGN_UP: 'false'
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/mindtrack-overview.json
     volumes:
