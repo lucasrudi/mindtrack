@@ -124,3 +124,39 @@ resource "github_actions_variable" "variables" {
   variable_name = each.key
   value         = each.value
 }
+
+# ------------------------------------
+# Private Vulnerability Reporting
+# ------------------------------------
+# The integrations/github Terraform provider v6.x does not expose private
+# vulnerability reporting as a settable resource attribute. The Go client
+# struct (PrivateVulnerabilityReporting) exists internally but is not surfaced
+# in the Terraform schema for github_repository or any standalone resource.
+#
+# To manage this setting outside of Terraform use the GitHub REST API:
+#   Enable:  PUT  https://api.github.com/repos/{owner}/{repo}/private-vulnerability-reporting
+#   Disable: DELETE https://api.github.com/repos/{owner}/{repo}/private-vulnerability-reporting
+#   Status:  GET  https://api.github.com/repos/{owner}/{repo}/private-vulnerability-reporting
+#
+# Or enable it in the GitHub UI under:
+#   Settings > Security > Private vulnerability reporting
+#
+# var.enable_private_vulnerability_reporting = true is the desired state.
+# Track provider support at: https://github.com/integrations/terraform-provider-github/issues
+
+# ------------------------------------
+# Default CodeQL Setup (Code Scanning)
+# ------------------------------------
+# The integrations/github Terraform provider v6.x does not include a resource
+# for GitHub's default CodeQL setup. There is no github_repository_code_scanning
+# or equivalent resource in the provider schema.
+#
+# To manage this setting outside of Terraform use the GitHub REST API:
+#   PATCH https://api.github.com/repos/{owner}/{repo}/code-scanning/default-setup
+#   Body: {"state": "configured", "query_suite": "default"}
+#
+# Or enable it in the GitHub UI under:
+#   Security > Code scanning > Set up > Default
+#
+# var.enable_default_codeql_setup = true is the desired state.
+# Track provider support at: https://github.com/integrations/terraform-provider-github/issues

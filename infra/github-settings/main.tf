@@ -77,4 +77,10 @@ module "github" {
   enable_branch_protection           = true
   enable_secret_scanning             = true
   enable_dependabot_security_updates = true
+
+  # Private vulnerability reporting and default CodeQL setup are enabled on the
+  # repository. Terraform management is not yet possible — see the comments in
+  # modules/github/main.tf for the manual REST API / GitHub UI steps.
+  enable_private_vulnerability_reporting = true
+  enable_default_codeql_setup            = true
 }

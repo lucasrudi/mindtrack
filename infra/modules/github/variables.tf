@@ -121,3 +121,15 @@ variable "actions_variables" {
   type        = map(string)
   default     = {}
 }
+
+variable "enable_private_vulnerability_reporting" {
+  description = "Enable private vulnerability reporting so security researchers can disclose vulnerabilities privately. NOTE: The integrations/github Terraform provider v6.x does not expose this setting as a resource attribute. Enable it manually via GitHub UI (Security > Private vulnerability reporting) or via the REST API: PUT /repos/{owner}/{repo}/private-vulnerability-reporting. This variable is reserved for when provider support is added."
+  type        = bool
+  default     = true
+}
+
+variable "enable_default_codeql_setup" {
+  description = "Enable GitHub's default CodeQL code scanning setup (no custom workflow required). NOTE: The integrations/github Terraform provider v6.x does not expose a resource for CodeQL default setup. Enable it manually via GitHub UI (Security > Code scanning > Set up > Default) or via the REST API: PATCH /repos/{owner}/{repo}/code-scanning/default-setup with {\"state\":\"configured\"}. This variable is reserved for when provider support is added."
+  type        = bool
+  default     = true
+}
