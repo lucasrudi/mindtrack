@@ -43,12 +43,13 @@ class WhatsAppWebhookControllerTest {
         whatsapp.setVerifyToken("test-verify-token");
         org.mockito.Mockito.when(properties.getWhatsapp()).thenReturn(whatsapp);
 
+        // hub.challenge is a numeric string per Meta's webhook API spec
         mockMvc.perform(get("/api/webhooks/whatsapp")
                         .param("hub.mode", "subscribe")
                         .param("hub.verify_token", "test-verify-token")
-                        .param("hub.challenge", "challenge-12345"))
+                        .param("hub.challenge", "12345"))
                 .andExpect(status().isOk())
-                .andExpect(content().string("challenge-12345"));
+                .andExpect(content().string("12345"));
     }
 
     @Test
@@ -66,7 +67,10 @@ class WhatsAppWebhookControllerTest {
 
     @Test
     void shouldAcceptWhatsAppWebhookWithoutAuth() throws Exception {
-        // WhatsApp webhooks are public endpoints — no JWT needed
+        // WhatsApp webhooks are public endpoints — no JWT needed.
+        // appSecret is blank so signature verification is skipped.
+        org.mockito.Mockito.when(properties.getWhatsapp()).thenReturn(new MessagingProperties.Whatsapp());
+
         WhatsAppWebhook webhook = new WhatsAppWebhook();
         webhook.setObject("whatsapp_business_account");
 
