@@ -1,0 +1,79 @@
+version: 2
+
+updates:
+  # Backend — Maven
+  - package-ecosystem: "maven"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      backend-dependencies:
+        patterns:
+          - "*"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+    labels:
+      - "dependencies"
+      - "backend"
+    commit-message:
+      prefix: "chore(backend)"
+
+  # Frontend — npm
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      frontend-dependencies:
+        patterns:
+          - "*"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+    labels:
+      - "dependencies"
+      - "frontend"
+    commit-message:
+      prefix: "chore(frontend)"
+
+  # Infrastructure — Terraform
+  - package-ecosystem: "terraform"
+    directory: "/infra"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      infra-dependencies:
+        patterns:
+          - "*"
+    labels:
+      - "dependencies"
+      - "infra"
+    commit-message:
+      prefix: "chore(infra)"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    groups:
+      actions-dependencies:
+        patterns:
+          - "*"
+        # Exclude the Claude code review action — managed manually to avoid
+        # OIDC validation failures when code-review.yml is modified in a PR.
+        exclude-patterns:
+          - "anthropics/claude-code-action"
+    ignore:
+      - dependency-name: "anthropics/claude-code-action"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(ci)"

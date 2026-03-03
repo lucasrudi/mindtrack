@@ -97,6 +97,18 @@ variable "labels" {
   }
 }
 
+variable "enable_secret_scanning" {
+  description = "Enable secret scanning and push protection. Works on public repos without GitHub Advanced Security."
+  type        = bool
+  default     = true
+}
+
+variable "enable_dependabot_security_updates" {
+  description = "Enable Dependabot security updates (automatic PRs for vulnerable dependencies). Requires vulnerability_alerts = true."
+  type        = bool
+  default     = true
+}
+
 variable "actions_secrets" {
   description = "Map of GitHub Actions secrets to create (name => plaintext value). Values are sensitive."
   type        = map(string)
