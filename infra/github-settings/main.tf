@@ -68,7 +68,7 @@ module "github" {
   visibility             = "public"
   topics                 = var.topics
   required_status_checks = var.required_status_checks
-  required_approvals     = var.required_approvals
+  required_approvals     = 1
   actions_secrets = merge(var.actions_secrets, {
     GH_CONFIG_TOKEN = data.aws_secretsmanager_secret_version.gh_config_token.secret_string
   })
