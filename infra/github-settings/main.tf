@@ -74,5 +74,7 @@ module "github" {
   })
   actions_variables = var.actions_variables
 
-  enable_branch_protection = true
+  enable_branch_protection           = true
+  enable_secret_scanning             = true
+  enable_dependabot_security_updates = true
 }

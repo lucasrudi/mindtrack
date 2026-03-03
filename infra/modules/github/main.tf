@@ -35,6 +35,15 @@ resource "github_repository" "this" {
 
   vulnerability_alerts = true
 
+  security_and_analysis {
+    secret_scanning {
+      status = var.enable_secret_scanning ? "enabled" : "disabled"
+    }
+    secret_scanning_push_protection {
+      status = var.enable_secret_scanning ? "enabled" : "disabled"
+    }
+  }
+
   lifecycle {
     prevent_destroy = true
   }
@@ -67,6 +76,20 @@ resource "github_branch_protection" "main" {
 
   allows_deletions    = false
   allows_force_pushes = false
+}
+
+# ------------------------------------
+# Dependabot Security Updates
+# Automatically opens PRs to fix vulnerable dependencies.
+# Requires vulnerability_alerts = true on the repository.
+# ------------------------------------
+resource "github_repository_dependabot_security_updates" "this" {
+  count = var.enable_dependabot_security_updates ? 1 : 0
+
+  repository = github_repository.this.name
+  enabled    = true
+
+  depends_on = [github_repository.this]
 }
 
 # ------------------------------------
