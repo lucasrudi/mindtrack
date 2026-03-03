@@ -67,12 +67,16 @@ updates:
       actions-dependencies:
         patterns:
           - "*"
-        # Exclude the Claude code review action — managed manually to avoid
-        # OIDC validation failures when code-review.yml is modified in a PR.
+        # Exclude actions used in code-review.yml to prevent OIDC validation
+        # failures. anthropics/claude-code-action@v1 validates that
+        # code-review.yml is identical to main at runtime — any PR modifying
+        # that file will always fail Code Review. Manage these manually.
         exclude-patterns:
           - "anthropics/claude-code-action"
+          - "actions/checkout"
     ignore:
       - dependency-name: "anthropics/claude-code-action"
+      - dependency-name: "actions/checkout"
     labels:
       - "dependencies"
     commit-message:
