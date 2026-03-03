@@ -19,7 +19,6 @@ resource "github_repository" "this" {
   has_discussions = false
   has_projects    = true
   has_wiki        = false
-  has_downloads   = false
   homepage_url    = var.homepage_url
   topics          = var.topics
 
