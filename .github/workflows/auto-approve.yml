@@ -1,0 +1,29 @@
+name: Auto Approve
+
+on:
+  workflow_run:
+    workflows: ['Code Review']
+    types: [completed]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  approve:
+    name: Approve PR after Code Review
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Approve PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR=$(gh api \
+            repos/${{ github.repository }}/pulls \
+            --jq ".[] | select(.head.sha == \"${{ github.event.workflow_run.head_sha }}\") | .number")
+          if [ -n "$PR" ]; then
+            gh pr review "$PR" \
+              --repo ${{ github.repository }} \
+              --approve \
+              --body "Approved by automated code review agent."
+          fi
