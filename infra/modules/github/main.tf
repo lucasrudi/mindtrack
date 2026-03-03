@@ -62,7 +62,8 @@ resource "github_branch_protection" "main" {
     require_code_owner_reviews      = false
   }
 
-  enforce_admins = true
+  enforce_admins                  = true
+  require_conversation_resolution = true
 
   allows_deletions    = false
   allows_force_pushes = false
