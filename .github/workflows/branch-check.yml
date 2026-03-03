@@ -16,6 +16,10 @@ jobs:
       - name: Validate branch name
         run: |
           BRANCH="${{ github.head_ref }}"
+          if [[ "$BRANCH" == renovate/* ]]; then
+            echo "Renovate branch — skipping convention check."
+            exit 0
+          fi
           PATTERN="^(feature|bugfix|chore|docs|test|refactor|ci|infra|style|perf|build)/[0-9]+-[a-z0-9-]+$"
           if [[ "$BRANCH" =~ $PATTERN ]]; then
             echo "Branch '$BRANCH' follows naming convention."

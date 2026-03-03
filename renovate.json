@@ -1,43 +1,30 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    ":semanticCommits",
-    ":automergeMinor",
-    "schedule:weekends"
-  ],
+  "extends": ["config:recommended", ":semanticCommits"],
+  "schedule": ["at any time"],
   "labels": ["dependencies"],
+  "groupName": "all dependencies",
+  "automerge": true,
+  "platformAutomerge": true,
   "packageRules": [
     {
-      "description": "Backend (Maven)",
       "matchManagers": ["maven"],
-      "groupName": "backend dependencies",
-      "commitMessagePrefix": "fix(backend):",
       "addLabels": ["backend"]
     },
     {
-      "description": "Frontend (npm)",
       "matchManagers": ["npm"],
-      "groupName": "frontend dependencies",
-      "commitMessagePrefix": "fix(frontend):",
       "addLabels": ["frontend"]
     },
     {
-      "description": "Terraform providers",
       "matchManagers": ["terraform"],
-      "groupName": "infra dependencies",
-      "commitMessagePrefix": "fix(infra):",
       "addLabels": ["infra"]
     },
     {
-      "description": "GitHub Actions",
       "matchManagers": ["github-actions"],
-      "groupName": "github-actions",
-      "commitMessagePrefix": "ci:",
-      "automerge": true
+      "addLabels": ["ci"]
     },
     {
-      "description": "Major updates require manual merge",
+      "description": "Major updates require manual review",
       "matchUpdateTypes": ["major"],
       "automerge": false,
       "addLabels": ["breaking"]
@@ -45,6 +32,7 @@
   ],
   "vulnerabilityAlerts": {
     "enabled": true,
-    "labels": ["security"]
+    "labels": ["security"],
+    "automerge": true
   }
 }
