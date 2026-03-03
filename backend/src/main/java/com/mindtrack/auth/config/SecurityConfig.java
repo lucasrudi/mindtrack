@@ -30,42 +30,31 @@ public class SecurityConfig {
     private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-                          OAuth2LoginSuccessHandler oauth2LoginSuccessHandler) {
+            OAuth2LoginSuccessHandler oauth2LoginSuccessHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.oauth2LoginSuccessHandler = oauth2LoginSuccessHandler;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/h2-console/**"))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint((request, response, authException) -> {
+                .exceptionHandling(
+                        exceptions -> exceptions.authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
                             response.getWriter().write("{\"error\":\"Unauthorized\"}");
-                        })
-                )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/api/oauth2/**", "/api/login/oauth2/**").permitAll()
-                        .requestMatchers("/api/webhooks/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        }))
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico")
+                        .permitAll().requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll().requestMatchers("/actuator/health")
+                        .permitAll().requestMatchers("/api/oauth2/**", "/api/login/oauth2/**").permitAll()
+                        .requestMatchers("/api/webhooks/**").permitAll().anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
-                        .authorizationEndpoint(endpoint -> endpoint
-                                .baseUri("/api/oauth2/authorization")
-                        )
-                        .redirectionEndpoint(endpoint -> endpoint
-                                .baseUri("/api/login/oauth2/code/*")
-                        )
-                        .successHandler(oauth2LoginSuccessHandler)
-                )
+                        .authorizationEndpoint(endpoint -> endpoint.baseUri("/api/oauth2/authorization"))
+                        .redirectionEndpoint(endpoint -> endpoint.baseUri("/api/login/oauth2/code/*"))
+                        .successHandler(oauth2LoginSuccessHandler))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 

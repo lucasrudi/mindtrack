@@ -60,6 +60,7 @@ public class MessagingProperties {
         private String apiToken = "";
         private String verifyToken = "";
         private String phoneNumberId = "";
+        private String appSecret = "";
 
         public String getApiToken() {
             return apiToken;
@@ -83,6 +84,14 @@ public class MessagingProperties {
 
         public void setPhoneNumberId(String phoneNumberId) {
             this.phoneNumberId = phoneNumberId;
+        }
+
+        public String getAppSecret() {
+            return appSecret;
+        }
+
+        public void setAppSecret(String appSecret) {
+            this.appSecret = appSecret;
         }
     }
 }
