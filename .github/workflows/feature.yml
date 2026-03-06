@@ -78,6 +78,11 @@ jobs:
 
       - name: Build
         working-directory: frontend
+        env:
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+          VITE_SENTRY_TRACES_SAMPLE_RATE: ${{ vars.VITE_SENTRY_TRACES_SAMPLE_RATE }}
+          VITE_APP_ENV: ${{ vars.VITE_APP_ENV }}
+          VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID }}
         run: npm run build
 
       - name: Upload coverage

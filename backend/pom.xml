@@ -28,6 +28,9 @@
         <!-- Override Flyway to fix SNYK-JAVA-COMFASTERXMLJACKSONCORE-15365924 (jackson-core via flyway-core 11.7.2) -->
         <flyway.version>11.8.1</flyway.version>
 
+        <!-- Sentry -->
+        <sentry.version>8.34.1</sentry.version>
+
         <!-- Sonar properties -->
         <sonar.organization>mindtrack</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
@@ -144,6 +147,13 @@
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
+        </dependency>
+
+        <!-- Sentry: Error + Performance Monitoring -->
+        <dependency>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
+            <version>${sentry.version}</version>
         </dependency>
 
         <!-- JWT -->

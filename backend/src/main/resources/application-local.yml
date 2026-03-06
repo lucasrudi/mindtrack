@@ -52,6 +52,10 @@ management:
       export:
         enabled: false
 
+sentry:
+  dsn: ""
+  environment: local
+
 mindtrack:
   auth:
     jwt-secret: local-dev-secret-key-for-testing-purposes-only-minimum-256-bits!
