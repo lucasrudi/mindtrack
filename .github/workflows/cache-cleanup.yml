@@ -1,0 +1,64 @@
+name: Cleanup Actions Cache
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'  # Weekly, Sunday 03:00 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  cleanup:
+    name: Delete Duplicate Caches
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete duplicate caches (keep newest per key)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "Fetching all caches for $REPO..."
+
+          # Collect all pages into a single JSON array.
+          # --paginate applies --jq to each page, outputting one array per page;
+          # jq -s 'add // []' merges them into a single flat array.
+          all_caches=$(gh api "repos/$REPO/actions/caches?per_page=100" \
+            --paginate \
+            --jq '[.actions_caches[]]' \
+            | jq -s 'add // []')
+
+          total=$(echo "$all_caches" | jq 'length')
+          echo "Total caches: $total"
+
+          # For each key group, sort descending by created_at and select
+          # every entry after the first (i.e. all older duplicates) for deletion.
+          to_delete=$(echo "$all_caches" | jq -r '
+            group_by(.key)[] |
+            sort_by(.created_at) | reverse |
+            .[1:][] |
+            "\(.id)\t\(.key[:60])\t\(.size_in_bytes)"
+          ')
+
+          if [ -z "$to_delete" ]; then
+            echo "No duplicate caches found — nothing to delete."
+            exit 0
+          fi
+
+          deleted_count=0
+          freed_bytes=0
+
+          while IFS=$'\t' read -r cache_id key size; do
+            mb=$(( size / 1048576 ))
+            echo "  Deleting [$cache_id] ${key}... (${mb}MB)"
+            if gh api --method DELETE "repos/$REPO/actions/caches/$cache_id" 2>/dev/null; then
+              deleted_count=$(( deleted_count + 1 ))
+              freed_bytes=$(( freed_bytes + size ))
+            else
+              echo "  Warning: failed to delete cache $cache_id"
+            fi
+          done <<< "$to_delete"
+
+          echo ""
+          echo "Done: deleted $deleted_count duplicate caches, freed $(( freed_bytes / 1048576 ))MB."
