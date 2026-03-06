@@ -71,8 +71,16 @@ class WhatsAppWebhookControllerTest {
         // appSecret is blank so signature verification is skipped.
         org.mockito.Mockito.when(properties.getWhatsapp()).thenReturn(new MessagingProperties.Whatsapp());
 
+        WhatsAppWebhook.Change change = new WhatsAppWebhook.Change();
+        change.setField("messages");
+
+        WhatsAppWebhook.Entry entry = new WhatsAppWebhook.Entry();
+        entry.setId("123456789");
+        entry.setChanges(java.util.List.of(change));
+
         WhatsAppWebhook webhook = new WhatsAppWebhook();
         webhook.setObject("whatsapp_business_account");
+        webhook.setEntry(java.util.List.of(entry));
 
         mockMvc.perform(post("/api/webhooks/whatsapp")
                         .contentType(MediaType.APPLICATION_JSON)
