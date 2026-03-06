@@ -20,6 +20,11 @@ logging:
   level:
     com.mindtrack: INFO
 
+sentry:
+  dsn: ${SENTRY_DSN}
+  environment: production
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.05}
+
 mindtrack:
   ai:
     api-key: ${CLAUDE_API_KEY}

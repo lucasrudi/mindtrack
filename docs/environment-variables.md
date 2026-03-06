@@ -29,6 +29,34 @@ All default to disabled/localhost. Only set these if you have an OTLP-compatible
 | `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | OTLP traces push URL | `http://localhost:4318/v1/traces` |
 | `OTEL_TRACING_ENABLED` | Enable OTLP traces export | `false` |
 
+## Sentry (optional)
+
+Error tracking and performance monitoring. SDKs activate only when the DSN is set — leave empty to disable.
+
+### Backend
+
+| Variable | Description | Default | Storage |
+|----------|-------------|---------|---------|
+| `SENTRY_DSN` | Backend Sentry project DSN | `""` (disabled) | AWS Secrets Manager: `mindtrack-prod/sentry_dsn` → Lambda env var |
+| `SENTRY_TRACES_SAMPLE_RATE` | Performance tracing sample rate (0–1) | `0.05` (prod), `0.1` (base) | Lambda env var or YAML default |
+| `SENTRY_ENVIRONMENT` | Environment label shown in Sentry | `local` | Set per profile via `application-{env}.yml` |
+
+### Frontend (build-time, `VITE_` prefix — embedded in JS bundle, not secrets)
+
+| Variable | Description | Default | Storage |
+|----------|-------------|---------|---------|
+| `VITE_SENTRY_DSN` | Frontend Sentry project DSN | `""` (disabled) | GitHub Actions Variable (`vars.*`) |
+| `VITE_SENTRY_TRACES_SAMPLE_RATE` | Performance tracing sample rate (0–1) | `0.1` | GitHub Actions Variable |
+| `VITE_APP_ENV` | Environment label shown in Sentry | `local` | Hardcoded `production` in `deploy.yml` |
+
+## Google Analytics 4 (optional)
+
+Page view and usage analytics with privacy guards (route patterns only, IP anonymized).
+
+| Variable | Description | Default | Storage |
+|----------|-------------|---------|---------|
+| `VITE_GA_MEASUREMENT_ID` | GA4 Measurement ID (format: `G-XXXXXXXXXX`) | `""` (disabled) | GitHub Actions Variable (`vars.*`) |
+
 ## CI/CD — GitHub Actions Secrets
 
 | Secret | Description | Source |
@@ -44,5 +72,9 @@ All default to disabled/localhost. Only set these if you have an OTLP-compatible
 
 | Variable | Example | Purpose |
 |----------|---------|---------|
+| `AWS_ROLE_ARN` | `arn:aws:iam::123456789012:role/mindtrack-prod-github-actions` | OIDC role for deploy workflow |
 | `FRONTEND_BUCKET` | `mindtrack-prod-frontend` | S3 bucket name for frontend deploy |
 | `CLOUDFRONT_DISTRIBUTION_ID` | `E1234ABCDE` | CloudFront distribution for cache invalidation |
+| `VITE_SENTRY_DSN` | `https://abc123@o0.ingest.sentry.io/0` | Frontend Sentry DSN (injected at build time) |
+| `VITE_SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Frontend Sentry tracing rate |
+| `VITE_GA_MEASUREMENT_ID` | `G-XXXXXXXXXX` | GA4 Measurement ID (injected at build time) |

@@ -166,6 +166,42 @@ The deploy workflow (`deploy.yml`) uses `role-to-assume: ${{ vars.AWS_ROLE_ARN }
 
 8. Configure webhook URL in Meta Developer Dashboard pointing to `https://your-api-domain.com/api/messaging/whatsapp/webhook`
 
+### Sentry
+
+1. Go to [sentry.io](https://sentry.io/) and create or sign in to your organization.
+2. Create two projects:
+   - **Java/Spring Boot** — for the backend
+   - **JavaScript/Vue** — for the frontend
+3. Store the backend DSN in AWS Secrets Manager and expose it as a Lambda environment variable:
+
+   ```bash
+   aws secretsmanager put-secret-value \
+     --secret-id mindtrack-prod/sentry_dsn \
+     --secret-string "https://abc123@o0.ingest.sentry.io/0"
+
+   aws lambda update-function-configuration \
+     --function-name mindtrack-prod-api \
+     --environment "Variables={SENTRY_DSN=https://abc123@o0.ingest.sentry.io/0}"
+   ```
+
+4. Set the frontend DSN as a GitHub Actions Variable (it is embedded in the JS bundle — do not use secrets):
+
+   In **Settings** > **Secrets and variables** > **Actions** > **Variables**:
+   - `VITE_SENTRY_DSN` → `https://xyz789@o0.ingest.sentry.io/1` (frontend project DSN)
+   - `VITE_SENTRY_TRACES_SAMPLE_RATE` → `0.1` (optional, defaults to 0.1)
+
+### Google Analytics 4
+
+1. Go to [Google Analytics](https://analytics.google.com/) and create a new **GA4 property**.
+2. In **Admin** > **Data Streams**, add a Web stream for your app's domain.
+3. Copy the **Measurement ID** (format: `G-XXXXXXXXXX`).
+4. Set it as a GitHub Actions Variable:
+
+   In **Settings** > **Secrets and variables** > **Actions** > **Variables**:
+   - `VITE_GA_MEASUREMENT_ID` → `G-XXXXXXXXXX`
+
+   Leave unset to disable analytics in all environments.
+
 ### GitHub Repository Secrets
 
 GitHub Actions secrets and variables are managed via Terraform (see `infra/modules/github/`). Pass them when applying:
@@ -200,6 +236,10 @@ Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
 | `AWS_ROLE_ARN` | `arn:aws:iam::123456789012:role/mindtrack-prod-github-actions` | OIDC role for deploy workflow |
 | `FRONTEND_BUCKET` | `mindtrack-prod-frontend` | S3 bucket for frontend deploy |
 | `CLOUDFRONT_DISTRIBUTION_ID` | `E1234ABCDE` | CloudFront invalidation |
+| `VITE_SENTRY_DSN` | `https://xyz789@o0.ingest.sentry.io/1` | Frontend Sentry DSN (injected at build time) |
+| `VITE_SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Frontend Sentry tracing sample rate |
+| `VITE_APP_ENV` | `production` | Environment label in Sentry (hardcoded in deploy.yml) |
+| `VITE_GA_MEASUREMENT_ID` | `G-XXXXXXXXXX` | GA4 Measurement ID (injected at build time) |
 
 > See [Environment Variables](environment-variables.md) for the complete reference of all application and CI environment variables.
 

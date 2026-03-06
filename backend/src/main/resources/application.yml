@@ -44,6 +44,18 @@ management:
       export:
         enabled: ${OTEL_TRACING_ENABLED:false}
 
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: ${SENTRY_ENVIRONMENT:local}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.1}
+  send-default-pii: false
+  logging:
+    minimum-event-level: ERROR
+    minimum-breadcrumb-level: WARN
+  ignored-exceptions-for-type:
+    - org.springframework.security.access.AccessDeniedException
+    - org.springframework.security.core.AuthenticationException
+
 mindtrack:
   auth:
     jwt-secret: ${JWT_SECRET:default-dev-secret-key-change-in-prod-256bit!}

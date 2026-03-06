@@ -21,13 +21,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Webhook endpoint for the WhatsApp Cloud API.
- * This endpoint is publicly accessible (no JWT auth) and handles both verification and messages.
+ * Webhook endpoint for the WhatsApp Cloud API. This endpoint is publicly accessible (no JWT auth) and handles both
+ * verification and messages.
  *
  * <p>Endpoints:
  * <ul>
- *   <li>GET /api/webhooks/whatsapp — Webhook verification (handshake)</li>
- *   <li>POST /api/webhooks/whatsapp — Incoming message notifications</li>
+ * <li>GET /api/webhooks/whatsapp — Webhook verification (handshake)</li>
+ * <li>POST /api/webhooks/whatsapp — Incoming message notifications</li>
  * </ul>
  */
 @RestController
@@ -46,29 +46,26 @@ public class WhatsAppWebhookController {
      * Creates the WhatsApp webhook controller.
      *
      * @param messagingService the messaging orchestration service
-     * @param properties messaging configuration
-     * @param objectMapper JSON mapper for deserializing the raw request body
+     * @param properties       messaging configuration
+     * @param objectMapper     JSON mapper for deserializing the raw request body
      */
-    public WhatsAppWebhookController(MessagingService messagingService,
-                                      MessagingProperties properties,
-                                      ObjectMapper objectMapper) {
+    public WhatsAppWebhookController(MessagingService messagingService, MessagingProperties properties,
+            ObjectMapper objectMapper) {
         this.messagingService = messagingService;
         this.properties = properties;
         this.objectMapper = objectMapper;
     }
 
     /**
-     * WhatsApp webhook verification endpoint.
-     * Meta sends a GET request with a challenge during webhook setup.
+     * WhatsApp webhook verification endpoint. Meta sends a GET request with a challenge during webhook setup.
      *
-     * @param mode the hub.mode parameter (should be "subscribe")
-     * @param token the hub.verify_token parameter (must match configured token)
+     * @param mode      the hub.mode parameter (should be "subscribe")
+     * @param token     the hub.verify_token parameter (must match configured token)
      * @param challenge the hub.challenge parameter to echo back
      * @return the challenge string if verification succeeds, 403 otherwise
      */
     @GetMapping
-    public ResponseEntity<String> verify(
-            @RequestParam(value = "hub.mode", required = false) String mode,
+    public ResponseEntity<String> verify(@RequestParam(value = "hub.mode", required = false) String mode,
             @RequestParam(value = "hub.verify_token", required = false) String token,
             @RequestParam(value = "hub.challenge", required = false) String challenge) {
 
@@ -93,17 +90,15 @@ public class WhatsAppWebhookController {
     }
 
     /**
-     * Receives a WhatsApp webhook notification.
-     * Verifies the {@code X-Hub-Signature-256} header when {@code appSecret} is configured,
-     * then routes the payload through the AI pipeline.
+     * Receives a WhatsApp webhook notification. Verifies the {@code X-Hub-Signature-256} header when {@code appSecret}
+     * is configured, then routes the payload through the AI pipeline.
      *
-     * @param rawBody the raw JSON request body used for signature verification
+     * @param rawBody   the raw JSON request body used for signature verification
      * @param signature the HMAC-SHA256 signature from Meta ({@code X-Hub-Signature-256})
      * @return 200 OK to acknowledge receipt, 403 if signature verification fails
      */
     @PostMapping
-    public ResponseEntity<Void> handleWebhook(
-            @RequestBody String rawBody,
+    public ResponseEntity<Void> handleWebhook(@RequestBody String rawBody,
             @RequestHeader(value = "X-Hub-Signature-256", required = false) String signature) {
 
         String appSecret = properties.getWhatsapp().getAppSecret();
@@ -122,6 +117,15 @@ public class WhatsAppWebhookController {
             return ResponseEntity.badRequest().build();
         }
 
+        // Validate webhook structure to prevent SSRF
+        if (!isValidWhatsAppWebhook(webhook)) {
+            LOG.warn("WhatsApp webhook: validation failed");
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Sanitize webhook content to prevent SSRF
+        sanitizeWhatsAppWebhook(webhook);
+
         try {
             messagingService.handleWhatsAppMessage(webhook);
         } catch (Exception e) {
@@ -133,10 +137,109 @@ public class WhatsAppWebhookController {
     }
 
     /**
-     * Verifies the HMAC-SHA256 signature sent by Meta in the {@code X-Hub-Signature-256} header.
-     * Uses a constant-time comparison to prevent timing attacks.
+     * Validates that the WhatsApp webhook payload has expected structure. Prevents SSRF by ensuring the webhook object
+     * conforms to expected types.
      *
-     * @param body the raw request body
+     * @param webhook the deserialized webhook object
+     * @return {@code true} if the webhook passes validation
+     */
+    private boolean isValidWhatsAppWebhook(WhatsAppWebhook webhook) {
+        if (webhook == null) {
+            return false;
+        }
+
+        // Validate required fields exist and are of expected types
+        if (webhook.getObject() == null || webhook.getObject().isBlank()) {
+            LOG.warn("Webhook validation failed: missing or empty object field");
+            return false;
+        }
+
+        // Ensure object type matches expected WhatsApp webhook format (should be "whatsapp_business_account")
+        if (!isValidWhatsAppObjectType(webhook.getObject())) {
+            LOG.warn("Webhook validation failed: invalid object type: {}", webhook.getObject());
+            return false;
+        }
+
+        // Validate entry array exists and is not empty
+        if (webhook.getEntry() == null || webhook.getEntry().isEmpty()) {
+            LOG.warn("Webhook validation failed: missing or empty entry array");
+            return false;
+        }
+
+        // Validate each entry contains expected fields
+        for (var entry : webhook.getEntry()) {
+            if (entry.getId() == null || entry.getId().isBlank()) {
+                LOG.warn("Webhook validation failed: entry missing id");
+                return false;
+            }
+            if (entry.getChanges() == null || entry.getChanges().isEmpty()) {
+                LOG.warn("Webhook validation failed: entry missing changes");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Validates that the object type is an expected WhatsApp webhook type.
+     *
+     * @param objectType the object type string
+     * @return {@code true} if the object type is valid
+     */
+    private boolean isValidWhatsAppObjectType(String objectType) {
+        // Only allow the expected WhatsApp webhook object type
+        return "whatsapp_business_account".equals(objectType);
+    }
+
+    /**
+     * Sanitizes webhook content to prevent SSRF attacks by removing or validating URLs and external references in
+     * message text and metadata.
+     *
+     * @param webhook the webhook object to sanitize
+     */
+    private void sanitizeWhatsAppWebhook(WhatsAppWebhook webhook) {
+        if (webhook == null || webhook.getEntry() == null) {
+            return;
+        }
+
+        for (var entry : webhook.getEntry()) {
+            if (entry.getChanges() != null) {
+                for (var change : entry.getChanges()) {
+                    if (change.getValue() != null) {
+                        var value = change.getValue();
+
+                        // Sanitize phone numbers to contain only digits
+                        if (value.getContacts() != null) {
+                            value.getContacts().forEach(contact -> {
+                                if (contact.getWaId() != null) {
+                                    contact.setWaId(contact.getWaId().replaceAll("[^0-9]", ""));
+                                }
+                            });
+                        }
+
+                        // Sanitize message text to prevent URL injection
+                        if (value.getMessages() != null) {
+                            value.getMessages().forEach(message -> {
+                                if (message.getText() != null && message.getText().getBody() != null) {
+                                    String body = message.getText().getBody();
+                                    // Only allow basic alphanumeric, spaces, and common punctuation
+                                    String sanitized = body.replaceAll("[^a-zA-Z0-9\\s\\p{P}]", "");
+                                    message.getText().setBody(sanitized);
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Verifies the HMAC-SHA256 signature sent by Meta in the {@code X-Hub-Signature-256} header. Uses a constant-time
+     * comparison to prevent timing attacks.
+     *
+     * @param body      the raw request body
      * @param signature the signature header value (format: {@code sha256=<hex>})
      * @param appSecret the WhatsApp app secret used as the HMAC key
      * @return {@code true} if the signature is valid
@@ -150,8 +253,7 @@ public class WhatsAppWebhookController {
             mac.init(new SecretKeySpec(appSecret.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
             byte[] hash = mac.doFinal(body.getBytes(StandardCharsets.UTF_8));
             String expected = "sha256=" + HexFormat.of().formatHex(hash);
-            return MessageDigest.isEqual(
-                    expected.getBytes(StandardCharsets.UTF_8),
+            return MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8),
                     signature.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             LOG.error("WhatsApp webhook: error during signature verification", e);

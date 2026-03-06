@@ -56,3 +56,7 @@ mindtrack:
 logging:
   level:
     com.mindtrack: DEBUG
+
+sentry:
+  dsn: ""
+  environment: docker

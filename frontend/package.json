@@ -13,12 +13,14 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@sentry/vue": "^10.42.0",
     "@vueuse/core": "^11.0.0",
     "axios": "^1.13.6",
     "chart.js": "^4.4.0",
     "pinia": "^2.0.0",
     "vue": "^3.5.29",
     "vue-chartjs": "^5.3.0",
+    "vue-gtag": "^3.7.0",
     "vue-router": "^4.0.0"
   },
   "overrides": {
