@@ -26,6 +26,7 @@ The AI component can proactively reach out via Telegram or WhatsApp to check in 
 | [Deployment](docs/deployment.md) | AWS setup, Terraform, and secrets provisioning |
 | [Release & Versioning](docs/release.md) | release-please and Conventional Commits workflow |
 | [Environment Variables](docs/environment-variables.md) | All env vars for local dev, CI, and production |
+| [GitHub Actions Workflows](docs/github-workflows.md) | CI/CD pipeline reference with lifecycle diagram |
 | [Contributing](CONTRIBUTING.md) | Branch naming, commit conventions, PR process |
 | [API Docs](https://lucasrudi.github.io/claude-first-test/) | Generated Javadoc (published on each backend release) |
 

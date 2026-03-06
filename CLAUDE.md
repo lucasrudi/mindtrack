@@ -86,14 +86,19 @@ Conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`, 
 
 | Workflow | File | Trigger | Purpose |
 |----------|------|---------|---------|
-| Feature CI | `feature.yml` | Push to non-main branches | Build, test, lint, tflint, tfsec, SonarCloud, Snyk |
-| Verify | `verify.yml` | Push to `main` | Same as feature CI but on main |
+| Feature CI | `feature.yml` | Push to non-main branches; PR to `main` | Build, test, lint, tflint, tfsec, SonarCloud; path-filtered on push |
+| Verify | `verify.yml` | Push to `main` | Same as Feature CI but always runs all jobs; stricter sonar gate (AND) |
 | Branch Name Check | `branch-check.yml` | PR to `main` | Enforces `{type}/{issue-id}-{description}` — required gate |
 | Code Review | `code-review.yml` | PR to `main` | Claude posts a structured review comment — required gate |
+| Auto Approve | `auto-approve.yml` | After Code Review completes successfully | Approves PR automatically via `workflow_run` event |
 | Auto Merge | `auto-merge.yml` | PR opened to `main` | Enables squash auto-merge automatically |
-| GitHub Config Sync | `github-config-sync.yml` | Manual / push to `infra/github-settings/` | Applies Terraform for repo settings (branch protection, required checks) |
-| Release | `release.yml` | Push to `main` | release-please creates/updates release PRs |
-| Deploy | `deploy.yml` | GitHub Release published | Deploys backend + frontend to AWS |
+| Release | `release.yml` | Push to `main` | release-please creates/updates release PRs (backend/frontend/infra independent) |
+| Deploy | `deploy.yml` | GitHub Release published | Detects component from tag prefix; deploys backend/frontend/infra/docs to AWS |
+| Daily Clean Build | `daily-verify.yml` | Daily 04:00 UTC; manual | Clean build with `mvn verify -U` (no cache) to catch dependency drift |
+| Snyk Weekly Security | `snyk-monitor.yml` | Monday 03:00 UTC; manual | Snyk test (high-severity gate) + monitor for backend and frontend |
+| Renovate | `renovate.yml` | Daily 06:00 UTC; manual | Renovate bot creates dependency update PRs using `GH_CONFIG_TOKEN` |
+| Dependency Submission | `dependency-submission.yml` | Push to `main` with `pom.xml` changes | Submits Maven deps to GitHub Dependency Graph for Dependabot alerts |
+| GitHub Config Sync | `github-config-sync.yml` | Push to `infra/github-settings/`; daily 06:00 UTC; manual | Terraform apply for repo settings (branch protection, required checks) |
 
 **Required secrets:** `ANTHROPIC_API_KEY` (code review), `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` (GitHub config sync), `SNYK_TOKEN`, `SONAR_TOKEN`.
 
@@ -115,6 +120,7 @@ Extended documentation lives in `docs/` — README.md is a concise landing page 
 | `docs/deployment.md` | First-time AWS setup, Terraform init, all secrets provisioning |
 | `docs/release.md` | release-please workflow and Conventional Commits rules |
 | `docs/sonar-quality-gates.md` | SonarCloud quality gate configuration |
+| `docs/github-workflows.md` | All 13 CI/CD workflows with Mermaid lifecycle diagram |
 
 ## Important Files
 
