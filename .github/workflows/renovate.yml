@@ -25,3 +25,34 @@ jobs:
         env:
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           LOG_LEVEL: debug
+
+  cleanup-orphan-branches:
+    name: Delete Renovate Branches Without Open PRs
+    runs-on: ubuntu-latest
+    needs: renovate
+    if: always()
+    steps:
+      - name: Delete orphan renovate branches
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Scanning for orphan renovate branches..."
+          gh api repos/${{ github.repository }}/branches \
+            --paginate \
+            --jq '.[].name | select(startswith("renovate/"))' | \
+          while read -r branch; do
+            pr_count=$(gh pr list \
+              --repo "${{ github.repository }}" \
+              --head "$branch" \
+              --state open \
+              --json number \
+              --jq 'length')
+            if [ "$pr_count" = "0" ]; then
+              echo "Deleting orphan branch: $branch"
+              gh api repos/${{ github.repository }}/git/refs/heads/$branch \
+                --method DELETE
+            else
+              echo "Keeping branch (has open PR): $branch"
+            fi
+          done
+          echo "Cleanup complete."
