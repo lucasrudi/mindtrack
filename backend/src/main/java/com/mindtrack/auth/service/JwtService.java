@@ -25,11 +25,17 @@ public class JwtService {
     private final long expirationMs;
 
     public JwtService(
-            @Value("${mindtrack.auth.jwt-secret:default-dev-secret-key-change-in-prod-256bit!}")
-            String secret,
+            @Value("${mindtrack.auth.jwt-secret}") String secret,
             @Value("${mindtrack.auth.jwt-expiration-ms:86400000}") long expirationMs) {
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expirationMs = expirationMs;
+    }
+
+    /**
+     * Returns the configured JWT expiration duration in milliseconds.
+     */
+    public long getExpirationMs() {
+        return expirationMs;
     }
 
     /**

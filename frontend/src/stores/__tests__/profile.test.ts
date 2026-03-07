@@ -30,7 +30,7 @@ vi.mock('@/services/api', () => ({
 
 vi.mock('@/stores/auth', () => ({
   useAuthStore: () => ({
-    updateToken: vi.fn().mockResolvedValue(undefined),
+    fetchCurrentUser: vi.fn().mockResolvedValue(undefined),
   }),
 }))
 

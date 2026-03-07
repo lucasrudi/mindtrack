@@ -65,17 +65,16 @@ public class ChatController {
     }
 
     /**
-     * Get a single conversation with all messages.
+     * Get a single conversation with all messages, scoped to the current user (prevents IDOR).
      *
      * @param id the conversation ID
      * @return the conversation with messages
      */
     @GetMapping("/conversations/{id}")
-    public ResponseEntity<ConversationDto> getConversation(@PathVariable Long id) {
-        ConversationDto conversation = conversationService.getConversation(id);
-        if (conversation == null) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<ConversationDto> getConversation(@PathVariable Long id,
+                                                           Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        ConversationDto conversation = conversationService.getConversation(id, userId);
         return ResponseEntity.ok(conversation);
     }
 }
