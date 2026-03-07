@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -82,34 +83,15 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldChangeRoleToTherapistAndReturnNewToken() throws Exception {
-        User user = createUser(1L, "test@example.com", "Test User", "THERAPIST");
-        when(userService.changeRole(1L, "THERAPIST")).thenReturn(user);
-        when(jwtService.generateToken(anyLong(), anyString(), anyString())).thenReturn("new-token");
-
-        mockMvc.perform(patch("/api/auth/me/role")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"THERAPIST\"}")
+    void shouldLogoutAndClearCookie() throws Exception {
+        mockMvc.perform(post("/api/auth/logout")
                         .with(authentication(mockAuth(1L))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("new-token"))
-                .andExpect(jsonPath("$.role").value("THERAPIST"));
+                .andExpect(status().isNoContent());
     }
 
     @Test
-    void shouldRejectSelfAssignAdminRole() throws Exception {
-        mockMvc.perform(patch("/api/auth/me/role")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"ADMIN\"}")
-                        .with(authentication(mockAuth(1L))))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void shouldReturn401OnRoleChangeWhenNotAuthenticated() throws Exception {
-        mockMvc.perform(patch("/api/auth/me/role")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"THERAPIST\"}"))
+    void shouldReturn401OnLogoutWhenNotAuthenticated() throws Exception {
+        mockMvc.perform(post("/api/auth/logout"))
                 .andExpect(status().isUnauthorized());
     }
 
