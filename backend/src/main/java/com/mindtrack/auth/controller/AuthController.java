@@ -1,5 +1,6 @@
 package com.mindtrack.auth.controller;
 
+import com.mindtrack.auth.config.OAuth2LoginSuccessHandler;
 import com.mindtrack.auth.dto.AuthResponse;
 import com.mindtrack.auth.dto.SelfRolesRequest;
 import com.mindtrack.auth.dto.UserInfo;
@@ -8,11 +9,16 @@ import com.mindtrack.auth.service.UserService;
 import com.mindtrack.common.model.User;
 import com.mindtrack.profile.model.UserProfile;
 import com.mindtrack.profile.service.ProfileService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,12 +34,15 @@ public class AuthController {
     private final UserService userService;
     private final JwtService jwtService;
     private final ProfileService profileService;
+    private final boolean cookieSecure;
 
     public AuthController(UserService userService, JwtService jwtService,
-                          ProfileService profileService) {
+                          ProfileService profileService,
+                          @Value("${mindtrack.auth.cookie-secure:true}") boolean cookieSecure) {
         this.userService = userService;
         this.jwtService = jwtService;
         this.profileService = profileService;
+        this.cookieSecure = cookieSecure;
     }
 
     /**
@@ -49,6 +58,22 @@ public class AuthController {
         return userService.findById(userId)
                 .map(user -> ResponseEntity.ok(toUserInfo(user)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Clears the auth_token cookie and ends the session.
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        ResponseCookie clearCookie = ResponseCookie.from(OAuth2LoginSuccessHandler.AUTH_COOKIE_NAME, "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, clearCookie.toString());
+        return ResponseEntity.noContent().build();
     }
 
     /**

@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -78,6 +79,19 @@ class AuthControllerTest {
     @Test
     void shouldReturn401WhenNotAuthenticated() throws Exception {
         mockMvc.perform(get("/api/auth/me"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void shouldLogoutAndClearCookie() throws Exception {
+        mockMvc.perform(post("/api/auth/logout")
+                        .with(authentication(mockAuth(1L))))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldReturn401OnLogoutWhenNotAuthenticated() throws Exception {
+        mockMvc.perform(post("/api/auth/logout"))
                 .andExpect(status().isUnauthorized());
     }
 

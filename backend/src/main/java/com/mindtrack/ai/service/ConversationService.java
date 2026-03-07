@@ -14,8 +14,10 @@ import com.mindtrack.ai.repository.MessageRepository;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Orchestrates AI conversations: manages persistence, caching, and Claude API calls.
@@ -127,15 +129,17 @@ public class ConversationService {
     }
 
     /**
-     * Gets a single conversation with messages.
+     * Gets a single conversation with messages, scoped to the owning user.
      *
      * @param conversationId the conversation ID
-     * @return the conversation DTO, or null if not found
+     * @param userId the authenticated user ID
+     * @return the conversation DTO
+     * @throws ResponseStatusException 404 if not found or not owned by this user
      */
-    public ConversationDto getConversation(Long conversationId) {
-        return conversationRepository.findById(conversationId)
+    public ConversationDto getConversation(Long conversationId, Long userId) {
+        return conversationRepository.findByIdAndUserId(conversationId, userId)
                 .map(this::toDto)
-                .orElse(null);
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     /**

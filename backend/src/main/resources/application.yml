@@ -58,7 +58,7 @@ sentry:
 
 mindtrack:
   auth:
-    jwt-secret: ${JWT_SECRET:default-dev-secret-key-change-in-prod-256bit!}
+    jwt-secret: ${JWT_SECRET}
     jwt-expiration-ms: ${JWT_EXPIRATION_MS:86400000}
     frontend-url: ${FRONTEND_URL:http://localhost:3000}
   ai:
