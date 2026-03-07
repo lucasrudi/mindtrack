@@ -36,7 +36,7 @@ jobs:
 
       - name: Build & Test
         working-directory: backend
-        run: mvn verify -B
+        run: mvn clean verify -B
 
       - name: Upload coverage
         uses: actions/upload-artifact@v7
@@ -112,6 +112,10 @@ jobs:
       - name: Terraform Format Check
         working-directory: infra
         run: terraform fmt -check -recursive
+
+      - name: Clean Terraform cache
+        working-directory: infra
+        run: rm -rf .terraform
 
       - name: Terraform Init
         working-directory: infra

@@ -48,7 +48,7 @@ jobs:
 
       - name: Package
         working-directory: backend
-        run: mvn package -DskipTests -B -q
+        run: mvn clean package -DskipTests -B -q
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -159,6 +159,10 @@ jobs:
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: '1.7.0'
+
+      - name: Clean Terraform cache
+        working-directory: infra
+        run: rm -rf .terraform
 
       - name: Terraform Init
         working-directory: infra

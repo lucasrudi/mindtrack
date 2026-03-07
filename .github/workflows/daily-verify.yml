@@ -23,7 +23,7 @@ jobs:
 
       - name: Build & Test (force update)
         working-directory: backend
-        run: mvn verify -U -B
+        run: mvn clean verify -U -B
 
   frontend:
     name: Frontend Verify (clean)
@@ -67,6 +67,10 @@ jobs:
       - name: Terraform Format Check
         working-directory: infra
         run: terraform fmt -check -recursive
+
+      - name: Clean Terraform cache
+        working-directory: infra
+        run: rm -rf .terraform
 
       - name: Terraform Init
         working-directory: infra

@@ -31,11 +31,26 @@ cd frontend && npm run dev
 
 Note: Maven uses OpenJDK 25 (Homebrew) with `JAVA_HOME` set in `~/.zshrc`.
 
+## Build Hygiene
+
+Always run clean builds — never build on top of stale artifacts:
+
+```bash
+# Backend — always use clean
+cd backend && mvn clean verify        # for tests
+cd backend && mvn clean package       # for packaging
+
+# Terraform — remove cached providers before init
+rm -rf infra/.terraform && terraform -chdir=infra init
+```
+
+This is enforced in all CI/CD workflows. See `docs/threat-model.md` (H-9) for rationale.
+
 ## Running Tests
 
 ```bash
 # Backend
-cd backend && mvn verify
+cd backend && mvn clean verify
 
 # Frontend
 cd frontend && npm run test:unit

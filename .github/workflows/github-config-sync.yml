@@ -42,6 +42,10 @@ jobs:
           echo "::add-mask::${TOKEN}"
           echo "value=${TOKEN}" >> $GITHUB_OUTPUT
 
+      - name: Clean Terraform cache
+        working-directory: infra/github-settings
+        run: rm -rf .terraform
+
       - name: Terraform Init
         working-directory: infra/github-settings
         env:
