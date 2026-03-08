@@ -12,3 +12,8 @@ variable "lambda_invoke_arn" {
   description = "Invoke ARN of the Lambda function"
   type        = string
 }
+
+variable "cloudfront_domain" {
+  description = "CloudFront distribution domain name for CORS allow-origin"
+  type        = string
+}

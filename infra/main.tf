@@ -17,6 +17,7 @@ module "s3" {
   source = "./modules/s3"
 
   name_prefix            = local.name_prefix
+  environment            = var.environment
   cloudfront_oai_iam_arn = module.cloudfront.oai_iam_arn
 }
 
@@ -47,6 +48,7 @@ module "api_gateway" {
   name_prefix         = local.name_prefix
   lambda_function_arn = module.lambda.function_arn
   lambda_invoke_arn   = module.lambda.invoke_arn
+  cloudfront_domain   = module.cloudfront.domain_name
 }
 
 module "cloudfront" {
@@ -75,6 +77,7 @@ module "monitoring" {
   source = "./modules/monitoring"
 
   name_prefix                = local.name_prefix
+  environment                = var.environment
   aws_region                 = var.aws_region
   lambda_function_name       = module.lambda.function_name
   api_gateway_id             = module.api_gateway.api_id

@@ -65,7 +65,10 @@ resource "aws_rds_cluster" "main" {
     max_capacity = var.max_capacity
   }
 
-  skip_final_snapshot = true
+  skip_final_snapshot       = false
+  final_snapshot_identifier = "${var.name_prefix}-final-snapshot"
+  deletion_protection       = true
+  backup_retention_period   = 30
 
   tags = {
     Name = "${var.name_prefix}-aurora"
