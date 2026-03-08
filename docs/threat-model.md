@@ -13,7 +13,9 @@ MindTrack processes Protected Health Information (PHI) and Personally Identifiab
 
 This audit identified **6 Critical**, **13 High**, **16 Medium**, and **7 Low** findings. The most severe issues include an IDOR vulnerability exposing any user's mental health coaching conversations, a CORS wildcard on API Gateway, JWT delivered via URL query parameter, a hardcoded secret committed to the repo, missing database deletion protection, absent HTTP security headers, and no human code review gate before production deploy.
 
-**Overall SOC2 readiness: Not ready.** Remediation of all Critical findings is required before engaging an auditor. High findings must have a documented remediation plan.
+**Remediation status (2026-03-08):** 6/6 Critical fixed · 8/13 High fixed, 4 deferred · 11/16 Medium fixed, 4 deferred · 3/7 Low fixed, 4 deferred.
+
+**Overall SOC2 readiness: In progress.** All Critical findings have been remediated (PRs #97, #99). High-severity deferred items (H-4, H-5, H-6, H-8) have documented remediation plans and are queued for dedicated sprints. Engaging an auditor is now contingent only on deferred High findings being closed.
 
 ---
 
@@ -168,6 +170,7 @@ graph TD
 
 #### C-1: JWT Token Exposed in OAuth Redirect URL
 
+- **Status: FIXED — PR #97**
 - **Severity:** Critical
 - **SOC2 Controls:** CC6.6 (Logical access — secure transmission)
 - **File:** `backend/src/main/java/com/mindtrack/auth/config/OAuth2LoginSuccessHandler.java:54`
@@ -184,6 +187,7 @@ graph TD
 
 #### C-2: Hardcoded JWT Secret Fallback in Source Code
 
+- **Status: FIXED — PR #97**
 - **Severity:** Critical
 - **SOC2 Controls:** CC6.1 (Logical access — authentication credentials)
 - **File:** `backend/src/main/resources/application.yml:61`
@@ -196,6 +200,7 @@ graph TD
 
 #### C-3: Aurora Has No Deletion Protection and Skips Final Snapshot
 
+- **Status: FIXED — PR #99**
 - **Severity:** Critical
 - **SOC2 Controls:** A1.2 (Availability — environmental protections), CC9.1 (Risk management — business continuity)
 - **File:** `infra/modules/rds/main.tf:50-73`
@@ -208,6 +213,7 @@ graph TD
 
 #### C-4: No HTTP Security Response Headers on CloudFront
 
+- **Status: FIXED — PR #99**
 - **Severity:** Critical
 - **SOC2 Controls:** CC6.6 (Logical access — secure transmission and boundary protection)
 - **File:** `infra/modules/cloudfront/main.tf`
@@ -230,6 +236,7 @@ graph TD
 
 #### H-1: GitHub Actions Pinned to Mutable Version Tags
 
+- **Status: FIXED — PR #106**
 - **Severity:** High
 - **SOC2 Controls:** CC8.1 (Change management — secure SDLC)
 - **Files:** All `.github/workflows/*.yml`
@@ -241,6 +248,7 @@ graph TD
 
 #### H-2: Telegram Webhook Secret Not Enforced
 
+- **Status: FIXED — PR #101**
 - **Severity:** High
 - **SOC2 Controls:** CC6.3 (Logical access — boundary protection)
 - **File:** `backend/src/main/java/com/mindtrack/messaging/controller/TelegramWebhookController.java:57-63`
@@ -253,6 +261,7 @@ graph TD
 
 #### H-3: Any User Can Self-Promote to THERAPIST Role
 
+- **Status: FIXED — PR #101**
 - **Severity:** High
 - **SOC2 Controls:** CC6.3 (Logical access — access provisioning)
 - **File:** `backend/src/main/java/com/mindtrack/auth/controller/AuthController.java:57-66`
@@ -265,6 +274,7 @@ graph TD
 
 #### H-4: Aurora Database Placed in Default VPC
 
+- **Status: DEFERRED — requires dedicated VPC/subnet/NAT architecture; separate sprint**
 - **Severity:** High
 - **SOC2 Controls:** CC6.6 (Logical access — network segmentation)
 - **File:** `infra/modules/rds/main.tf:14-15`
@@ -276,6 +286,7 @@ graph TD
 
 #### H-5: No Rate Limiting on Any API Endpoint
 
+- **Status: DEFERRED — requires API Gateway usage plan + Spring HandlerInterceptor design; separate sprint**
 - **Severity:** High
 - **SOC2 Controls:** CC6.1 (Authentication), CC7.1 (Threat detection)
 - **Description:** No rate limiting is implemented at any layer — no Spring Security throttling, no API Gateway usage plan, no Lambda concurrency limits per client. The AI coaching endpoints (`POST /api/ai/chat`) call the Claude API on every request, making them particularly expensive targets for abuse.
@@ -287,6 +298,7 @@ graph TD
 
 #### H-6: PHI Sent to Third-Party Claude API Without Explicit User Consent
 
+- **Status: DEFERRED — requires legal review (BAA/DPA), consent UI design, and data minimization sprint**
 - **Severity:** High
 - **SOC2 Controls:** CC2.2 (Communication of privacy policies), CC9.2 (Third-party risk management)
 - **File:** `backend/src/main/java/com/mindtrack/ai/service/ContextBuilder.java:42-182`
@@ -299,6 +311,7 @@ graph TD
 
 #### H-7: Aurora Backup Retention Too Short
 
+- **Status: FIXED — PR #99**
 - **Severity:** High
 - **SOC2 Controls:** A1.2 (Availability — backup and recovery)
 - **File:** `infra/modules/rds/main.tf`
@@ -310,6 +323,7 @@ graph TD
 
 #### H-8: No Structured Audit Log for Sensitive Data Access
 
+- **Status: DEFERRED — requires Flyway migration + AuditService + schema design; separate sprint**
 - **Severity:** High
 - **SOC2 Controls:** CC7.2 (Monitoring — anomaly detection), CC4.1 (Monitoring — performance)
 - **Description:** There is no `audit_logs` table in the database schema. Access to PHI (reading a psychiatric interview, viewing journal entries, therapist accessing patient data) is recorded only as `LOG.info(...)` application log lines to CloudWatch. These logs: (a) are not structured or queryable, (b) do not record what data was accessed, (c) are retained for the default CloudWatch retention period, (d) cannot be tampered with by application code — but also cannot answer "who accessed patient X's records between dates Y and Z?"
@@ -321,6 +335,7 @@ graph TD
 
 #### H-9: Build Pipelines Missing `mvn clean` and Terraform Clean Step
 
+- **Status: FIXED — PR #82 (already in main)**
 - **Severity:** High
 - **SOC2 Controls:** CC8.1 (Change management — build integrity)
 - **Files:** `.github/workflows/deploy.yml:50`, `feature.yml:39`, `verify.yml:27`, `daily-verify.yml:26`
@@ -336,6 +351,7 @@ graph TD
 
 #### M-1: H2 Console Publicly Accessible
 
+- **Status: FIXED — PR #102**
 - **Severity:** Medium
 - **SOC2 Controls:** CC6.3
 - **File:** `backend/src/main/java/com/mindtrack/auth/config/SecurityConfig.java:50`
@@ -346,6 +362,7 @@ graph TD
 
 #### M-2: CORS Allows All Request Headers
 
+- **Status: FIXED — PR #102**
 - **Severity:** Medium
 - **SOC2 Controls:** CC6.6
 - **File:** `backend/src/main/java/com/mindtrack/auth/config/SecurityConfig.java:69`
@@ -356,6 +373,7 @@ graph TD
 
 #### M-3: CSRF Disabled for All API Endpoints
 
+- **Status: FIXED — PR #102** (documented with code comment)
 - **Severity:** Medium
 - **SOC2 Controls:** CC6.6
 - **File:** `backend/src/main/java/com/mindtrack/auth/config/SecurityConfig.java:41`
@@ -366,6 +384,7 @@ graph TD
 
 #### M-4: Exception Messages Leak Internal User IDs
 
+- **Status: FIXED — PR #102**
 - **Severity:** Medium
 - **SOC2 Controls:** CC6.6
 - **File:** `backend/src/main/java/com/mindtrack/therapist/service/TherapistService.java:299`
@@ -376,6 +395,7 @@ graph TD
 
 #### M-5: PII Stored in Plaintext (Telegram Chat ID, WhatsApp Number)
 
+- **Status: DEFERRED — requires KMS key setup + JPA AttributeConverter + Flyway migration; separate sprint**
 - **Severity:** Medium
 - **SOC2 Controls:** CC6.1
 - **File:** `backend/src/main/resources/db/migration/V1__initial_schema.sql:51-52`
@@ -386,6 +406,7 @@ graph TD
 
 #### M-6: Sensitive Tables Missing `created_by` / `updated_by` Audit Columns
 
+- **Status: DEFERRED — fold into H-8 audit sprint (requires Flyway migration)**
 - **Severity:** Medium
 - **SOC2 Controls:** CC7.2
 - **File:** `backend/src/main/resources/db/migration/V1__initial_schema.sql`
@@ -396,6 +417,7 @@ graph TD
 
 #### M-7: `tfsec` Runs with `soft_fail: true`
 
+- **Status: FIXED — PR #105**
 - **Severity:** Medium
 - **SOC2 Controls:** CC8.1
 - **File:** `.github/workflows/feature.yml:139`, `verify.yml:109`
@@ -406,6 +428,7 @@ graph TD
 
 #### M-8: Frontend Lint and SonarCloud Use `continue-on-error: true`
 
+- **Status: FIXED — PR #105**
 - **Severity:** Medium
 - **SOC2 Controls:** CC8.1
 - **File:** `feature.yml:73` (lint), `feature.yml:171` (SonarCloud), `verify.yml:54` (lint), `verify.yml:136` (SonarCloud)
@@ -416,6 +439,7 @@ graph TD
 
 #### M-9: No CloudWatch Alarms for Security Events
 
+- **Status: DEFERRED — requires SNS topic + PagerDuty/email alerting design; fold into observability sprint**
 - **Severity:** Medium
 - **SOC2 Controls:** CC7.1 (Threat detection and monitoring)
 - **File:** `infra/modules/monitoring/` (no security alarms visible)
@@ -426,6 +450,7 @@ graph TD
 
 #### M-10: JWT Tokens Cannot Be Revoked
 
+- **Status: DEFERRED — requires DB token-version claim or blocklist + refresh token mechanism; separate sprint**
 - **Severity:** Medium
 - **SOC2 Controls:** CC6.6
 - **Files:** `JwtService.java`, `SecurityConfig.java`
@@ -440,6 +465,7 @@ graph TD
 
 #### L-1: No Data Retention or Deletion Policy
 
+- **Status: DEFERRED — requires privacy policy, delete-account endpoint, and jurisdiction decision**
 - **Severity:** Low
 - **SOC2 Controls:** CC4.1 (Privacy — data retention)
 - **Description:** No scheduled job, TTL, or policy governs how long user data is retained after account closure. Mental health records accumulate indefinitely. This conflicts with GDPR's right to erasure and CCPA's deletion rights.
@@ -449,6 +475,7 @@ graph TD
 
 #### L-2: JWT Expiration 24 Hours, No Refresh Token
 
+- **Status: DEFERRED — fold into M-10 refresh token sprint**
 - **Severity:** Low
 - **SOC2 Controls:** CC6.6
 - **File:** `application.yml:62`
@@ -459,6 +486,7 @@ graph TD
 
 #### L-3: No Geo-Restriction on CloudFront
 
+- **Status: DEFERRED — requires jurisdiction decision**
 - **Severity:** Low
 - **SOC2 Controls:** CC6.6
 - **File:** `infra/modules/cloudfront/main.tf:51-53`
@@ -469,6 +497,7 @@ graph TD
 
 #### L-4: CloudFront Uses Default Certificate (No Custom Domain)
 
+- **Status: DEFERRED — requires domain registration and ACM certificate provisioning**
 - **Severity:** Low
 - **SOC2 Controls:** CC6.7
 - **File:** `infra/modules/cloudfront/main.tf:56-58`
@@ -479,6 +508,7 @@ graph TD
 
 #### L-5: Lambda IAM Over-Privileged on Transcribe and EC2 Network Actions
 
+- **Status: FIXED — PR #98**
 - **Severity:** Low
 - **SOC2 Controls:** CC6.3 (Least privilege)
 - **File:** `infra/modules/iam/main.tf:161-178`
@@ -519,6 +549,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### C-5: IDOR — Any User Can Read Any Other User's AI Coaching Conversations
 
+- **Status: FIXED — PR #97**
 - **Severity:** Critical
 - **SOC2 Controls:** CC6.1, CC6.3
 - **Files:** `backend/src/main/java/com/mindtrack/ai/controller/ChatController.java:74`, `backend/src/main/java/com/mindtrack/ai/service/ConversationService.java:135-138`
@@ -531,6 +562,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### C-6: CORS Wildcard `allow_origins = ["*"]` on API Gateway
 
+- **Status: FIXED — PR #99**
 - **Severity:** Critical
 - **SOC2 Controls:** CC6.1, CC6.6
 - **File:** `infra/modules/api-gateway/main.tf:6-10`
@@ -547,6 +579,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### H-10: `github-config-sync` Workflow Uses Long-Lived Static AWS Credentials
 
+- **Status: FIXED — PR #106**
 - **Severity:** High
 - **SOC2 Controls:** CC6.1, CC6.3
 - **File:** `.github/workflows/github-config-sync.yml:26-29`
@@ -558,6 +591,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### H-11: Auto-Approve Bot Is the Only Required Reviewer — No Human Review Gate
 
+- **Status: FIXED — PR #106**
 - **Severity:** High
 - **SOC2 Controls:** CC8.1
 - **Files:** `.github/workflows/auto-approve.yml`, `infra/modules/github/main.tf:68`
@@ -569,6 +603,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### H-12: `snyk/actions/setup@master` Pinned to Mutable Branch Head
 
+- **Status: FIXED — PR #106**
 - **Severity:** High
 - **SOC2 Controls:** CC8.1
 - **File:** `.github/workflows/snyk-monitor.yml`
@@ -580,6 +615,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### H-13: OIDC Trust Policy Allows Any Branch/Ref — Not Scoped to `main` or Production Environment
 
+- **Status: FIXED — already in main (pre-existing fix confirmed during audit)**
 - **Severity:** High
 - **SOC2 Controls:** CC6.3
 - **File:** `infra/modules/iam/main.tf:29-33`
@@ -595,6 +631,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### M-11: User Email Logged at INFO Level — PII in Production Logs
 
+- **Status: FIXED — PR #102**
 - **Severity:** Medium
 - **SOC2 Controls:** CC6.1, P6
 - **Files:** `backend/src/main/java/com/mindtrack/auth/config/OAuth2LoginSuccessHandler.java:52`, `backend/src/main/java/com/mindtrack/auth/service/UserService.java:41,47,68`
@@ -605,6 +642,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### M-12: Actuator `metrics` and `prometheus` Endpoints Publicly Accessible
 
+- **Status: FIXED — PR #102**
 - **Severity:** Medium
 - **SOC2 Controls:** CC7.2, CC6.1
 - **File:** `backend/src/main/resources/application.yml:22-24`, `SecurityConfig.java:51`
@@ -615,6 +653,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### M-13: JWT Token Stored in `localStorage` — Accessible to XSS
 
+- **Status: FIXED — PR #104**
 - **Severity:** Medium
 - **SOC2 Controls:** CC6.6
 - **File:** `frontend/src/stores/auth.ts:14,24,34`, `frontend/src/api/client.ts:13`
@@ -625,6 +664,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### M-14: S3 Frontend Bucket Has No Versioning or Server-Side Encryption
 
+- **Status: FIXED — PR #100**
 - **Severity:** Medium
 - **SOC2 Controls:** CC6.1, A1.2
 - **File:** `infra/modules/s3/main.tf:39-68`
@@ -635,6 +675,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### M-15: S3 Buckets Have No Access Logging
 
+- **Status: FIXED — PR #100**
 - **Severity:** Medium
 - **SOC2 Controls:** CC7.2, CC4.1
 - **File:** `infra/modules/s3/main.tf`
@@ -645,6 +686,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### M-16: CloudWatch Log Groups Have No Retention Policy
 
+- **Status: FIXED — PR #100**
 - **Severity:** Medium
 - **SOC2 Controls:** CC4.1, CC7.2
 - **File:** `infra/modules/iam/main.tf` (no `aws_cloudwatch_log_group` resource anywhere)
@@ -659,6 +701,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### L-6: Expired Invite Tokens Not Automatically Cleaned Up
 
+- **Status: FIXED — PR #103**
 - **Severity:** Low
 - **SOC2 Controls:** CC4.1
 - **File:** `backend/src/main/java/com/mindtrack/therapist/model/InviteToken.java:37-38`
@@ -669,6 +712,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### L-7: `jjwt` Library at 0.13.0 — Below Current Stable 0.12.x
 
+- **Status: FIXED — PR #103**
 - **Severity:** Low
 - **SOC2 Controls:** CC7.3
 - **File:** `backend/pom.xml`
@@ -683,63 +727,63 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 | ID | Task | GitHub Issue | Owner |
 |----|------|-------------|-------|
-| C-1 | Replace JWT-in-URL redirect with secure token handoff (HttpOnly cookie or one-time-code exchange) | `[Security][Critical] JWT token exposed in OAuth redirect URL` | Backend |
-| C-2 | Remove JWT secret default value; require `JWT_SECRET` env var; rotate secret | `[Security][Critical] Hardcoded JWT secret fallback in application.yml` | Backend + Infra |
-| C-3 | Enable Aurora `deletion_protection=true`, `skip_final_snapshot=false`, set `final_snapshot_identifier` | `[Infra][Critical] Aurora has no deletion protection and skips final snapshot` | Infrastructure |
-| C-4 | Add CloudFront `aws_cloudfront_response_headers_policy` with HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy | `[Infra][Critical] CloudFront missing security response headers policy` | Infrastructure |
-| C-5 | Fix IDOR: scope `GET /api/ai/conversations/{id}` to authenticated user via `findByIdAndUserId` | `[Security][Critical] IDOR on GET /api/ai/conversations/{id}` | Backend |
-| C-6 | Replace `allow_origins = ["*"]` with explicit production domain on API Gateway CORS | `[Infra][Critical] API Gateway CORS wildcard must be restricted` | Infrastructure |
+| C-1 | Replace JWT-in-URL redirect with secure token handoff (HttpOnly cookie or one-time-code exchange) | `[Security][Critical] JWT token exposed in OAuth redirect URL` | Backend (**DONE — PR #97**) |
+| C-2 | Remove JWT secret default value; require `JWT_SECRET` env var; rotate secret | `[Security][Critical] Hardcoded JWT secret fallback in application.yml` | Backend + Infra (**DONE — PR #97**) |
+| C-3 | Enable Aurora `deletion_protection=true`, `skip_final_snapshot=false`, set `final_snapshot_identifier` | `[Infra][Critical] Aurora has no deletion protection and skips final snapshot` | Infrastructure (**DONE — PR #99**) |
+| C-4 | Add CloudFront `aws_cloudfront_response_headers_policy` with HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy | `[Infra][Critical] CloudFront missing security response headers policy` | Infrastructure (**DONE — PR #99**) |
+| C-5 | Fix IDOR: scope `GET /api/ai/conversations/{id}` to authenticated user via `findByIdAndUserId` | `[Security][Critical] IDOR on GET /api/ai/conversations/{id}` | Backend (**DONE — PR #97**) |
+| C-6 | Replace `allow_origins = ["*"]` with explicit production domain on API Gateway CORS | `[Infra][Critical] API Gateway CORS wildcard must be restricted` | Infrastructure (**DONE — PR #99**) |
 
 ### Track 2 — High (Sprint 1, within 2 weeks)
 
 | ID | Task | GitHub Issue | Owner |
 |----|------|-------------|-------|
-| H-1 | Pin all GitHub Actions `uses:` references to commit SHAs | `[CI][High] Pin all GitHub Actions to commit SHA` | CI/CD |
-| H-2 | Make Telegram webhook secret required; implement WhatsApp HMAC validation | `[Security][High] Telegram webhook secret must be required, not optional` | Backend |
-| H-3 | Remove self-service THERAPIST role; add admin-approval or invite-only flow | `[Security][High] Self-service THERAPIST role requires verification gate` | Backend |
-| H-4 | Create dedicated VPC; move Aurora and Lambda into private subnets | `[Infra][High] Migrate Aurora to dedicated VPC` | Infrastructure |
-| H-5 | Add API Gateway throttling (usage plan); add per-user rate limit on AI endpoints | `[Security][High] Add API rate limiting` | Backend + Infra |
-| H-6 | Add user consent gate for AI features; document Anthropic BAA/DPA; implement data minimization | `[Privacy][High] Add user consent for PHI sent to Claude API` | Backend + Legal |
-| H-7 | Set `backup_retention_period = 30` on Aurora cluster | `[Infra][High] Set Aurora backup_retention_period to 30 days` | Infrastructure |
-| H-8 | Add `audit_logs` table + `AuditService`; instrument all PHI access points | `[Security][High] Add structured audit_logs table and service` | Backend |
-| H-9 | Add `mvn clean` and `rm -rf .terraform` to all build pipelines (**DONE**) | `[CI][High] Add mvn clean and terraform clean to all build pipelines` | CI/CD |
-| H-10 | Switch `github-config-sync` from static AWS keys to OIDC role | `[CI][High] Switch github-config-sync from static AWS keys to OIDC` | CI/CD |
-| H-11 | Require at least one human reviewer in addition to auto-approve bot | `[CI][High] Require at least one human reviewer` | CI/CD |
-| H-12 | Pin `snyk/actions/setup` away from `@master` to a commit SHA | `[CI][High] Pin snyk/actions/setup to commit SHA` | CI/CD |
-| H-13 | Restrict OIDC trust policy to `main` branch and `production` environment only | `[Infra][High] Restrict OIDC trust to main branch and production` | Infrastructure |
+| H-1 | Pin all GitHub Actions `uses:` references to commit SHAs | `[CI][High] Pin all GitHub Actions to commit SHA` | CI/CD (**DONE — PR #106**) |
+| H-2 | Make Telegram webhook secret required; implement WhatsApp HMAC validation | `[Security][High] Telegram webhook secret must be required, not optional` | Backend (**DONE — PR #101**) |
+| H-3 | Remove self-service THERAPIST role; add admin-approval or invite-only flow | `[Security][High] Self-service THERAPIST role requires verification gate` | Backend (**DONE — PR #101**) |
+| H-4 | Create dedicated VPC; move Aurora and Lambda into private subnets | `[Infra][High] Migrate Aurora to dedicated VPC` | Infrastructure (**DEFERRED**) |
+| H-5 | Add API Gateway throttling (usage plan); add per-user rate limit on AI endpoints | `[Security][High] Add API rate limiting` | Backend + Infra (**DEFERRED**) |
+| H-6 | Add user consent gate for AI features; document Anthropic BAA/DPA; implement data minimization | `[Privacy][High] Add user consent for PHI sent to Claude API` | Backend + Legal (**DEFERRED**) |
+| H-7 | Set `backup_retention_period = 30` on Aurora cluster | `[Infra][High] Set Aurora backup_retention_period to 30 days` | Infrastructure (**DONE — PR #99**) |
+| H-8 | Add `audit_logs` table + `AuditService`; instrument all PHI access points | `[Security][High] Add structured audit_logs table and service` | Backend (**DEFERRED**) |
+| H-9 | Add `mvn clean` and `rm -rf .terraform` to all build pipelines (**DONE — PR #82**) | `[CI][High] Add mvn clean and terraform clean to all build pipelines` | CI/CD |
+| H-10 | Switch `github-config-sync` from static AWS keys to OIDC role | `[CI][High] Switch github-config-sync from static AWS keys to OIDC` | CI/CD (**DONE — PR #106**) |
+| H-11 | Require at least one human reviewer in addition to auto-approve bot | `[CI][High] Require at least one human reviewer` | CI/CD (**DONE — PR #106**) |
+| H-12 | Pin `snyk/actions/setup` away from `@master` to a commit SHA | `[CI][High] Pin snyk/actions/setup to commit SHA` | CI/CD (**DONE — PR #106**) |
+| H-13 | Restrict OIDC trust policy to `main` branch and `production` environment only | `[Infra][High] Restrict OIDC trust to main branch and production` | Infrastructure (**DONE — already in main**) |
 
 ### Track 3 — Medium (Sprint 2, within 4 weeks)
 
 | ID | Task |
 |----|------|
-| M-1 | Disable H2 console in `application-prod.yml`; restrict to `ADMIN` role in other profiles |
-| M-2 | Enumerate CORS allowed headers; configure allowed origins from env var |
-| M-3 | Document CSRF decision with code comment |
-| M-4 | Add `@ControllerAdvice` exception handler to sanitize all error responses |
-| M-5 | Encrypt `telegram_chat_id` and `whatsapp_number` with application-level AES-GCM + KMS key |
-| M-6 | Add `created_by`/`updated_by` columns to PHI tables via Flyway migration |
-| M-7 | Remove `soft_fail: true` from tfsec; triage and annotate existing findings |
-| M-8 | Remove `continue-on-error: true` from lint and SonarCloud steps |
-| M-9 | Add CloudWatch metric filters and alarms for 401/403 spikes, JWT failures |
-| M-10 | Implement JWT revocation via DB version claim; reduce expiry to 1 hour; add refresh tokens |
-| M-11 | Replace email with userId in all log statements |
-| M-12 | Restrict actuator exposure to `health` only; move metrics/prometheus to management port |
-| M-13 | Remove JWT from localStorage once C-1 is done (HttpOnly cookie makes this moot) |
-| M-14 | Add versioning and SSE to S3 frontend bucket |
-| M-15 | Add S3 access logging for audio and frontend buckets |
-| M-16 | Define CloudWatch log retention (90 days) via explicit `aws_cloudwatch_log_group` resource |
+| M-1 | Disable H2 console in `application-prod.yml`; restrict to `ADMIN` role in other profiles | (**DONE — PR #102**) |
+| M-2 | Enumerate CORS allowed headers; configure allowed origins from env var | (**DONE — PR #102**) |
+| M-3 | Document CSRF decision with code comment | (**DONE — PR #102**) |
+| M-4 | Add `@ControllerAdvice` exception handler to sanitize all error responses | (**DONE — PR #102**) |
+| M-5 | Encrypt `telegram_chat_id` and `whatsapp_number` with application-level AES-GCM + KMS key | (**DEFERRED**) |
+| M-6 | Add `created_by`/`updated_by` columns to PHI tables via Flyway migration | (**DEFERRED — fold into H-8**) |
+| M-7 | Remove `soft_fail: true` from tfsec; triage and annotate existing findings | (**DONE — PR #105**) |
+| M-8 | Remove `continue-on-error: true` from lint and SonarCloud steps | (**DONE — PR #105**) |
+| M-9 | Add CloudWatch metric filters and alarms for 401/403 spikes, JWT failures | (**DEFERRED — fold into observability sprint**) |
+| M-10 | Implement JWT revocation via DB version claim; reduce expiry to 1 hour; add refresh tokens | (**DEFERRED**) |
+| M-11 | Replace email with userId in all log statements | (**DONE — PR #102**) |
+| M-12 | Restrict actuator exposure to `health` only; move metrics/prometheus to management port | (**DONE — PR #102**) |
+| M-13 | Remove JWT from localStorage once C-1 is done (HttpOnly cookie makes this moot) | (**DONE — PR #104**) |
+| M-14 | Add versioning and SSE to S3 frontend bucket | (**DONE — PR #100**) |
+| M-15 | Add S3 access logging for audio and frontend buckets | (**DONE — PR #100**) |
+| M-16 | Define CloudWatch log retention (90 days) via explicit `aws_cloudwatch_log_group` resource | (**DONE — PR #100**) |
 
 ### Track 4 — Low (Backlog)
 
 | ID | Task |
 |----|------|
-| L-1 | Implement data retention policy and right-to-erasure endpoint |
-| L-2 | Reduce JWT expiry to 1 hour; add refresh token rotation |
-| L-3 | Evaluate geo-restriction on CloudFront; implement if jurisdictionally required |
-| L-4 | Register custom domain; configure ACM certificate on CloudFront |
-| L-5 | Scope Transcribe IAM actions to `mindtrack-*` job ARN prefix |
-| L-6 | Add scheduled cleanup of expired invite tokens |
-| L-7 | Update `jjwt` to latest stable 0.12.x release |
+| L-1 | Implement data retention policy and right-to-erasure endpoint | (**DEFERRED**) |
+| L-2 | Reduce JWT expiry to 1 hour; add refresh token rotation | (**DEFERRED — fold into M-10**) |
+| L-3 | Evaluate geo-restriction on CloudFront; implement if jurisdictionally required | (**DEFERRED**) |
+| L-4 | Register custom domain; configure ACM certificate on CloudFront | (**DEFERRED**) |
+| L-5 | Scope Transcribe IAM actions to `mindtrack-*` job ARN prefix | (**DONE — PR #98**) |
+| L-6 | Add scheduled cleanup of expired invite tokens | (**DONE — PR #103**) |
+| L-7 | Update `jjwt` to latest stable 0.12.x release | (**DONE — PR #103**) |
 
 ---
 
