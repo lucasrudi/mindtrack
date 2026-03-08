@@ -118,8 +118,8 @@ export const useProfileStore = defineStore('profile', () => {
     error.value = null
     try {
       const authStore = useAuthStore()
-      const res = await api.patch('/auth/me/roles', { isPatient, isTherapist })
-      await authStore.updateToken(res.data.token)
+      await api.patch('/auth/me/roles', { isPatient, isTherapist })
+      await authStore.fetchCurrentUser()
       if (profile.value) {
         profile.value.isPatient = isPatient
         profile.value.isTherapist = isTherapist
