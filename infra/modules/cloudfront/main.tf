@@ -1,3 +1,43 @@
+resource "aws_cloudfront_response_headers_policy" "security_headers" {
+  name = "${var.name_prefix}-security-headers"
+
+  security_headers_config {
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      include_subdomains         = true
+      preload                    = false
+      override                   = true
+    }
+
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+
+    content_type_options {
+      override = true
+    }
+
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+
+    content_security_policy {
+      content_security_policy = "default-src 'self'"
+      override                = true
+    }
+  }
+
+  custom_headers_config {
+    items {
+      header   = "Permissions-Policy"
+      value    = "camera=(), microphone=()"
+      override = true
+    }
+  }
+}
+
 resource "aws_cloudfront_origin_access_identity" "oai" {
   comment = "${var.name_prefix} frontend OAI"
 }
@@ -29,9 +69,10 @@ resource "aws_cloudfront_distribution" "frontend" {
       }
     }
 
-    min_ttl     = 0
-    default_ttl = 3600
-    max_ttl     = 86400
+    min_ttl                    = 0
+    default_ttl                = 3600
+    max_ttl                    = 86400
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security_headers.id
   }
 
   # SPA fallback: return index.html for 404s
