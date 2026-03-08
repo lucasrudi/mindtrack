@@ -35,6 +35,7 @@ resource "aws_apigatewayv2_stage" "default" {
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_access.arn
+    format          = "$context.requestId $context.httpMethod $context.routeKey $context.status $context.responseLength $context.requestTime"
   }
 }
 
