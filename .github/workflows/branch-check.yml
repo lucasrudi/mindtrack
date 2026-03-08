@@ -24,7 +24,7 @@ jobs:
             echo "Dependabot branch — skipping convention check."
             exit 0
           fi
-          PATTERN="^(feature|bugfix|chore|docs|test|refactor|ci|infra|style|perf|build)/[0-9]+-[a-z0-9-]+$"
+          PATTERN="^(feature|bugfix|chore|docs|test|refactor|ci|infra|security|style|perf|build)/[0-9]+-[a-z0-9-]+$"
           if [[ "$BRANCH" =~ $PATTERN ]]; then
             echo "Branch '$BRANCH' follows naming convention."
           else
