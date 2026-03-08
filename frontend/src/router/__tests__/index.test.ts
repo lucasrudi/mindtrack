@@ -62,7 +62,14 @@ describe('Router', () => {
 
   it('redirects authenticated user from landing to dashboard', async () => {
     const auth = useAuthStore()
-    auth.setToken('fake-token')
+    auth.setUser({
+      id: '1',
+      email: 'test@test.com',
+      name: 'Test',
+      role: 'USER',
+      isPatient: true,
+      isTherapist: false,
+    })
 
     await router.push('/')
     await router.isReady()
@@ -71,7 +78,14 @@ describe('Router', () => {
 
   it('allows authenticated user to access protected route', async () => {
     const auth = useAuthStore()
-    auth.setToken('fake-token')
+    auth.setUser({
+      id: '1',
+      email: 'test@test.com',
+      name: 'Test',
+      role: 'USER',
+      isPatient: true,
+      isTherapist: false,
+    })
 
     await router.push('/journal')
     await router.isReady()

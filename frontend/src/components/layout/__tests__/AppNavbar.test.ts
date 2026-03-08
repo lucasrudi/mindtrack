@@ -97,7 +97,14 @@ describe('AppNavbar', () => {
 
   it('calls logout and navigates on logout click', async () => {
     const auth = useAuthStore()
-    auth.setToken('fake-token')
+    auth.setUser({
+      id: '1',
+      email: 'test@test.com',
+      name: 'Test',
+      role: 'USER',
+      isPatient: true,
+      isTherapist: false,
+    })
     const wrapper = mountNavbar()
 
     await wrapper.find('.btn-logout').trigger('click')
