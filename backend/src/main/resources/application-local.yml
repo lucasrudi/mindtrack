@@ -71,7 +71,7 @@ mindtrack:
   messaging:
     telegram:
       bot-token: ""
-      webhook-secret: ""
+      webhook-secret: "local-dev-test-webhook-secret"
     whatsapp:
       api-token: ""
       verify-token: local-verify-token
