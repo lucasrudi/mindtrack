@@ -1,20 +1,14 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
-const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
 onMounted(async () => {
-  const token = route.query.token as string | undefined
-
-  if (token) {
-    auth.setToken(token)
-    await auth.fetchCurrentUser()
-    router.replace('/dashboard')
-  } else if (auth.isAuthenticated) {
+  await auth.fetchCurrentUser()
+  if (auth.isAuthenticated) {
     router.replace('/dashboard')
   } else {
     router.replace('/')
