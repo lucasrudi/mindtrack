@@ -165,7 +165,9 @@ data "aws_iam_policy_document" "lambda_permissions" {
       "transcribe:StartTranscriptionJob",
       "transcribe:GetTranscriptionJob",
     ]
-    resources = ["*"]
+    resources = [
+      "arn:aws:transcribe:*:${data.aws_caller_identity.current.account_id}:transcription-job/${var.name_prefix}-*",
+    ]
   }
 
   # VPC networking for RDS access
