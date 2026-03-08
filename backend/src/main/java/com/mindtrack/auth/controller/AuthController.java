@@ -1,7 +1,6 @@
 package com.mindtrack.auth.controller;
 
 import com.mindtrack.auth.dto.AuthResponse;
-import com.mindtrack.auth.dto.SelfRoleRequest;
 import com.mindtrack.auth.dto.SelfRolesRequest;
 import com.mindtrack.auth.dto.UserInfo;
 import com.mindtrack.auth.service.JwtService;
@@ -19,7 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Authentication controller for user info, token validation, and self-service role change.
+ * Authentication controller for user info and token validation.
+ * Role promotion is admin-only and is handled via the admin endpoint.
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -49,21 +49,6 @@ public class AuthController {
         return userService.findById(userId)
                 .map(user -> ResponseEntity.ok(toUserInfo(user)))
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    /**
-     * Changes the current user's role to USER or THERAPIST and returns a refreshed JWT.
-     */
-    @PatchMapping("/me/role")
-    public ResponseEntity<AuthResponse> changeRole(
-            @Valid @RequestBody SelfRoleRequest request,
-            Authentication authentication) {
-        Long userId = (Long) authentication.getPrincipal();
-        User user = userService.changeRole(userId, request.getRole());
-        String token = jwtService.generateToken(user.getId(), user.getEmail(),
-                user.getRole().getName());
-        return ResponseEntity.ok(
-                new AuthResponse(token, user.getEmail(), user.getName(), user.getRole().getName()));
     }
 
     /**

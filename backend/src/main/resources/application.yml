@@ -21,7 +21,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health
   metrics:
     tags:
       application: mindtrack
