@@ -5,43 +5,32 @@ import { useAuthStore } from '../auth'
 vi.mock('@/services/api', () => ({
   default: {
     get: vi.fn(),
+    post: vi.fn(),
   },
 }))
 
-const localStorageMock = (() => {
-  let store: Record<string, string> = {}
-  return {
-    getItem: vi.fn((key: string) => store[key] ?? null),
-    setItem: vi.fn((key: string, value: string) => {
-      store[key] = value
-    }),
-    removeItem: vi.fn((key: string) => {
-      delete store[key]
-    }),
-    clear: vi.fn(() => {
-      store = {}
-    }),
-  }
-})()
-
-vi.stubGlobal('localStorage', localStorageMock)
-
 describe('useAuthStore', () => {
   beforeEach(() => {
-    localStorageMock.clear()
     vi.clearAllMocks()
     setActivePinia(createPinia())
   })
 
   describe('isAuthenticated', () => {
-    it('returns false when no token', () => {
+    it('returns false when no user', () => {
       const store = useAuthStore()
       expect(store.isAuthenticated).toBe(false)
     })
 
-    it('returns true when token is set', () => {
+    it('returns true when user is set', () => {
       const store = useAuthStore()
-      store.setToken('test-token')
+      store.setUser({
+        id: '1',
+        email: 'test@test.com',
+        name: 'Test',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: false,
+      })
       expect(store.isAuthenticated).toBe(true)
     })
   })
@@ -158,15 +147,6 @@ describe('useAuthStore', () => {
     })
   })
 
-  describe('setToken', () => {
-    it('sets token and persists to localStorage', () => {
-      const store = useAuthStore()
-      store.setToken('my-jwt-token')
-      expect(store.token).toBe('my-jwt-token')
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('mindtrack_token', 'my-jwt-token')
-    })
-  })
-
   describe('setUser', () => {
     it('sets user data', () => {
       const store = useAuthStore()
@@ -184,9 +164,8 @@ describe('useAuthStore', () => {
   })
 
   describe('logout', () => {
-    it('clears token, user, and localStorage', () => {
+    it('clears user and calls backend logout', async () => {
       const store = useAuthStore()
-      store.setToken('token')
       store.setUser({
         id: '1',
         email: 'test@test.com',
@@ -196,33 +175,30 @@ describe('useAuthStore', () => {
         isTherapist: false,
       })
 
-      store.logout()
+      const module = await import('@/services/api')
+      const api = module.default as unknown as {
+        get: ReturnType<typeof vi.fn>
+        post: ReturnType<typeof vi.fn>
+      }
+      api.post.mockResolvedValueOnce({})
 
-      expect(store.token).toBeNull()
+      await store.logout()
+
       expect(store.user).toBeNull()
       expect(store.isAuthenticated).toBe(false)
-      expect(store.isAdmin).toBe(false)
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('mindtrack_token')
+      expect(api.post).toHaveBeenCalledWith('/auth/logout')
     })
   })
 
   describe('fetchCurrentUser', () => {
-    it('does not fetch if no token', async () => {
-      const store = useAuthStore()
-      const module = await import('@/services/api')
-      const api = module.default as unknown as { get: ReturnType<typeof vi.fn> }
-
-      await store.fetchCurrentUser()
-
-      expect(api.get).not.toHaveBeenCalled()
-    })
-
     it('fetches current user and sets data', async () => {
       const store = useAuthStore()
-      store.setToken('valid-token')
 
       const module = await import('@/services/api')
-      const api = module.default as unknown as { get: ReturnType<typeof vi.fn> }
+      const api = module.default as unknown as {
+        get: ReturnType<typeof vi.fn>
+        post: ReturnType<typeof vi.fn>
+      }
       const userData = {
         id: '1',
         email: 'test@test.com',
@@ -238,43 +214,27 @@ describe('useAuthStore', () => {
       expect(store.user).toEqual(userData)
     })
 
-    it('logs out on fetch failure', async () => {
+    it('clears user on fetch failure', async () => {
       const store = useAuthStore()
-      store.setToken('expired-token')
-
-      const module = await import('@/services/api')
-      const api = module.default as unknown as { get: ReturnType<typeof vi.fn> }
-      api.get.mockRejectedValueOnce(new Error('Unauthorized'))
-
-      await store.fetchCurrentUser()
-
-      expect(store.token).toBeNull()
-      expect(store.user).toBeNull()
-    })
-  })
-
-  describe('updateToken', () => {
-    it('replaces token, persists to localStorage, and re-fetches user', async () => {
-      const store = useAuthStore()
-      store.setToken('old-token')
-
-      const module = await import('@/services/api')
-      const api = module.default as unknown as { get: ReturnType<typeof vi.fn> }
-      const userData = {
+      store.setUser({
         id: '1',
         email: 'test@test.com',
         name: 'Test',
         role: 'USER',
-        isPatient: false,
-        isTherapist: true,
+        isPatient: true,
+        isTherapist: false,
+      })
+
+      const module = await import('@/services/api')
+      const api = module.default as unknown as {
+        get: ReturnType<typeof vi.fn>
+        post: ReturnType<typeof vi.fn>
       }
-      api.get.mockResolvedValueOnce({ data: userData })
+      api.get.mockRejectedValueOnce(new Error('Unauthorized'))
 
-      await store.updateToken('new-token')
+      await store.fetchCurrentUser()
 
-      expect(store.token).toBe('new-token')
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('mindtrack_token', 'new-token')
-      expect(store.user?.isTherapist).toBe(true)
+      expect(store.user).toBeNull()
     })
   })
 })
