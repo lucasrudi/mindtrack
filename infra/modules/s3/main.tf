@@ -1,3 +1,9 @@
+resource "aws_kms_key" "s3" {
+  description             = "${var.name_prefix} S3 encryption key"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+}
+
 # Audio bucket with 7-day lifecycle
 resource "aws_s3_bucket" "audio" {
   bucket = "${var.name_prefix}-audio"
@@ -16,12 +22,21 @@ resource "aws_s3_bucket_lifecycle_configuration" "audio_lifecycle" {
   }
 }
 
+resource "aws_s3_bucket_versioning" "audio_versioning" {
+  bucket = aws_s3_bucket.audio.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
 resource "aws_s3_bucket_server_side_encryption_configuration" "audio_encryption" {
   bucket = aws_s3_bucket.audio.id
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3.arn
     }
   }
 }
@@ -62,7 +77,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "frontend_encrypti
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3.arn
     }
   }
 }

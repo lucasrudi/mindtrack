@@ -1,3 +1,41 @@
+resource "aws_wafv2_web_acl" "cloudfront" {
+  provider = aws.us_east_1
+  name     = "${var.name_prefix}-waf"
+  scope    = "CLOUDFRONT"
+
+  default_action {
+    allow {}
+  }
+
+  rule {
+    name     = "AWSManagedRulesCommonRuleSet"
+    priority = 1
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "${var.name_prefix}-common-rules"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "${var.name_prefix}-waf"
+    sampled_requests_enabled   = true
+  }
+}
+
 resource "aws_cloudfront_response_headers_policy" "security_headers" {
   name = "${var.name_prefix}-security-headers"
 
@@ -46,6 +84,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   default_root_object = "index.html"
   comment             = "${var.name_prefix} frontend distribution"
+  web_acl_id          = aws_wafv2_web_acl.cloudfront.arn
 
   origin {
     domain_name = var.frontend_bucket_domain
@@ -88,6 +127,12 @@ resource "aws_cloudfront_distribution" "frontend" {
     response_page_path = "/index.html"
   }
 
+  logging_config {
+    include_cookies = false
+    bucket          = var.access_logs_bucket_domain
+    prefix          = "cloudfront/"
+  }
+
   restrictions {
     geo_restriction {
       restriction_type = "none"
@@ -95,7 +140,10 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn            = var.acm_certificate_arn != "" ? var.acm_certificate_arn : null
+    ssl_support_method             = var.acm_certificate_arn != "" ? "sni-only" : null
+    minimum_protocol_version       = var.acm_certificate_arn != "" ? "TLSv1.2_2021" : null
+    cloudfront_default_certificate = var.acm_certificate_arn == "" ? true : null #tfsec:ignore:aws-cloudfront-use-secure-tls-policy
   }
 
   tags = {

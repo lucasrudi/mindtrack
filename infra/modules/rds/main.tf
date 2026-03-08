@@ -35,13 +35,6 @@ resource "aws_security_group" "rds" {
     description     = "MySQL access from Lambda"
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = {
     Name = "${var.name_prefix}-rds-sg"
   }
@@ -69,6 +62,7 @@ resource "aws_rds_cluster" "main" {
   final_snapshot_identifier = "${var.name_prefix}-final-snapshot"
   deletion_protection       = true
   backup_retention_period   = 30
+  storage_encrypted         = true
 
   tags = {
     Name = "${var.name_prefix}-aurora"
@@ -80,6 +74,8 @@ resource "aws_rds_cluster_instance" "main" {
   instance_class     = "db.serverless"
   engine             = aws_rds_cluster.main.engine
   engine_version     = aws_rds_cluster.main.engine_version
+
+  performance_insights_enabled = true
 
   tags = {
     Name = "${var.name_prefix}-aurora-instance"

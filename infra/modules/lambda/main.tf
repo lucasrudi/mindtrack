@@ -15,11 +15,19 @@ resource "aws_security_group" "lambda" {
   vpc_id      = data.aws_vpc.default.id
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
+    description = "HTTPS to AWS services"
+  }
+
+  egress {
+    from_port       = 3306
+    to_port         = 3306
+    protocol        = "tcp"
+    security_groups = [var.rds_sg_id]
+    description     = "MySQL to RDS"
   }
 
   tags = {
@@ -40,6 +48,10 @@ resource "aws_lambda_function" "api" {
 
   snap_start {
     apply_on = "PublishedVersions"
+  }
+
+  tracing_config {
+    mode = "Active"
   }
 
   vpc_config {

@@ -54,10 +54,17 @@ module "api_gateway" {
 module "cloudfront" {
   source = "./modules/cloudfront"
 
-  name_prefix            = local.name_prefix
-  frontend_bucket_domain = module.s3.frontend_bucket_domain
-  frontend_bucket_id     = module.s3.frontend_bucket_id
-  domain_name            = var.domain_name
+  name_prefix               = local.name_prefix
+  frontend_bucket_domain    = module.s3.frontend_bucket_domain
+  frontend_bucket_id        = module.s3.frontend_bucket_id
+  domain_name               = var.domain_name
+  acm_certificate_arn       = var.acm_certificate_arn
+  access_logs_bucket_domain = module.s3.access_logs_bucket_domain
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
 }
 
 module "eventbridge" {
