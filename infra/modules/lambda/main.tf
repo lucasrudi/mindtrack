@@ -23,11 +23,11 @@ resource "aws_security_group" "lambda" {
   }
 
   egress {
-    from_port       = 3306
-    to_port         = 3306
-    protocol        = "tcp"
-    security_groups = [var.rds_sg_id]
-    description     = "MySQL to RDS"
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = [data.aws_vpc.default.cidr_block]
+    description = "MySQL to RDS"
   }
 
   tags = {

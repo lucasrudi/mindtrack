@@ -38,7 +38,6 @@ module "lambda" {
   role_arn     = module.iam.lambda_role_arn
   rds_endpoint = module.rds.cluster_endpoint
   rds_port     = module.rds.cluster_port
-  rds_sg_id    = module.rds.security_group_id
   secrets_arns = module.secrets.secret_arns
 }
 
