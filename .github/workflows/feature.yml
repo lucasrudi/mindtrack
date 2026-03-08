@@ -170,6 +170,10 @@ jobs:
           path: frontend/coverage/
 
       - name: SonarCloud Scan
+        # continue-on-error: the SonarCloud project (key: mindtrack, org: mindtrack) must be
+        # created in the SonarCloud UI before this gate can be enforced. Until then, analysis
+        # will fail with "project not found" and we allow it to not block CI.
+        continue-on-error: true
         uses: SonarSource/sonarcloud-github-action@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
