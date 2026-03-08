@@ -1,16 +1,15 @@
 package com.mindtrack.messaging.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mindtrack.messaging.config.MessagingProperties;
 import com.mindtrack.messaging.dto.TelegramUpdate;
 import com.mindtrack.messaging.service.MessagingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -19,7 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(properties = {"mindtrack.messaging.telegram.webhook-secret=my-secret"})
 @AutoConfigureMockMvc
 @ActiveProfiles("local")
 class TelegramWebhookControllerTest {
@@ -33,33 +32,21 @@ class TelegramWebhookControllerTest {
     @MockitoBean
     private MessagingService messagingService;
 
-    @MockitoBean
-    private MessagingProperties properties;
-
     @Test
-    void shouldAcceptTelegramWebhookWithoutAuth() throws Exception {
-        // Telegram webhooks are public endpoints — no JWT needed
-        MessagingProperties.Telegram telegram = new MessagingProperties.Telegram();
-        telegram.setWebhookSecret("");
-        org.mockito.Mockito.when(properties.getTelegram()).thenReturn(telegram);
-
+    void shouldRejectMissingWebhookSecret() throws Exception {
         TelegramUpdate update = new TelegramUpdate();
         update.setUpdateId(1L);
 
         mockMvc.perform(post("/api/webhooks/telegram")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(update)))
-                .andExpect(status().isOk());
+                .andExpect(status().isForbidden());
 
-        verify(messagingService).handleTelegramMessage(any(TelegramUpdate.class));
+        verify(messagingService, never()).handleTelegramMessage(any());
     }
 
     @Test
     void shouldRejectInvalidWebhookSecret() throws Exception {
-        MessagingProperties.Telegram telegram = new MessagingProperties.Telegram();
-        telegram.setWebhookSecret("my-secret");
-        org.mockito.Mockito.when(properties.getTelegram()).thenReturn(telegram);
-
         TelegramUpdate update = new TelegramUpdate();
         update.setUpdateId(1L);
 
@@ -74,10 +61,6 @@ class TelegramWebhookControllerTest {
 
     @Test
     void shouldAcceptValidWebhookSecret() throws Exception {
-        MessagingProperties.Telegram telegram = new MessagingProperties.Telegram();
-        telegram.setWebhookSecret("my-secret");
-        org.mockito.Mockito.when(properties.getTelegram()).thenReturn(telegram);
-
         TelegramUpdate update = new TelegramUpdate();
         update.setUpdateId(2L);
 

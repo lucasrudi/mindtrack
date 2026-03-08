@@ -49,7 +49,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         User user = userService.findOrCreateFromGoogle(googleId, email, name);
         String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getRole().getName());
 
-        LOG.info("OAuth2 login success for user: {}", email);
+        LOG.info("OAuth2 login success for user id={}", user.getId());
 
         String redirectUrl = frontendUrl + "/login?token="
                 + URLEncoder.encode(token, StandardCharsets.UTF_8);
