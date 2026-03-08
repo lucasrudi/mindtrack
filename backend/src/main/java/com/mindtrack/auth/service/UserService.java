@@ -38,7 +38,7 @@ public class UserService {
             User user = existing.get();
             user.setName(name);
             user.setUpdatedAt(LocalDateTime.now());
-            LOG.info("Returning existing user: {}", email);
+            LOG.info("Returning existing user id={}", user.getId());
             return userRepository.save(user);
         }
 
@@ -49,7 +49,7 @@ public class UserService {
             user.setGoogleId(googleId);
             user.setName(name);
             user.setUpdatedAt(LocalDateTime.now());
-            LOG.info("Linked Google ID to existing user: {}", email);
+            LOG.info("Linked Google ID to existing user id={}", user.getId());
             return userRepository.save(user);
         }
 
@@ -65,8 +65,9 @@ public class UserService {
         newUser.setCreatedAt(LocalDateTime.now());
         newUser.setUpdatedAt(LocalDateTime.now());
 
-        LOG.info("Created new user: {}", email);
-        return userRepository.save(newUser);
+        User savedUser = userRepository.save(newUser);
+        LOG.info("Created new user id={}", savedUser.getId());
+        return savedUser;
     }
 
     /**
