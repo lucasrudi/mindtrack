@@ -48,6 +48,7 @@ module "api_gateway" {
   name_prefix         = local.name_prefix
   lambda_function_arn = module.lambda.function_arn
   lambda_invoke_arn   = module.lambda.invoke_arn
+  cloudfront_domain   = module.cloudfront.domain_name
 }
 
 module "cloudfront" {
