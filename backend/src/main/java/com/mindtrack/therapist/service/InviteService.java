@@ -16,6 +16,7 @@ import java.util.HexFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -110,6 +111,17 @@ public class InviteService {
 
         LOG.info("Accepted invite: therapist={} patient={} status={}",
                 therapistId, patientId, status);
+    }
+
+    /**
+     * Scheduled task that removes expired invite tokens from the database.
+     * Runs daily at 03:00 to keep the table free of stale rows.
+     */
+    @Scheduled(cron = "0 0 3 * * *")
+    @Transactional
+    public void cleanupExpiredTokens() {
+        inviteTokenRepository.deleteExpiredTokens(LocalDateTime.now());
+        LOG.info("Expired invite tokens cleaned up");
     }
 
     private InviteToken findValidToken(String token) {

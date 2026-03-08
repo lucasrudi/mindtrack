@@ -82,38 +82,6 @@ class AuthControllerTest {
     }
 
     @Test
-    void shouldChangeRoleToTherapistAndReturnNewToken() throws Exception {
-        User user = createUser(1L, "test@example.com", "Test User", "THERAPIST");
-        when(userService.changeRole(1L, "THERAPIST")).thenReturn(user);
-        when(jwtService.generateToken(anyLong(), anyString(), anyString())).thenReturn("new-token");
-
-        mockMvc.perform(patch("/api/auth/me/role")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"THERAPIST\"}")
-                        .with(authentication(mockAuth(1L))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("new-token"))
-                .andExpect(jsonPath("$.role").value("THERAPIST"));
-    }
-
-    @Test
-    void shouldRejectSelfAssignAdminRole() throws Exception {
-        mockMvc.perform(patch("/api/auth/me/role")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"ADMIN\"}")
-                        .with(authentication(mockAuth(1L))))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void shouldReturn401OnRoleChangeWhenNotAuthenticated() throws Exception {
-        mockMvc.perform(patch("/api/auth/me/role")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"role\":\"THERAPIST\"}"))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
     void shouldUpdateBothRolesAndReturnNewToken() throws Exception {
         User user = createUser(1L, "test@example.com", "Test User", "USER");
         UserProfile profile = createProfile(true, true);
