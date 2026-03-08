@@ -615,7 +615,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 #### H-13: OIDC Trust Policy Allows Any Branch/Ref — Not Scoped to `main` or Production Environment
 
-- **Status: FIXED — already in main (pre-existing fix confirmed during audit)**
+- **Status: FIXED — PR #108**
 - **Severity:** High
 - **SOC2 Controls:** CC6.3
 - **File:** `infra/modules/iam/main.tf:29-33`
@@ -750,7 +750,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 | H-10 | Switch `github-config-sync` from static AWS keys to OIDC role | `[CI][High] Switch github-config-sync from static AWS keys to OIDC` | CI/CD (**DONE — PR #106**) |
 | H-11 | Require at least one human reviewer in addition to auto-approve bot | `[CI][High] Require at least one human reviewer` | CI/CD (**DONE — PR #106**) |
 | H-12 | Pin `snyk/actions/setup` away from `@master` to a commit SHA | `[CI][High] Pin snyk/actions/setup to commit SHA` | CI/CD (**DONE — PR #106**) |
-| H-13 | Restrict OIDC trust policy to `main` branch and `production` environment only | `[Infra][High] Restrict OIDC trust to main branch and production` | Infrastructure (**DONE — already in main**) |
+| H-13 | Restrict OIDC trust policy to `main` branch and `production` environment only | `[Infra][High] Restrict OIDC trust to main branch and production` | Infrastructure (**DONE — PR #108**) |
 
 ### Track 3 — Medium (Sprint 2, within 4 weeks)
 
