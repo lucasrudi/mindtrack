@@ -13,10 +13,10 @@ jobs:
     name: Backend Verify (clean)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Java 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11d68996 # v5.5.0
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -29,10 +29,10 @@ jobs:
     name: Frontend Verify (clean)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Node 20
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v6.1.0
         with:
           node-version: '20'
 
@@ -57,10 +57,10 @@ jobs:
     name: Infrastructure Verify (clean)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269ef065 # v4.0.0
         with:
           terraform_version: '1.7.0'
 
@@ -81,7 +81,7 @@ jobs:
         run: terraform validate
 
       - name: Setup tflint
-        uses: terraform-linters/setup-tflint@v6
+        uses: terraform-linters/setup-tflint@90f302a3eebb3a014af17d4cf3d9ab48457b7ebe # v6.0.0
 
       - name: Init tflint
         working-directory: infra
@@ -92,7 +92,7 @@ jobs:
         run: tflint --recursive --minimum-failure-severity=error
 
       - name: Run tfsec
-        uses: aquasecurity/tfsec-action@v1.0.3
+        uses: aquasecurity/tfsec-action@b466648d6d39e7c0e70a496d1fb4ea6428eb41f5 # v1.0.3
         with:
           working_directory: infra
           soft_fail: true

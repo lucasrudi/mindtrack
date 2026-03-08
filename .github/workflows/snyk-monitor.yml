@@ -13,17 +13,17 @@ jobs:
     name: Snyk Test & Monitor
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Java 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11d68996 # v5.5.0
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
 
       - name: Set up Node 20
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v6.1.0
         with:
           node-version: '20'
           cache: 'npm'
@@ -34,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: Setup Snyk
-        uses: snyk/actions/setup@master
+        uses: snyk/actions/setup@b98d498629f1c5e15ab6ce7f21f88b348b91d2f3 # master@2025-01
 
       - name: Snyk test backend
         working-directory: backend
