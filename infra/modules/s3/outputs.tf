@@ -22,3 +22,8 @@ output "frontend_bucket_id" {
   description = "ID of the frontend S3 bucket"
   value       = aws_s3_bucket.frontend.id
 }
+
+output "access_logs_bucket_domain" {
+  description = "Domain name of the access logs S3 bucket"
+  value       = aws_s3_bucket.access_logs.bucket_domain_name
+}
