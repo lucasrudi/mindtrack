@@ -99,6 +99,15 @@ public class ProfileService {
         return profile;
     }
 
+    /**
+     * Returns the profile for the given user, creating a default one if it does not exist.
+     */
+    @Transactional
+    public UserProfile getOrCreateProfile(Long userId) {
+        return profileRepository.findByUserId(userId)
+                .orElseGet(() -> createDefaultProfile(userId));
+    }
+
     private UserProfile createDefaultProfile(Long userId) {
         LOG.info("Creating default profile for user {}", userId);
         UserProfile profile = new UserProfile();

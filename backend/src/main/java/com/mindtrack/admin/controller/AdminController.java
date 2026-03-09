@@ -6,6 +6,8 @@ import com.mindtrack.admin.dto.RolePermissionResponse;
 import com.mindtrack.admin.dto.UpdatePermissionsRequest;
 import com.mindtrack.admin.dto.UserResponse;
 import com.mindtrack.admin.service.AdminService;
+import com.mindtrack.auth.dto.TherapistTokenResponse;
+import com.mindtrack.auth.service.TherapistRegistrationService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -13,11 +15,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,9 +39,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminController {
 
     private final AdminService adminService;
+    private final TherapistRegistrationService therapistRegistrationService;
 
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService,
+            TherapistRegistrationService therapistRegistrationService) {
         this.adminService = adminService;
+        this.therapistRegistrationService = therapistRegistrationService;
     }
 
     /**
@@ -101,5 +109,25 @@ public class AdminController {
     public ResponseEntity<RolePermissionResponse> updateRolePermissions(
             @PathVariable Long roleId, @Valid @RequestBody UpdatePermissionsRequest request) {
         return ResponseEntity.ok(adminService.updateRolePermissions(roleId, request.getPermissionIds()));
+    }
+
+    /**
+     * Creates a single-use therapist registration token.
+     * Distribute the token out-of-band to a verified therapist; they redeem it via
+     * POST /api/auth/therapist-register to receive the THERAPIST system role.
+     */
+    @PostMapping("/therapist-registration-tokens")
+    public ResponseEntity<TherapistTokenResponse> createTherapistToken(Authentication authentication) {
+        Long adminId = (Long) authentication.getPrincipal();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(therapistRegistrationService.createToken(adminId));
+    }
+
+    /**
+     * Lists all therapist registration tokens with their redemption status.
+     */
+    @GetMapping("/therapist-registration-tokens")
+    public ResponseEntity<List<TherapistTokenResponse>> listTherapistTokens() {
+        return ResponseEntity.ok(therapistRegistrationService.listTokens());
     }
 }
