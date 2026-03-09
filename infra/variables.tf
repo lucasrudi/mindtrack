@@ -54,3 +54,9 @@ variable "create_oidc_provider" {
   type        = bool
   default     = false
 }
+
+variable "acm_certificate_arn" {
+  description = "ACM certificate ARN for CloudFront HTTPS (must be in us-east-1)"
+  type        = string
+  default     = ""
+}

@@ -23,11 +23,6 @@ variable "rds_port" {
   type        = number
 }
 
-variable "rds_sg_id" {
-  description = "RDS security group ID"
-  type        = string
-}
-
 variable "secrets_arns" {
   description = "List of Secrets Manager secret ARNs"
   type        = list(string)

@@ -70,7 +70,6 @@ jobs:
 
       - name: Lint
         working-directory: frontend
-        continue-on-error: true
         run: npm run lint
 
       - name: Unit tests
@@ -140,7 +139,6 @@ jobs:
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
           working_directory: infra
-          soft_fail: true
 
   sonar:
     name: SonarCloud Analysis
@@ -172,7 +170,6 @@ jobs:
           path: frontend/coverage/
 
       - name: SonarCloud Scan
-        continue-on-error: true
         uses: SonarSource/sonarcloud-github-action@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
