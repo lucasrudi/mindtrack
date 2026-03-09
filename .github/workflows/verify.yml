@@ -99,6 +99,8 @@ jobs:
 
       - name: Init tflint
         working-directory: infra
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: tflint --init
 
       - name: Run tflint
