@@ -25,10 +25,10 @@ jobs:
       contains(github.event.head_commit.modified, 'backend/') ||
       contains(github.event.head_commit.added, 'backend/')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Java 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -39,7 +39,7 @@ jobs:
         run: mvn clean verify -B
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v7.6.2
         with:
           name: backend-coverage
           path: backend/target/site/jacoco/
@@ -55,10 +55,10 @@ jobs:
       contains(github.event.head_commit.modified, 'frontend/') ||
       contains(github.event.head_commit.added, 'frontend/')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Node 20
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v6.1.0
         with:
           node-version: '20'
           cache: 'npm'
@@ -86,7 +86,7 @@ jobs:
         run: npm run build
 
       - name: Upload coverage
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v7.6.2
         with:
           name: frontend-coverage
           path: frontend/coverage/
@@ -101,10 +101,10 @@ jobs:
       contains(github.event.head_commit.modified, 'infra/') ||
       contains(github.event.head_commit.added, 'infra/')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
         with:
           terraform_version: '1.7.0'
 
@@ -125,7 +125,7 @@ jobs:
         run: terraform validate
 
       - name: Setup tflint
-        uses: terraform-linters/setup-tflint@v6
+        uses: terraform-linters/setup-tflint@115085cc23c5f5eeebad58ba418ec14e88c7a431 # v6.0.0
 
       - name: Init tflint
         working-directory: infra
@@ -136,7 +136,7 @@ jobs:
         run: tflint --recursive --minimum-failure-severity=error
 
       - name: Run tfsec
-        uses: aquasecurity/tfsec-action@v1.0.3
+        uses: aquasecurity/tfsec-action@b466648d6e39e7c75324f25d83891162a721f2d6 # v1.0.3
         with:
           working_directory: infra
 
@@ -151,26 +151,27 @@ jobs:
     needs: [backend, frontend]
     if: always() && (needs.backend.result == 'success' || needs.frontend.result == 'success')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
       - name: Download backend coverage
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v8.3.0
         if: needs.backend.result == 'success'
         with:
           name: backend-coverage
           path: backend/target/site/jacoco/
 
       - name: Download frontend coverage
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v8.3.0
         if: needs.frontend.result == 'success'
         with:
           name: frontend-coverage
           path: frontend/coverage/
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v5
+        continue-on-error: true
+        uses: SonarSource/sonarcloud-github-action@e44258b109568baa0df60ed515909fc6c72cba92 # v5.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
