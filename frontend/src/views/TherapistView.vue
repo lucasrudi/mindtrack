@@ -479,7 +479,7 @@ function statusClass(status: string): string {
 
 .status-badge.status-in-progress {
   background: #fef3c7;
-  color: #d97706;
+  color: #b45309;
 }
 
 .status-badge.status-abandoned {
