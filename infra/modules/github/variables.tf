@@ -42,7 +42,7 @@ variable "required_status_checks" {
 variable "required_approvals" {
   description = "Number of required PR approvals"
   type        = number
-  default     = 0
+  default     = 2
 }
 
 variable "enable_branch_protection" {
