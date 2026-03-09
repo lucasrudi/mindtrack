@@ -141,6 +141,15 @@ jobs:
           name: backend-coverage
           path: backend/target/site/jacoco/
 
+      - name: Disable SonarCloud Automatic Analysis
+        run: |
+          curl -s -o /dev/null -w "Autoscan deactivate: %{http_code}\n" \
+            -X POST \
+            -H "Authorization: Bearer $SONAR_TOKEN" \
+            "https://sonarcloud.io/api/autoscan/deactivate?projectKey=lucasrudi_mindtrack"
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
