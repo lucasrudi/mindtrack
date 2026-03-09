@@ -138,7 +138,7 @@ const availableStatuses: GoalStatus[] = [
 
         <!-- Status controls -->
         <div class="status-controls">
-          <label class="status-label">Status:</label>
+          <span class="status-label">Status:</span>
           <div class="status-buttons">
             <button
               v-for="s in availableStatuses"
@@ -258,7 +258,7 @@ const availableStatuses: GoalStatus[] = [
 
     <!-- Delete confirmation modal -->
     <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
-      <div class="modal" role="dialog">
+      <dialog class="modal" open>
         <h2>Delete Goal</h2>
         <p>
           Are you sure you want to delete this goal and all its milestones? This cannot be undone.
@@ -267,7 +267,7 @@ const availableStatuses: GoalStatus[] = [
           <button class="btn btn-secondary" @click="showDeleteModal = false">Cancel</button>
           <button class="btn btn-danger" @click="handleDelete">Delete</button>
         </div>
-      </div>
+      </dialog>
     </div>
   </div>
 </template>

@@ -59,12 +59,10 @@ function navigateToDetail(id: number) {
     </div>
 
     <div v-else class="interview-list">
-      <div
+      <button
         v-for="interview in store.sortedInterviews"
         :key="interview.id"
         class="interview-card"
-        role="button"
-        tabindex="0"
         @click="navigateToDetail(interview.id)"
         @keydown.enter="navigateToDetail(interview.id)"
       >
@@ -92,7 +90,7 @@ function navigateToDetail(id: number) {
         </div>
 
         <p v-if="interview.notes" class="card-notes">{{ interview.notes }}</p>
-      </div>
+      </button>
     </div>
   </div>
 </template>

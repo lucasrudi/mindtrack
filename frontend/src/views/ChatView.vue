@@ -81,7 +81,7 @@ function conversationPreview(conv: { messages: { content: string }[] }): string 
 }
 
 function formatContent(content: string): string {
-  return content.replace(/\n/g, '<br>')
+  return content.replaceAll(/\n/g, '<br>')
 }
 </script>
 

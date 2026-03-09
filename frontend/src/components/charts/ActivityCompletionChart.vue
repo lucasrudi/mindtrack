@@ -20,9 +20,9 @@ const props = defineProps<{
 
 function formatType(type: string): string {
   return type
-    .replace(/_/g, ' ')
+    .replaceAll(/_/g, ' ')
     .toLowerCase()
-    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .replaceAll(/\b\w/g, (c) => c.toUpperCase())
 }
 
 const chartData = computed(() => ({

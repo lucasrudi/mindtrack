@@ -73,7 +73,7 @@ export const useActivitiesStore = defineStore('activities', () => {
     loading.value = true
     error.value = null
     try {
-      const params = activeOnly !== undefined ? { active: activeOnly } : {}
+      const params = activeOnly === undefined ? {} : { active: activeOnly }
       const response = await api.get('/activities', { params })
       activities.value = response.data
     } catch (err) {

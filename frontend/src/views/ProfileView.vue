@@ -404,7 +404,7 @@ async function replayTutorial() {
           </div>
 
           <div class="form-group">
-            <label class="form-group-label">Life areas to improve</label>
+            <span class="form-group-label">Life areas to improve</span>
             <div class="chip-group">
               <button
                 v-for="area in LIFE_AREA_OPTIONS"

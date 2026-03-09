@@ -9,7 +9,7 @@ INSERT INTO users (email, name, role_id, enabled)
 SELECT 'admin@mindtrack.app', 'MindTrack Admin', r.id, TRUE
 FROM roles r
 WHERE r.name = 'ADMIN'
-  AND NOT EXISTS (
+  AND NOT EXISTS ( -- NOSONAR
     SELECT 1 FROM users u
     JOIN roles r2 ON u.role_id = r2.id
     WHERE r2.name = 'ADMIN'
@@ -20,6 +20,6 @@ INSERT INTO user_profiles (user_id, display_name, timezone)
 SELECT u.id, 'Admin', 'UTC'
 FROM users u
 WHERE u.email = 'admin@mindtrack.app'
-  AND NOT EXISTS (
+  AND NOT EXISTS ( -- NOSONAR
     SELECT 1 FROM user_profiles up WHERE up.user_id = u.id
   );

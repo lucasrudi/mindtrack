@@ -5,17 +5,17 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
 
-permissions:
-  contents: read
-
 jobs:
   check:
     name: Branch Name Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Validate branch name
+        env:
+          BRANCH: ${{ github.head_ref }}
         run: |
-          BRANCH="${{ github.head_ref }}"
           if [[ "$BRANCH" == renovate/* ]]; then
             echo "Renovate branch — skipping convention check."
             exit 0
