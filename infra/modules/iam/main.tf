@@ -69,7 +69,7 @@ data "aws_iam_policy_document" "github_actions_permissions" {
   statement {
     effect    = "Allow"
     actions   = ["cloudfront:CreateInvalidation"]
-    resources = ["*"]
+    resources = ["arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/*"]
   }
 
   # Terraform state bucket access (needed by deploy-infra job)
@@ -134,7 +134,7 @@ data "aws_iam_policy_document" "lambda_permissions" {
       "logs:CreateLogStream",
       "logs:PutLogEvents",
     ]
-    resources = ["arn:aws:logs:*:*:*"]
+    resources = ["arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name_prefix}-*:*"]
   }
 
   # S3 audio bucket access
@@ -174,6 +174,7 @@ data "aws_iam_policy_document" "lambda_permissions" {
   }
 
   # VPC networking for RDS access
+  #tfsec:ignore:aws-iam-no-policy-wildcards
   statement {
     effect = "Allow"
     actions = [

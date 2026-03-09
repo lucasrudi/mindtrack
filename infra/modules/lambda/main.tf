@@ -14,12 +14,21 @@ resource "aws_security_group" "lambda" {
   description = "Security group for Lambda function"
   vpc_id      = data.aws_vpc.default.id
 
+  #tfsec:ignore:aws-ec2-no-public-egress-sgr
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
+    description = "HTTPS to AWS services (Secrets Manager, Transcribe)"
+  }
+
+  egress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = [data.aws_vpc.default.cidr_block]
+    description = "MySQL to RDS"
   }
 
   tags = {
@@ -40,6 +49,10 @@ resource "aws_lambda_function" "api" {
 
   snap_start {
     apply_on = "PublishedVersions"
+  }
+
+  tracing_config {
+    mode = "Active"
   }
 
   vpc_config {

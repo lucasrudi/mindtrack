@@ -18,3 +18,14 @@ variable "domain_name" {
   type        = string
   default     = ""
 }
+
+variable "acm_certificate_arn" {
+  description = "ACM certificate ARN for HTTPS (must be in us-east-1). If empty, uses default CloudFront certificate."
+  type        = string
+  default     = ""
+}
+
+variable "access_logs_bucket_domain" {
+  description = "Domain name of the S3 access logs bucket for CloudFront logging"
+  type        = string
+}
