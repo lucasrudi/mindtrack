@@ -61,5 +61,5 @@ if (gaMeasurementId) {
 app.mount('#app')
 
 function redactPath(path: string): string {
-  return path.replace(/\/\d+/g, '/[id]')
+  return path.replaceAll(/\/\d+/g, '/[id]')
 }

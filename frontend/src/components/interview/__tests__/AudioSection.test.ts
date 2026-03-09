@@ -16,17 +16,19 @@ vi.mock('@/services/api', () => ({
   },
 }))
 
+const defaultProps = { interviewId: 1, hasAudio: false }
+
+function mountComponent(props = defaultProps) {
+  return mount(AudioSection, {
+    props,
+  })
+}
+
 describe('AudioSection', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
   })
-
-  function mountComponent(props = { interviewId: 1, hasAudio: false }) {
-    return mount(AudioSection, {
-      props,
-    })
-  }
 
   it('shows upload area when no audio exists', () => {
     const wrapper = mountComponent()

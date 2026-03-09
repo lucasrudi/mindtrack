@@ -12,20 +12,20 @@ const mockSummary = {
   totalJournalEntries: 5,
   averageMood: 7.5,
   totalActivitiesLogged: 10,
-  activityCompletionRate: 80.0,
+  activityCompletionRate: 80,
   totalGoals: 3,
   completedGoals: 1,
   activeGoals: 2,
 }
 
 const mockMoodTrends = [
-  { date: '2025-01-05', averageMood: 7.0, entryCount: 2 },
+  { date: '2025-01-05', averageMood: 7, entryCount: 2 },
   { date: '2025-01-10', averageMood: 8.5, entryCount: 1 },
 ]
 
 const mockActivityStats = [
-  { activityType: 'EXERCISE', totalLogs: 5, completedLogs: 4, completionRate: 80.0 },
-  { activityType: 'MEDITATION', totalLogs: 3, completedLogs: 3, completionRate: 100.0 },
+  { activityType: 'EXERCISE', totalLogs: 5, completedLogs: 4, completionRate: 80 },
+  { activityType: 'MEDITATION', totalLogs: 3, completedLogs: 3, completionRate: 100 },
 ]
 
 const mockGoalProgress = [

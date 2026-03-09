@@ -5,13 +5,12 @@ on:
     - cron: '0 4 * * *'  # 04:00 UTC daily
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
   backend:
     name: Backend Verify (clean)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -28,6 +27,8 @@ jobs:
   frontend:
     name: Frontend Verify (clean)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -56,6 +57,8 @@ jobs:
   infra:
     name: Infrastructure Verify (clean)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 

@@ -230,7 +230,7 @@ async function skipSurvey() {
         </div>
 
         <div class="field-group">
-          <label class="field-label">Life areas to improve</label>
+          <span class="field-label">Life areas to improve</span>
           <div class="chip-group">
             <button
               v-for="area in LIFE_AREA_OPTIONS"

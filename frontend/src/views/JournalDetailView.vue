@@ -112,14 +112,14 @@ function formatDate(dateStr: string): string {
 
     <!-- Delete confirmation modal -->
     <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
-      <div class="modal" role="dialog">
+      <dialog class="modal" open>
         <h2>Delete Entry</h2>
         <p>Are you sure you want to delete this journal entry? This cannot be undone.</p>
         <div class="modal-actions">
           <button class="btn btn-secondary" @click="showDeleteModal = false">Cancel</button>
           <button class="btn btn-danger" @click="handleDelete">Delete</button>
         </div>
-      </div>
+      </dialog>
     </div>
   </div>
 </template>

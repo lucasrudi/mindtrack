@@ -24,14 +24,14 @@ let mediaRecorder: MediaRecorder | null = null
 let durationInterval: ReturnType<typeof setInterval> | null = null
 let pollCount = 0
 
-const ALLOWED_FORMATS = [
+const ALLOWED_FORMATS = new Set([
   'audio/mpeg',
   'audio/wav',
   'audio/x-m4a',
   'audio/flac',
   'audio/ogg',
   'audio/webm',
-]
+])
 const MAX_SIZE_MB = 50
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
 
@@ -136,7 +136,7 @@ async function handleFileSelect(event: Event) {
 
   uploadError.value = null
 
-  if (!ALLOWED_FORMATS.includes(file.type)) {
+  if (!ALLOWED_FORMATS.has(file.type)) {
     uploadError.value = 'Unsupported format. Use MP3, WAV, M4A, FLAC, OGG, or WebM.'
     return
   }

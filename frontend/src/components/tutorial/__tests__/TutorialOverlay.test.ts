@@ -13,6 +13,16 @@ vi.mock('@/services/api', () => ({
   },
 }))
 
+function mountOverlay() {
+  return mount(TutorialOverlay, {
+    global: {
+      stubs: {
+        Teleport: true,
+      },
+    },
+  })
+}
+
 describe('TutorialOverlay', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -22,16 +32,6 @@ describe('TutorialOverlay', () => {
     isActive.value = false
     currentStepIndex.value = 0
   })
-
-  function mountOverlay() {
-    return mount(TutorialOverlay, {
-      global: {
-        stubs: {
-          Teleport: true,
-        },
-      },
-    })
-  }
 
   it('does not render when tutorial is inactive', () => {
     const wrapper = mountOverlay()

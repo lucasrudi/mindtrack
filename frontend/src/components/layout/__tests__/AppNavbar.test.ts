@@ -34,19 +34,19 @@ const router = createRouter({
   ],
 })
 
+function mountNavbar() {
+  return mount(AppNavbar, {
+    global: {
+      plugins: [router],
+    },
+  })
+}
+
 describe('AppNavbar', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorageMock.getItem.mockReturnValue(null)
   })
-
-  function mountNavbar() {
-    return mount(AppNavbar, {
-      global: {
-        plugins: [router],
-      },
-    })
-  }
 
   it('renders the brand name', () => {
     const wrapper = mountNavbar()

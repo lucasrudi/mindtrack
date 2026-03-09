@@ -13,7 +13,7 @@ function handleSignIn() {
   if (auth.isAuthenticated) {
     router.push('/dashboard')
   } else {
-    window.location.href = '/api/oauth2/authorization/google'
+    globalThis.location.href = '/api/oauth2/authorization/google'
   }
 }
 </script>

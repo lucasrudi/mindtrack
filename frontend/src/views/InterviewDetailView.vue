@@ -122,14 +122,14 @@ function goBack() {
     </article>
 
     <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="showDeleteConfirm = false">
-      <div class="modal" role="dialog" aria-labelledby="delete-title">
+      <dialog class="modal" open aria-labelledby="delete-title">
         <h3 id="delete-title">Delete interview?</h3>
         <p>This action cannot be undone. The interview record will be permanently removed.</p>
         <div class="modal-actions">
           <button class="btn btn-secondary" @click="showDeleteConfirm = false">Cancel</button>
           <button class="btn btn-danger" @click="confirmDelete">Delete</button>
         </div>
-      </div>
+      </dialog>
     </div>
   </div>
 </template>

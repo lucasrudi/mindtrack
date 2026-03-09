@@ -8,7 +8,7 @@ defineProps<{
 
 <template>
   <div class="feature-card">
-    <span class="feature-icon" role="img" :aria-label="title">{{ icon }}</span>
+    <figure class="feature-icon" :aria-label="title">{{ icon }}</figure>
     <h3 class="feature-title">{{ title }}</h3>
     <p class="feature-description">{{ description }}</p>
   </div>

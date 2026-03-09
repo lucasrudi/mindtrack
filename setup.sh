@@ -9,7 +9,7 @@ chmod +x .githooks/*
 echo ">> Git hooks configured."
 
 # Backend setup
-if [ -d "backend" ]; then
+if [[ -d "backend" ]]; then
     echo ">> Building backend..."
     cd backend
     mvn compile -q
@@ -18,7 +18,7 @@ if [ -d "backend" ]; then
 fi
 
 # Frontend setup
-if [ -d "frontend" ]; then
+if [[ -d "frontend" ]]; then
     echo ">> Installing frontend dependencies..."
     cd frontend
     npm ci
