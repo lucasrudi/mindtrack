@@ -2,6 +2,12 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
+resource "aws_kms_key" "rds" {
+  description             = "${var.name_prefix} RDS encryption key"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+}
+
 resource "aws_db_subnet_group" "main" {
   name       = "${var.name_prefix}-db-subnet-group"
   subnet_ids = data.aws_subnets.private.ids
@@ -63,6 +69,7 @@ resource "aws_rds_cluster" "main" {
   deletion_protection       = true
   backup_retention_period   = 30
   storage_encrypted         = true
+  kms_key_id                = aws_kms_key.rds.arn
 
   tags = {
     Name = "${var.name_prefix}-aurora"
@@ -75,7 +82,8 @@ resource "aws_rds_cluster_instance" "main" {
   engine             = aws_rds_cluster.main.engine
   engine_version     = aws_rds_cluster.main.engine_version
 
-  performance_insights_enabled = true
+  performance_insights_enabled    = true
+  performance_insights_kms_key_id = aws_kms_key.rds.arn
 
   tags = {
     Name = "${var.name_prefix}-aurora-instance"

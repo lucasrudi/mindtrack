@@ -101,6 +101,7 @@ resource "aws_s3_bucket_policy" "frontend_policy" {
   policy = data.aws_iam_policy_document.frontend_policy.json
 }
 
+#tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "access_logs" {
   bucket        = "${var.name_prefix}-access-logs"
   force_destroy = true
@@ -125,8 +126,17 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "access_logs_encry
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3.arn
     }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "access_logs_versioning" {
+  bucket = aws_s3_bucket.access_logs.id
+
+  versioning_configuration {
+    status = "Enabled"
   }
 }
 

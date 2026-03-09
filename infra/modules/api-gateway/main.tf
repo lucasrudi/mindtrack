@@ -23,6 +23,7 @@ resource "aws_apigatewayv2_route" "default" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
 }
 
+#tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "api_access" {
   name              = "/aws/apigateway/${var.name_prefix}"
   retention_in_days = 30

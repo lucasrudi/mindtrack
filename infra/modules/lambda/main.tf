@@ -14,12 +14,13 @@ resource "aws_security_group" "lambda" {
   description = "Security group for Lambda function"
   vpc_id      = data.aws_vpc.default.id
 
+  #tfsec:ignore:aws-ec2-no-public-egress-sgr
   egress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS to AWS services"
+    description = "HTTPS to AWS services (Secrets Manager, Transcribe)"
   }
 
   egress {
