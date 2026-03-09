@@ -20,7 +20,7 @@ const props = defineProps<{
 
 function formatType(type: string): string {
   return type
-    .replaceAll(/_/g, ' ')
+    .replaceAll('_', ' ')
     .toLowerCase()
     .replaceAll(/\b\w/g, (c) => c.toUpperCase())
 }

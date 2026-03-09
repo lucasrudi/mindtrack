@@ -389,7 +389,7 @@ const availableStatuses: GoalStatus[] = [
 
 .status-paused {
   background: #fffbeb;
-  color: #d97706;
+  color: #b45309;
 }
 
 .status-cancelled {

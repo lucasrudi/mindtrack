@@ -316,7 +316,7 @@ function validationLabel(status: GoalValidationStatus): string {
 
 .status-paused {
   background: #fffbeb;
-  color: #d97706;
+  color: #b45309;
 }
 
 .status-cancelled {
@@ -396,7 +396,7 @@ function validationLabel(status: GoalValidationStatus): string {
 
 .validation-chip--pending_validation {
   background: #f3f4f6;
-  color: #6b7280;
+  color: #4b5563;
 }
 
 .validation-chip--validated {
