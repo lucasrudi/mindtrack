@@ -51,7 +51,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_CONFIG_TOKEN }}
           GITHUB_OWNER: ${{ github.repository_owner }}
-          TF_VAR_actions_secrets: ${{ format('{{\"GH_CONFIG_TOKEN\":\"{0}\"}}', secrets.GH_CONFIG_TOKEN) }}
+          TF_VAR_actions_secrets: '{"GH_CONFIG_TOKEN":"${{ secrets.GH_CONFIG_TOKEN }}"}'
         run: |
           terraform plan \
             -var="repository_name=${{ github.event.repository.name }}" \
@@ -62,5 +62,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_CONFIG_TOKEN }}
           GITHUB_OWNER: ${{ github.repository_owner }}
-          TF_VAR_actions_secrets: ${{ format('{{\"GH_CONFIG_TOKEN\":\"{0}\"}}', secrets.GH_CONFIG_TOKEN) }}
+          TF_VAR_actions_secrets: '{"GH_CONFIG_TOKEN":"${{ secrets.GH_CONFIG_TOKEN }}"}'
         run: terraform apply tfplan
