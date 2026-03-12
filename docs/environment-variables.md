@@ -86,7 +86,7 @@ Page view and usage analytics with privacy guards (route patterns only, IP anony
 | `AWS_ROLE_ARN` | `arn:aws:iam::123456789012:role/mindtrack-prod-github-actions` | OIDC role for deploy workflow |
 | `FRONTEND_BUCKET` | `mindtrack-prod-frontend` | S3 bucket name for frontend deploy |
 | `CLOUDFRONT_DISTRIBUTION_ID` | `E1234ABCDE` | CloudFront distribution for cache invalidation |
-| `SENTRY_ORG` | `rudilucas` | Sentry organization slug for frontend release uploads |
+| `SENTRY_ORG` | `lucasrudi` | Sentry organization slug for frontend release uploads |
 | `SENTRY_PROJECT_FRONTEND` | `mindtrack-frontend` | Frontend Sentry project slug for source-map upload |
 | `VITE_SENTRY_DSN` | `https://abc123@o0.ingest.sentry.io/0` | Frontend Sentry DSN (injected at build time) |
 | `VITE_SENTRY_RELEASE` | `frontend-v1.2.3` | Frontend release identifier (derived in deploy workflow) |

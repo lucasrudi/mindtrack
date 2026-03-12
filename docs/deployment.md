@@ -170,8 +170,8 @@ The deploy workflow (`deploy.yml`) uses `role-to-assume: ${{ vars.AWS_ROLE_ARN }
 
 1. Go to [sentry.io](https://sentry.io/) and create or sign in to your organization.
 2. Create two projects:
-   - **Java/Spring Boot** — for the backend
-   - **JavaScript/Vue** — for the frontend
+   - **Java/Spring Boot** — backend project `mindtrack-backend`
+   - **JavaScript/Vue** — frontend project `mindtrack-frontend`
 3. Store the backend DSN in AWS Secrets Manager:
 
    ```bash
@@ -187,8 +187,8 @@ The deploy workflow (`deploy.yml`) uses `role-to-assume: ${{ vars.AWS_ROLE_ARN }
    JS bundle, so keep it as a variable; the upload token must be a secret:
 
    In **Settings** > **Secrets and variables** > **Actions** > **Variables**:
-   - `SENTRY_ORG` → your Sentry organization slug
-   - `SENTRY_PROJECT_FRONTEND` → your frontend Sentry project slug
+   - `SENTRY_ORG` → `lucasrudi`
+   - `SENTRY_PROJECT_FRONTEND` → `mindtrack-frontend`
    - `VITE_SENTRY_DSN` → `https://xyz789@o0.ingest.sentry.io/1` (frontend project DSN)
    - `VITE_SENTRY_TRACES_SAMPLE_RATE` → `0.1` (optional, defaults to 0.1)
 
@@ -249,7 +249,7 @@ Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
 | `AWS_ROLE_ARN` | `arn:aws:iam::123456789012:role/mindtrack-prod-github-actions` | OIDC role for deploy workflow |
 | `FRONTEND_BUCKET` | `mindtrack-prod-frontend` | S3 bucket for frontend deploy |
 | `CLOUDFRONT_DISTRIBUTION_ID` | `E1234ABCDE` | CloudFront invalidation |
-| `SENTRY_ORG` | `rudilucas` | Sentry organization slug for frontend uploads |
+| `SENTRY_ORG` | `lucasrudi` | Sentry organization slug for frontend uploads |
 | `SENTRY_PROJECT_FRONTEND` | `mindtrack-frontend` | Frontend Sentry project slug for source-map upload |
 | `VITE_SENTRY_DSN` | `https://xyz789@o0.ingest.sentry.io/1` | Frontend Sentry DSN (injected at build time) |
 | `VITE_SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Frontend Sentry tracing sample rate |
