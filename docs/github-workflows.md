@@ -274,13 +274,17 @@ Reuses the repository `GH_CONFIG_TOKEN` secret for GitHub provider auth and the 
 |------|------|---------|---------|
 | `ANTHROPIC_API_KEY` | Secret | `code-review.yml` | Claude API key for automated PR review |
 | `GH_CONFIG_TOKEN` | Secret | `renovate.yml`, `github-config-sync.yml` | GitHub PAT for Renovate and GitHub settings Terraform |
+| `SENTRY_AUTH_TOKEN` | Secret | `deploy.yml` | Frontend Sentry release/source-map upload |
 | `SNYK_TOKEN` | Secret | `feature.yml`, `verify.yml`, `snyk-monitor.yml` | Snyk authentication token |
 | `SONAR_TOKEN` | Secret | `feature.yml`, `verify.yml` | SonarCloud analysis token |
 | `GITHUB_TOKEN` | Built-in | Most workflows | GitHub-provided token (auto-injected) |
 | `AWS_ROLE_ARN` | Variable | `deploy.yml`, `github-config-sync.yml` | IAM role for OIDC-based AWS workflows |
 | `FRONTEND_BUCKET` | Variable | `deploy.yml` | S3 bucket name for frontend assets |
 | `CLOUDFRONT_DISTRIBUTION_ID` | Variable | `deploy.yml` | CloudFront distribution for cache invalidation |
+| `SENTRY_ORG` | Variable | `deploy.yml` | Sentry organization slug for frontend uploads |
+| `SENTRY_PROJECT_FRONTEND` | Variable | `deploy.yml` | Frontend Sentry project slug |
 | `VITE_SENTRY_DSN` | Variable | `feature.yml`, `deploy.yml` | Sentry DSN injected at frontend build time |
+| `VITE_SENTRY_RELEASE` | Derived | `deploy.yml` | Frontend release identifier from the GitHub release tag |
 | `VITE_SENTRY_TRACES_SAMPLE_RATE` | Variable | `feature.yml`, `deploy.yml` | Sentry traces sample rate |
 | `VITE_APP_ENV` | Variable | `feature.yml` | App environment tag for frontend build |
 | `VITE_GA_MEASUREMENT_ID` | Variable | `feature.yml`, `deploy.yml` | Google Analytics 4 measurement ID |

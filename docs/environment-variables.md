@@ -46,8 +46,18 @@ Error tracking and performance monitoring. SDKs activate only when the DSN is se
 | Variable | Description | Default | Storage |
 |----------|-------------|---------|---------|
 | `VITE_SENTRY_DSN` | Frontend Sentry project DSN | `""` (disabled) | GitHub Actions Variable (`vars.*`) |
+| `VITE_SENTRY_RELEASE` | Frontend release identifier attached to Sentry events | `""` | Derived in GitHub Actions from the release tag |
 | `VITE_SENTRY_TRACES_SAMPLE_RATE` | Performance tracing sample rate (0–1) | `0.1` | GitHub Actions Variable |
 | `VITE_APP_ENV` | Environment label shown in Sentry | `local` | Hardcoded `production` in `deploy.yml` |
+
+### Frontend Sentry Build Upload (CI only)
+
+| Variable | Description | Default | Storage |
+|----------|-------------|---------|---------|
+| `SENTRY_AUTH_TOKEN` | Sentry auth token used to create releases and upload sourcemaps | unset | GitHub Actions Secret |
+| `SENTRY_ORG` | Sentry organization slug | unset | GitHub Actions Variable |
+| `SENTRY_PROJECT_FRONTEND` | Frontend Sentry project slug | unset | GitHub Actions Variable |
+| `SENTRY_RELEASE` | Build-time release name used by the Sentry Vite plugin | unset | Derived in GitHub Actions from the release tag |
 
 ## Google Analytics 4 (optional)
 
@@ -66,6 +76,7 @@ Page view and usage analytics with privacy guards (route patterns only, IP anony
 | `SONAR_TOKEN` | SonarCloud analysis token | SonarCloud > My Account > Security |
 | `SNYK_TOKEN` | Snyk vulnerability scanning token | Snyk > Account settings |
 | `ANTHROPIC_API_KEY` | Claude code-review in CI | Anthropic Console > API Keys |
+| `SENTRY_AUTH_TOKEN` | Sentry auth token for frontend release/source-map upload | Sentry > Settings > Auth Tokens |
 | `RENOVATE_TOKEN` | GitHub PAT for Renovate | GitHub Settings > Developer settings > PAT (classic), `repo` scope |
 
 ## CI/CD — GitHub Actions Variables
@@ -75,6 +86,9 @@ Page view and usage analytics with privacy guards (route patterns only, IP anony
 | `AWS_ROLE_ARN` | `arn:aws:iam::123456789012:role/mindtrack-prod-github-actions` | OIDC role for deploy workflow |
 | `FRONTEND_BUCKET` | `mindtrack-prod-frontend` | S3 bucket name for frontend deploy |
 | `CLOUDFRONT_DISTRIBUTION_ID` | `E1234ABCDE` | CloudFront distribution for cache invalidation |
+| `SENTRY_ORG` | `rudilucas` | Sentry organization slug for frontend release uploads |
+| `SENTRY_PROJECT_FRONTEND` | `mindtrack-frontend` | Frontend Sentry project slug for source-map upload |
 | `VITE_SENTRY_DSN` | `https://abc123@o0.ingest.sentry.io/0` | Frontend Sentry DSN (injected at build time) |
+| `VITE_SENTRY_RELEASE` | `frontend-v1.2.3` | Frontend release identifier (derived in deploy workflow) |
 | `VITE_SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Frontend Sentry tracing rate |
 | `VITE_GA_MEASUREMENT_ID` | `G-XXXXXXXXXX` | GA4 Measurement ID (injected at build time) |

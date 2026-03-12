@@ -56,6 +56,32 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
 
+      - name: Configure backend Sentry environment
+        env:
+          LAMBDA_FUNCTION_NAME: mindtrack-prod-api
+          SENTRY_SECRET_ID: mindtrack-prod/sentry_dsn
+        run: |
+          CURRENT_ENV_JSON=$(aws lambda get-function-configuration \
+            --function-name "$LAMBDA_FUNCTION_NAME" \
+            --query 'Environment.Variables' \
+            --output json)
+          SENTRY_DSN=$(aws secretsmanager get-secret-value \
+            --secret-id "$SENTRY_SECRET_ID" \
+            --query 'SecretString' \
+            --output text)
+          MERGED_ENV_JSON=$(CURRENT_ENV_JSON="$CURRENT_ENV_JSON" SENTRY_DSN="$SENTRY_DSN" python3 - <<'PY'
+          import json
+          import os
+
+          env = json.loads(os.environ["CURRENT_ENV_JSON"] or "{}")
+          env["SENTRY_DSN"] = os.environ["SENTRY_DSN"]
+          print(json.dumps(env, separators=(",", ":")))
+          PY
+          )
+          aws lambda update-function-configuration \
+            --function-name "$LAMBDA_FUNCTION_NAME" \
+            --environment "Variables=$MERGED_ENV_JSON"
+
       - name: Deploy to Lambda
         run: |
           aws lambda update-function-code \
@@ -88,7 +114,12 @@ jobs:
       - name: Build
         working-directory: frontend
         env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT_FRONTEND }}
+          SENTRY_RELEASE: ${{ github.event.release.tag_name }}
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+          VITE_SENTRY_RELEASE: ${{ github.event.release.tag_name }}
           VITE_SENTRY_TRACES_SAMPLE_RATE: ${{ vars.VITE_SENTRY_TRACES_SAMPLE_RATE }}
           VITE_APP_ENV: production
           VITE_GA_MEASUREMENT_ID: ${{ vars.VITE_GA_MEASUREMENT_ID }}

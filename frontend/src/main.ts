@@ -14,12 +14,14 @@ app.use(createPinia())
 app.use(router)
 
 const sentryDsn = import.meta.env.VITE_SENTRY_DSN
+const sentryRelease = import.meta.env.VITE_SENTRY_RELEASE
 
 if (sentryDsn) {
   Sentry.init({
     app,
     dsn: sentryDsn,
     environment: import.meta.env.VITE_APP_ENV ?? 'local',
+    release: sentryRelease || undefined,
     integrations: [Sentry.browserTracingIntegration({ router })],
     tracesSampleRate: Number(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE ?? '0.1'),
     sendDefaultPii: false,
