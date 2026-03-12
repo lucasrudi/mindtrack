@@ -17,8 +17,9 @@ resource "aws_cloudwatch_log_group" "lambda" {
 # =============================================================================
 
 resource "aws_sns_topic" "alarms" {
-  count = var.alarm_email != "" ? 1 : 0
-  name  = "${var.name_prefix}-alarms"
+  count             = var.alarm_email != "" ? 1 : 0
+  name              = "${var.name_prefix}-alarms"
+  kms_master_key_id = "alias/aws/sns"
 
   tags = {
     Name = "${var.name_prefix}-alarms"

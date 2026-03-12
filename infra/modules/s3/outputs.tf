@@ -26,4 +26,6 @@ output "frontend_bucket_id" {
 output "access_logs_bucket_domain" {
   description = "Domain name of the access logs S3 bucket"
   value       = aws_s3_bucket.access_logs.bucket_domain_name
+
+  depends_on = [aws_s3_bucket_acl.access_logs]
 }
