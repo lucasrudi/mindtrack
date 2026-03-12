@@ -210,8 +210,7 @@ GitHub Actions secrets and variables are managed via Terraform (see `infra/modul
 terraform -chdir=infra/github-settings apply \
   -var='repository_name=<your-repo-name>' \
   -var='actions_secrets={
-    "AWS_ACCESS_KEY_ID":"<key>",
-    "AWS_SECRET_ACCESS_KEY":"<secret>",
+    "GH_CONFIG_TOKEN":"<github-pat>",
     "SONAR_TOKEN":"<sonar-token>",
     "SNYK_TOKEN":"<snyk-token>",
     "ANTHROPIC_API_KEY":"<anthropic-key>"
