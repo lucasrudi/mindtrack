@@ -9,6 +9,21 @@ resource "aws_s3_bucket" "audio" {
   bucket = "${var.name_prefix}-audio"
 }
 
+resource "aws_s3_bucket_ownership_controls" "audio" {
+  bucket = aws_s3_bucket.audio.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "audio" {
+  depends_on = [aws_s3_bucket_ownership_controls.audio]
+
+  bucket = aws_s3_bucket.audio.id
+  acl    = "private"
+}
+
 data "aws_iam_policy_document" "audio_policy" {
   statement {
     sid    = "DenyInsecureTransport"
@@ -42,11 +57,15 @@ resource "aws_s3_bucket_lifecycle_configuration" "audio_lifecycle" {
   bucket = aws_s3_bucket.audio.id
 
   rule {
-    id     = "expire-audio-7-days"
+    id     = "retain-audio-14-days"
     status = "Enabled"
 
     expiration {
-      days = 7
+      days = 14
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 14
     }
   }
 }
@@ -82,6 +101,38 @@ resource "aws_s3_bucket_public_access_block" "audio_block" {
 # Frontend bucket for static hosting
 resource "aws_s3_bucket" "frontend" {
   bucket = "${var.name_prefix}-frontend"
+}
+
+resource "aws_s3_bucket_ownership_controls" "frontend" {
+  bucket = aws_s3_bucket.frontend.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "frontend" {
+  depends_on = [aws_s3_bucket_ownership_controls.frontend]
+
+  bucket = aws_s3_bucket.frontend.id
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "frontend_lifecycle" {
+  bucket = aws_s3_bucket.frontend.id
+
+  rule {
+    id     = "retain-noncurrent-frontend-14-days"
+    status = "Enabled"
+
+    noncurrent_version_expiration {
+      noncurrent_days = 14
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 14
+    }
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "frontend_block" {
@@ -206,6 +257,23 @@ resource "aws_s3_bucket_acl" "access_logs" {
 
   bucket = aws_s3_bucket.access_logs.id
   acl    = "log-delivery-write"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "access_logs_lifecycle" {
+  bucket = aws_s3_bucket.access_logs.id
+
+  rule {
+    id     = "retain-access-logs-14-days"
+    status = "Enabled"
+
+    expiration {
+      days = 14
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 14
+    }
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "access_logs_block" {

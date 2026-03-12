@@ -133,9 +133,30 @@ Validates the PR head branch against the pattern `^(feature|bugfix|chore|docs|te
 
 Uses `anthropics/claude-code-action@v1` with a custom prompt that checks correctness, security (OWASP Top 10), code conventions, test coverage, and performance. Review is posted as a single PR comment grouped by severity (Critical → High → Medium → Low).
 
+Important behavior: the Claude Code Review action validates that [code-review.yml](/Users/lucasrudi/dev/claude-first-test/.github/workflows/code-review.yml) is identical to the version on the default branch before it exchanges its OIDC token for an app token. A PR that changes `code-review.yml` can therefore fail the `Code Review` check with `Workflow validation failed` even when the workflow syntax itself is valid.
+
 | Job | Steps |
 |-----|-------|
 | `review` | Checkout (full history) → Run Claude Code Review action |
+
+#### Troubleshooting
+
+If the `Code Review` check fails with a log message like `Workflow validation failed. The workflow file must exist and have identical content to the version on the repository's default branch`, use this checklist:
+
+1. Check whether the PR modifies [code-review.yml](/Users/lucasrudi/dev/claude-first-test/.github/workflows/code-review.yml).
+2. If it does, assume the failure is due to workflow self-validation rather than a problem in the PR code being reviewed.
+3. Confirm the failure happens during app-token exchange, before the action starts the actual review.
+4. Ignore the `Unexpected input(s) 'direct_prompt'` warning for this specific failure path; it is noisy but not the blocking error here.
+
+#### Runbook
+
+When a PR needs both product changes and a `code-review.yml` update, use this sequence:
+
+1. Revert the `code-review.yml` change from the product PR so the workflow matches `main`.
+2. Merge the product PR once the required checks pass.
+3. Open a dedicated follow-up PR that changes only [code-review.yml](/Users/lucasrudi/dev/claude-first-test/.github/workflows/code-review.yml).
+4. Expect that follow-up PR to need temporary handling because the `Code Review` workflow cannot validate itself until the new version exists on `main`.
+5. After the workflow-only PR merges, future PRs can rely on the updated workflow version.
 
 ---
 
