@@ -260,11 +260,11 @@ Uses the `advanced-security/maven-dependency-submission-action` to populate the 
 **Trigger:** Push to `main` on `infra/github-settings/**` or `infra/modules/github/**`; daily at `06:00 UTC`; manual
 **Purpose:** Apply Terraform to keep GitHub repository settings (branch protection, required checks, labels) in sync with code.
 
-Fetches a GitHub PAT from AWS Secrets Manager (`mindtrack/github-config-token`) rather than using a stored secret directly. Runs Terraform plan + apply against the `infra/github-settings/` root module.
+Reuses the repository `GH_CONFIG_TOKEN` secret for GitHub provider auth and the `AWS_ROLE_ARN` Actions variable for OIDC access to the Terraform backend. Runs Terraform plan + apply against the `infra/github-settings/` root module.
 
 | Job | Steps |
 |-----|-------|
-| `sync` | AWS credentials → Terraform setup → Fetch token from Secrets Manager → Terraform init/plan/apply |
+| `sync` | AWS OIDC auth → Terraform setup → Terraform init/plan/apply |
 
 ---
 
@@ -273,13 +273,11 @@ Fetches a GitHub PAT from AWS Secrets Manager (`mindtrack/github-config-token`) 
 | Name | Type | Used by | Purpose |
 |------|------|---------|---------|
 | `ANTHROPIC_API_KEY` | Secret | `code-review.yml` | Claude API key for automated PR review |
-| `AWS_ACCESS_KEY_ID` | Secret | `github-config-sync.yml` | AWS credentials for Secrets Manager access |
-| `AWS_SECRET_ACCESS_KEY` | Secret | `github-config-sync.yml` | AWS credentials for Secrets Manager access |
+| `GH_CONFIG_TOKEN` | Secret | `renovate.yml`, `github-config-sync.yml` | GitHub PAT for Renovate and GitHub settings Terraform |
 | `SNYK_TOKEN` | Secret | `feature.yml`, `verify.yml`, `snyk-monitor.yml` | Snyk authentication token |
 | `SONAR_TOKEN` | Secret | `feature.yml`, `verify.yml` | SonarCloud analysis token |
-| `GH_CONFIG_TOKEN` | Secret | `renovate.yml` | GitHub PAT for Renovate to create branches/PRs |
 | `GITHUB_TOKEN` | Built-in | Most workflows | GitHub-provided token (auto-injected) |
-| `AWS_ROLE_ARN` | Variable | `deploy.yml` | IAM role for OIDC-based AWS deployments |
+| `AWS_ROLE_ARN` | Variable | `deploy.yml`, `github-config-sync.yml` | IAM role for OIDC-based AWS workflows |
 | `FRONTEND_BUCKET` | Variable | `deploy.yml` | S3 bucket name for frontend assets |
 | `CLOUDFRONT_DISTRIBUTION_ID` | Variable | `deploy.yml` | CloudFront distribution for cache invalidation |
 | `VITE_SENTRY_DSN` | Variable | `feature.yml`, `deploy.yml` | Sentry DSN injected at frontend build time |

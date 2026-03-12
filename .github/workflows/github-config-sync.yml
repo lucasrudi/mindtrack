@@ -27,22 +27,13 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
-          role-to-assume: ${{ secrets.GITHUB_CONFIG_SYNC_ROLE_ARN }}
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
         with:
           terraform_version: '1.7.0'
-
-      - name: Fetch GitHub token from Secrets Manager
-        id: gh-token
-        run: |
-          TOKEN=$(aws secretsmanager get-secret-value \
-            --secret-id mindtrack/github-config-token \
-            --query SecretString --output text)
-          echo "::add-mask::${TOKEN}"
-          echo "value=${TOKEN}" >> $GITHUB_OUTPUT
 
       - name: Clean Terraform cache
         working-directory: infra/github-settings
@@ -51,15 +42,16 @@ jobs:
       - name: Terraform Init
         working-directory: infra/github-settings
         env:
-          GITHUB_TOKEN: ${{ steps.gh-token.outputs.value }}
+          GITHUB_TOKEN: ${{ secrets.GH_CONFIG_TOKEN }}
           GITHUB_OWNER: ${{ github.repository_owner }}
         run: terraform init
 
       - name: Terraform Plan
         working-directory: infra/github-settings
         env:
-          GITHUB_TOKEN: ${{ steps.gh-token.outputs.value }}
+          GITHUB_TOKEN: ${{ secrets.GH_CONFIG_TOKEN }}
           GITHUB_OWNER: ${{ github.repository_owner }}
+          TF_VAR_actions_secrets: ${{ format('{{\"GH_CONFIG_TOKEN\":\"{0}\"}}', secrets.GH_CONFIG_TOKEN) }}
         run: |
           terraform plan \
             -var="repository_name=${{ github.event.repository.name }}" \
@@ -68,6 +60,7 @@ jobs:
       - name: Terraform Apply
         working-directory: infra/github-settings
         env:
-          GITHUB_TOKEN: ${{ steps.gh-token.outputs.value }}
+          GITHUB_TOKEN: ${{ secrets.GH_CONFIG_TOKEN }}
           GITHUB_OWNER: ${{ github.repository_owner }}
+          TF_VAR_actions_secrets: ${{ format('{{\"GH_CONFIG_TOKEN\":\"{0}\"}}', secrets.GH_CONFIG_TOKEN) }}
         run: terraform apply tfplan
