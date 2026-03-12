@@ -209,20 +209,16 @@ The deploy workflow (`deploy.yml`) uses `role-to-assume: ${{ vars.AWS_ROLE_ARN }
 
 ### GitHub Repository Secrets
 
-GitHub Actions secrets and variables are managed via Terraform (see `infra/modules/github/`). Pass them when applying:
+GitHub Actions secrets and variables can be managed via Terraform (see `infra/modules/github/`). Only include entries you want Terraform to own, and keep that set aligned with [github-config-sync.yml](/Users/lucasrudi/dev/claude-first-test/.github/workflows/github-config-sync.yml). The current managed set is the GitHub config PAT, the frontend Sentry upload token, and the frontend Sentry variables:
 
 ```bash
 terraform -chdir=infra/github-settings apply \
   -var='repository_name=<your-repo-name>' \
   -var='actions_secrets={
     "GH_CONFIG_TOKEN":"<github-pat>",
-    "SONAR_TOKEN":"<sonar-token>",
-    "SNYK_TOKEN":"<snyk-token>",
-    "ANTHROPIC_API_KEY":"<anthropic-key>",
     "SENTRY_AUTH_TOKEN":"<sentry-auth-token>"
   }' \
   -var='actions_variables={
-    "AWS_ROLE_ARN":"<aws-role-arn>",
     "SENTRY_ORG":"<sentry-org-slug>",
     "SENTRY_PROJECT_FRONTEND":"<frontend-project-slug>",
     "VITE_SENTRY_DSN":"<frontend-dsn>",
@@ -230,17 +226,21 @@ terraform -chdir=infra/github-settings apply \
   }'
 ```
 
+Keep [github-config-sync.yml](/Users/lucasrudi/dev/claude-first-test/.github/workflows/github-config-sync.yml) aligned with the secrets and variables you manage here. The scheduled/manual GitHub Config Sync workflow can only preserve the secret and variable names it passes into `TF_VAR_actions_secrets` and `TF_VAR_actions_variables`.
+
 Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
 
 **Secrets:**
 
 | Secret | Source | Purpose |
 |--------|--------|---------|
+| `GH_CONFIG_TOKEN` | GitHub PAT; prefer a classic PAT with `repo` scope | Renovate and GitHub settings Terraform (`github-config-sync.yml`) |
 | `SONAR_TOKEN` | [SonarCloud](https://sonarcloud.io/) > My Account > Security | Code quality analysis |
 | `SNYK_TOKEN` | [Snyk](https://app.snyk.io/) > Account settings | Vulnerability scanning |
 | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/) > API Keys | Claude code-review in CI |
 | `SENTRY_AUTH_TOKEN` | [Sentry](https://sentry.io/settings/auth-tokens/) | Frontend release/source-map upload during deploy |
-| `RENOVATE_TOKEN` | GitHub PAT (classic) with `repo` scope | Renovate dependency updates |
+
+`SONAR_TOKEN`, `SNYK_TOKEN`, and `ANTHROPIC_API_KEY` are currently configured manually in GitHub Actions. If you later move them under Terraform management, add them to both the local/apply secret map and [github-config-sync.yml](/Users/lucasrudi/dev/claude-first-test/.github/workflows/github-config-sync.yml) in the same change.
 
 **Variables:**
 
@@ -255,6 +255,16 @@ Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
 | `VITE_SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Frontend Sentry tracing sample rate |
 | `VITE_APP_ENV` | `production` | Environment label in Sentry (hardcoded in deploy.yml) |
 | `VITE_GA_MEASUREMENT_ID` | `G-XXXXXXXXXX` | GA4 Measurement ID (injected at build time) |
+
+### GitHub Config Sync Recovery
+
+If a temporary manual branch-protection change or an under-scoped `GH_CONFIG_TOKEN` breaks `GitHub Config Sync`, recover with this sequence:
+
+1. Refresh `GH_CONFIG_TOKEN` with a PAT that can access repository Actions variables. A classic PAT with `repo` scope is the lowest-friction option.
+2. Confirm which GitHub Actions secrets and variables are currently managed in `infra/github-settings` state before applying locally.
+3. Run a local `terraform plan` / `terraform apply` in `infra/github-settings` using a working `GITHUB_TOKEN` plus the full current `actions_secrets` and `actions_variables` maps.
+4. Check `main` branch protection again after apply so the required checks and approval count are restored.
+5. Trigger `.github/workflows/github-config-sync.yml` manually to verify CI can now manage the repo without local recovery.
 
 > See [Environment Variables](environment-variables.md) for the complete reference of all application and CI environment variables.
 
