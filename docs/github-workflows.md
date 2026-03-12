@@ -283,9 +283,32 @@ Uses the `advanced-security/maven-dependency-submission-action` to populate the 
 
 Reuses the repository `GH_CONFIG_TOKEN` secret for GitHub provider auth and the `AWS_ROLE_ARN` Actions variable for OIDC access to the Terraform backend. Runs Terraform plan + apply against the `infra/github-settings/` root module.
 
+Important behavior: the workflow passes the currently Terraform-managed GitHub Actions secrets and variables into `TF_VAR_actions_secrets` and `TF_VAR_actions_variables` before planning. When you add a new Terraform-managed Actions secret or variable, update [github-config-sync.yml](/Users/lucasrudi/dev/claude-first-test/.github/workflows/github-config-sync.yml) in the same PR so the scheduled/manual sync job keeps the full input map and does not plan accidental destroys.
+
+`GH_CONFIG_TOKEN` must be able to read and write repository Actions variables in addition to the branch-protection and repository settings Terraform already manages. The simplest supported setup is a classic PAT with `repo` scope. If you use a fine-grained PAT instead, verify it can successfully call the repository Actions variables API before storing it as `GH_CONFIG_TOKEN`.
+
 | Job | Steps |
 |-----|-------|
-| `sync` | AWS OIDC auth → Terraform setup → Terraform init/plan/apply |
+| `sync` | AWS OIDC auth → Terraform setup → validate `GH_CONFIG_TOKEN` against the Actions variables API → Terraform init/plan/apply |
+
+#### Troubleshooting
+
+If `GitHub Config Sync` fails during `terraform plan` with `403 Resource not accessible by personal access token`, use this checklist:
+
+1. Confirm the failing API path is under `/repos/{owner}/{repo}/actions/variables/...`; that points to an under-scoped `GH_CONFIG_TOKEN`, not broken Terraform state.
+2. Check whether the workflow input maps in [github-config-sync.yml](/Users/lucasrudi/dev/claude-first-test/.github/workflows/github-config-sync.yml) still include every secret and variable currently managed in `infra/github-settings` state.
+3. Verify `main` branch protection has not been left in a temporary manual state after a workflow bootstrap bypass.
+4. Refresh the `GH_CONFIG_TOKEN` secret with a token that can access repository Actions variables, then rerun the workflow.
+
+#### Recovery Runbook
+
+Use this runbook after a temporary branch-protection bypass or a broken `GH_CONFIG_TOKEN` leaves GitHub Config Sync unable to heal the repo automatically:
+
+1. Check the current live protection settings with `gh api repos/<owner>/<repo>/branches/main/protection/required_status_checks` and `gh api repos/<owner>/<repo>/branches/main/protection/required_pull_request_reviews`.
+2. If `GH_CONFIG_TOKEN` is under-scoped, replace the repository secret with a working PAT and update the AWS backup copy if you use that for manual recovery.
+3. Run a local `terraform plan` / `terraform apply` in `infra/github-settings` with a working `GITHUB_TOKEN` plus the full currently managed `actions_secrets` and `actions_variables` maps.
+4. Update [github-config-sync.yml](/Users/lucasrudi/dev/claude-first-test/.github/workflows/github-config-sync.yml) if the managed secret or variable set changed.
+5. Trigger `GitHub Config Sync` manually after the repair to confirm CI can manage the repo again without local intervention.
 
 ---
 
