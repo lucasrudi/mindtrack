@@ -172,23 +172,28 @@ The deploy workflow (`deploy.yml`) uses `role-to-assume: ${{ vars.AWS_ROLE_ARN }
 2. Create two projects:
    - **Java/Spring Boot** — for the backend
    - **JavaScript/Vue** — for the frontend
-3. Store the backend DSN in AWS Secrets Manager and expose it as a Lambda environment variable:
+3. Store the backend DSN in AWS Secrets Manager:
 
    ```bash
    aws secretsmanager put-secret-value \
      --secret-id mindtrack-prod/sentry_dsn \
      --secret-string "https://abc123@o0.ingest.sentry.io/0"
-
-   aws lambda update-function-configuration \
-     --function-name mindtrack-prod-api \
-     --environment "Variables={SENTRY_DSN=https://abc123@o0.ingest.sentry.io/0}"
    ```
 
-4. Set the frontend DSN as a GitHub Actions Variable (it is embedded in the JS bundle — do not use secrets):
+   The backend release workflow reads this secret and merges `SENTRY_DSN` into
+   the production Lambda environment automatically during deploy.
+
+4. Set the frontend Sentry values in GitHub Actions. The DSN is embedded in the
+   JS bundle, so keep it as a variable; the upload token must be a secret:
 
    In **Settings** > **Secrets and variables** > **Actions** > **Variables**:
+   - `SENTRY_ORG` → your Sentry organization slug
+   - `SENTRY_PROJECT_FRONTEND` → your frontend Sentry project slug
    - `VITE_SENTRY_DSN` → `https://xyz789@o0.ingest.sentry.io/1` (frontend project DSN)
    - `VITE_SENTRY_TRACES_SAMPLE_RATE` → `0.1` (optional, defaults to 0.1)
+
+   In **Settings** > **Secrets and variables** > **Actions** > **Secrets**:
+   - `SENTRY_AUTH_TOKEN` → Sentry auth token with release/source-map upload access
 
 ### Google Analytics 4
 
@@ -213,7 +218,15 @@ terraform -chdir=infra/github-settings apply \
     "GH_CONFIG_TOKEN":"<github-pat>",
     "SONAR_TOKEN":"<sonar-token>",
     "SNYK_TOKEN":"<snyk-token>",
-    "ANTHROPIC_API_KEY":"<anthropic-key>"
+    "ANTHROPIC_API_KEY":"<anthropic-key>",
+    "SENTRY_AUTH_TOKEN":"<sentry-auth-token>"
+  }' \
+  -var='actions_variables={
+    "AWS_ROLE_ARN":"<aws-role-arn>",
+    "SENTRY_ORG":"<sentry-org-slug>",
+    "SENTRY_PROJECT_FRONTEND":"<frontend-project-slug>",
+    "VITE_SENTRY_DSN":"<frontend-dsn>",
+    "VITE_SENTRY_TRACES_SAMPLE_RATE":"0.1"
   }'
 ```
 
@@ -226,6 +239,7 @@ Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
 | `SONAR_TOKEN` | [SonarCloud](https://sonarcloud.io/) > My Account > Security | Code quality analysis |
 | `SNYK_TOKEN` | [Snyk](https://app.snyk.io/) > Account settings | Vulnerability scanning |
 | `ANTHROPIC_API_KEY` | [Anthropic Console](https://console.anthropic.com/) > API Keys | Claude code-review in CI |
+| `SENTRY_AUTH_TOKEN` | [Sentry](https://sentry.io/settings/auth-tokens/) | Frontend release/source-map upload during deploy |
 | `RENOVATE_TOKEN` | GitHub PAT (classic) with `repo` scope | Renovate dependency updates |
 
 **Variables:**
@@ -235,6 +249,8 @@ Or configure manually in **Settings** > **Secrets and variables** > **Actions**:
 | `AWS_ROLE_ARN` | `arn:aws:iam::123456789012:role/mindtrack-prod-github-actions` | OIDC role for deploy workflow |
 | `FRONTEND_BUCKET` | `mindtrack-prod-frontend` | S3 bucket for frontend deploy |
 | `CLOUDFRONT_DISTRIBUTION_ID` | `E1234ABCDE` | CloudFront invalidation |
+| `SENTRY_ORG` | `rudilucas` | Sentry organization slug for frontend uploads |
+| `SENTRY_PROJECT_FRONTEND` | `mindtrack-frontend` | Frontend Sentry project slug for source-map upload |
 | `VITE_SENTRY_DSN` | `https://xyz789@o0.ingest.sentry.io/1` | Frontend Sentry DSN (injected at build time) |
 | `VITE_SENTRY_TRACES_SAMPLE_RATE` | `0.1` | Frontend Sentry tracing sample rate |
 | `VITE_APP_ENV` | `production` | Environment label in Sentry (hardcoded in deploy.yml) |

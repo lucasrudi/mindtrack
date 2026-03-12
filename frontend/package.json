@@ -29,6 +29,7 @@
     }
   },
   "devDependencies": {
+    "@sentry/vite-plugin": "^5.1.1",
     "@types/node": "^22.19.15",
     "@vitejs/plugin-vue": "^5.0.0",
     "@vitest/coverage-v8": "^4.0.18",
