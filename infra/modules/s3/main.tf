@@ -9,6 +9,35 @@ resource "aws_s3_bucket" "audio" {
   bucket = "${var.name_prefix}-audio"
 }
 
+data "aws_iam_policy_document" "audio_policy" {
+  statement {
+    sid    = "DenyInsecureTransport"
+    effect = "Deny"
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    actions = ["s3:*"]
+    resources = [
+      aws_s3_bucket.audio.arn,
+      "${aws_s3_bucket.audio.arn}/*",
+    ]
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "audio_policy" {
+  bucket = aws_s3_bucket.audio.id
+  policy = data.aws_iam_policy_document.audio_policy.json
+}
+
 resource "aws_s3_bucket_lifecycle_configuration" "audio_lifecycle" {
   bucket = aws_s3_bucket.audio.id
 
@@ -85,6 +114,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "frontend_encrypti
 
 data "aws_iam_policy_document" "frontend_policy" {
   statement {
+    sid       = "AllowCloudFrontRead"
     effect    = "Allow"
     actions   = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.frontend.arn}/*"]
@@ -92,6 +122,28 @@ data "aws_iam_policy_document" "frontend_policy" {
     principals {
       type        = "AWS"
       identifiers = [var.cloudfront_oai_iam_arn]
+    }
+  }
+
+  statement {
+    sid    = "DenyInsecureTransport"
+    effect = "Deny"
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    actions = ["s3:*"]
+    resources = [
+      aws_s3_bucket.frontend.arn,
+      "${aws_s3_bucket.frontend.arn}/*",
+    ]
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
     }
   }
 }
@@ -110,6 +162,50 @@ resource "aws_s3_bucket" "access_logs" {
     Environment = var.environment
     Purpose     = "access-logs"
   }
+}
+
+data "aws_iam_policy_document" "access_logs_policy" {
+  statement {
+    sid    = "DenyInsecureTransport"
+    effect = "Deny"
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    actions = ["s3:*"]
+    resources = [
+      aws_s3_bucket.access_logs.arn,
+      "${aws_s3_bucket.access_logs.arn}/*",
+    ]
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "access_logs_policy" {
+  bucket = aws_s3_bucket.access_logs.id
+  policy = data.aws_iam_policy_document.access_logs_policy.json
+}
+
+resource "aws_s3_bucket_ownership_controls" "access_logs" {
+  bucket = aws_s3_bucket.access_logs.id
+
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "access_logs" {
+  depends_on = [aws_s3_bucket_ownership_controls.access_logs]
+
+  bucket = aws_s3_bucket.access_logs.id
+  acl    = "log-delivery-write"
 }
 
 resource "aws_s3_bucket_public_access_block" "access_logs_block" {
@@ -141,12 +237,16 @@ resource "aws_s3_bucket_versioning" "access_logs_versioning" {
 }
 
 resource "aws_s3_bucket_logging" "audio_logging" {
+  depends_on = [aws_s3_bucket_acl.access_logs]
+
   bucket        = aws_s3_bucket.audio.id
   target_bucket = aws_s3_bucket.access_logs.id
   target_prefix = "audio/"
 }
 
 resource "aws_s3_bucket_logging" "frontend_logging" {
+  depends_on = [aws_s3_bucket_acl.access_logs]
+
   bucket        = aws_s3_bucket.frontend.id
   target_bucket = aws_s3_bucket.access_logs.id
   target_prefix = "frontend/"

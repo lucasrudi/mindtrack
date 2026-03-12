@@ -1,3 +1,4 @@
+# Public by design: browser clients and third-party messaging webhooks call this HTTP API directly.
 resource "aws_apigatewayv2_api" "main" {
   name          = "${var.name_prefix}-api"
   protocol_type = "HTTP"
