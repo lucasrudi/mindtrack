@@ -6,6 +6,8 @@ import com.mindtrack.ai.dto.ConversationDto;
 import com.mindtrack.ai.service.ConversationService;
 import com.mindtrack.audit.model.AuditAction;
 import com.mindtrack.audit.service.AuditService;
+import com.mindtrack.profile.model.UserProfile;
+import com.mindtrack.profile.service.ProfileService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -18,10 +20,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * REST controller for AI chat operations.
- * Endpoints: POST /api/ai/chat, GET /api/ai/conversations, GET /api/ai/conversations/{id}
+ * Endpoints: POST /api/ai/chat, GET /api/ai/conversations, GET /api/ai/conversations/{id},
+ * POST /api/ai/consent
  */
 @RestController
 @RequestMapping("/api/ai")
@@ -29,20 +33,37 @@ public class ChatController {
 
     private final ConversationService conversationService;
     private final AuditService auditService;
+    private final ProfileService profileService;
 
     /**
      * Creates the chat controller.
      *
      * @param conversationService the conversation service
      * @param auditService        the audit service
+     * @param profileService      the profile service
      */
-    public ChatController(ConversationService conversationService, AuditService auditService) {
+    public ChatController(ConversationService conversationService, AuditService auditService,
+            ProfileService profileService) {
         this.conversationService = conversationService;
         this.auditService = auditService;
+        this.profileService = profileService;
+    }
+
+    /**
+     * Records the user's explicit consent to share PHI with the Claude API.
+     *
+     * @return 204 No Content on success
+     */
+    @PostMapping("/consent")
+    public ResponseEntity<Void> giveConsent(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        profileService.giveAiConsent(userId);
+        return ResponseEntity.noContent().build();
     }
 
     /**
      * Send a message to the AI and receive a response.
+     * Requires prior AI consent — returns 403 AI_CONSENT_REQUIRED if not given.
      * Uses cached response when available for SESSION_SUMMARY and QUICK_CHECKIN types.
      *
      * @param request the chat request with message and optional conversation ID
@@ -53,6 +74,12 @@ public class ChatController {
                                              Authentication authentication,
                                              HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
+
+        UserProfile profile = profileService.getOrCreateProfile(userId);
+        if (!profile.isAiConsentGiven()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "AI_CONSENT_REQUIRED");
+        }
+
         ChatResponse response = conversationService.chat(userId, request);
         auditService.log(userId, AuditAction.WRITE, "CONVERSATION", response.conversationId(),
                 userId, getClientIp(httpRequest), "WEB");

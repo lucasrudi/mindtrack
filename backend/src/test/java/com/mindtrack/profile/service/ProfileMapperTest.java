@@ -144,6 +144,27 @@ class ProfileMapperTest {
         assertFalse(response.isTherapist());
     }
 
+    @Test
+    void shouldMapAiConsentGivenWhenTrue() {
+        UserProfile profile = new UserProfile();
+        profile.setUserId(1L);
+        profile.setAiConsentGiven(true);
+
+        ProfileResponse response = profileMapper.toResponse(profile);
+
+        assertTrue(response.isAiConsentGiven());
+    }
+
+    @Test
+    void shouldDefaultAiConsentGivenToFalse() {
+        UserProfile profile = new UserProfile();
+        profile.setUserId(1L);
+
+        ProfileResponse response = profileMapper.toResponse(profile);
+
+        assertFalse(response.isAiConsentGiven());
+    }
+
     private UserProfile createProfile() {
         UserProfile profile = new UserProfile();
         profile.setId(1L);

@@ -5,6 +5,8 @@ import com.mindtrack.ai.dto.ChatRequest;
 import com.mindtrack.ai.dto.ChatResponse;
 import com.mindtrack.ai.model.ConversationType;
 import com.mindtrack.ai.service.ConversationService;
+import com.mindtrack.profile.model.UserProfile;
+import com.mindtrack.profile.service.ProfileService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -45,13 +48,24 @@ class ChatControllerTest {
     @MockitoBean
     private ConversationService conversationService;
 
+    @MockitoBean
+    private ProfileService profileService;
+
     private static UsernamePasswordAuthenticationToken mockAuth() {
         return new UsernamePasswordAuthenticationToken(
                 1L, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
     }
 
+    private static UserProfile profileWithConsent(boolean consentGiven) {
+        UserProfile profile = new UserProfile();
+        profile.setUserId(1L);
+        profile.setAiConsentGiven(consentGiven);
+        return profile;
+    }
+
     @Test
     void shouldReturnAiResponse() throws Exception {
+        when(profileService.getOrCreateProfile(1L)).thenReturn(profileWithConsent(true));
         ChatResponse response = new ChatResponse(1L, 10L, "Hello! How are you?", false, 150);
         when(conversationService.chat(eq(1L), any(ChatRequest.class))).thenReturn(response);
 
@@ -70,6 +84,7 @@ class ChatControllerTest {
 
     @Test
     void shouldReturnCachedResponse() throws Exception {
+        when(profileService.getOrCreateProfile(1L)).thenReturn(profileWithConsent(true));
         ChatResponse response = new ChatResponse(1L, 10L, "Cached summary", true, 1200);
         when(conversationService.chat(eq(1L), any(ChatRequest.class))).thenReturn(response);
 
@@ -94,6 +109,30 @@ class ChatControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturn403WhenConsentNotGiven() throws Exception {
+        when(profileService.getOrCreateProfile(1L)).thenReturn(profileWithConsent(false));
+
+        ChatRequest request = new ChatRequest(null, "Hi there", ConversationType.COACHING);
+
+        mockMvc.perform(post("/api/ai/chat")
+                        .with(csrf())
+                        .with(authentication(mockAuth()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldReturn204ForConsentEndpoint() throws Exception {
+        doNothing().when(profileService).giveAiConsent(1L);
+
+        mockMvc.perform(post("/api/ai/consent")
+                        .with(csrf())
+                        .with(authentication(mockAuth())))
+                .andExpect(status().isNoContent());
     }
 
     @Test

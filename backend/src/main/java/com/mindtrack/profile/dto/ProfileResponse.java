@@ -20,6 +20,7 @@ public class ProfileResponse {
     private boolean surveyCompleted;
     private boolean patient;
     private boolean therapist;
+    private boolean aiConsentGiven;
 
     public ProfileResponse() {
     }
@@ -126,5 +127,13 @@ public class ProfileResponse {
 
     public void setTherapist(boolean therapist) {
         this.therapist = therapist;
+    }
+
+    public boolean isAiConsentGiven() {
+        return aiConsentGiven;
+    }
+
+    public void setAiConsentGiven(boolean aiConsentGiven) {
+        this.aiConsentGiven = aiConsentGiven;
     }
 }

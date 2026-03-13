@@ -100,6 +100,18 @@ public class ProfileService {
     }
 
     /**
+     * Records AI consent for the given user.
+     */
+    @Transactional
+    public void giveAiConsent(Long userId) {
+        LOG.info("Recording AI consent for user {}", userId);
+        UserProfile profile = profileRepository.findByUserId(userId)
+                .orElseGet(() -> createDefaultProfile(userId));
+        profile.setAiConsentGiven(true);
+        profileRepository.save(profile);
+    }
+
+    /**
      * Returns the profile for the given user, creating a default one if it does not exist.
      */
     @Transactional
