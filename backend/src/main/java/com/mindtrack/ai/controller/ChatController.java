@@ -65,9 +65,12 @@ public class ChatController {
      * @return list of conversations
      */
     @GetMapping("/conversations")
-    public ResponseEntity<List<ConversationDto>> listConversations(Authentication authentication) {
+    public ResponseEntity<List<ConversationDto>> listConversations(Authentication authentication,
+                                                                   HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         List<ConversationDto> conversations = conversationService.listConversations(userId);
+        conversations.forEach(c -> auditService.log(userId, AuditAction.READ, "CONVERSATION",
+                c.id(), userId, getClientIp(httpRequest), "WEB"));
         return ResponseEntity.ok(conversations);
     }
 
@@ -79,9 +82,12 @@ public class ChatController {
      */
     @GetMapping("/conversations/{id}")
     public ResponseEntity<ConversationDto> getConversation(@PathVariable Long id,
-                                                           Authentication authentication) {
+                                                           Authentication authentication,
+                                                           HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         ConversationDto conversation = conversationService.getConversation(id, userId);
+        auditService.log(userId, AuditAction.READ, "CONVERSATION", id,
+                userId, getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(conversation);
     }
 
