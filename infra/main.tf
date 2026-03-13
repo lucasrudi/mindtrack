@@ -93,4 +93,5 @@ module "monitoring" {
   frontend_bucket_name       = module.s3.frontend_bucket_name
   cloudfront_distribution_id = module.cloudfront.distribution_id
   alarm_email                = var.alarm_email
+  api_gateway_log_group_name = module.api_gateway.access_log_group_name
 }
