@@ -1,10 +1,13 @@
 package com.mindtrack.interview.controller;
 
+import com.mindtrack.audit.model.AuditAction;
+import com.mindtrack.audit.service.AuditService;
 import com.mindtrack.interview.dto.AudioUploadResponse;
 import com.mindtrack.interview.dto.InterviewRequest;
 import com.mindtrack.interview.dto.InterviewResponse;
 import com.mindtrack.interview.service.AudioService;
 import com.mindtrack.interview.service.InterviewService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -30,10 +33,13 @@ public class InterviewController {
 
     private final InterviewService interviewService;
     private final AudioService audioService;
+    private final AuditService auditService;
 
-    public InterviewController(InterviewService interviewService, AudioService audioService) {
+    public InterviewController(InterviewService interviewService, AudioService audioService,
+                               AuditService auditService) {
         this.interviewService = interviewService;
         this.audioService = audioService;
+        this.auditService = auditService;
     }
 
     /**
@@ -41,9 +47,12 @@ public class InterviewController {
      */
     @PostMapping
     public ResponseEntity<InterviewResponse> create(@RequestBody @Valid InterviewRequest request,
-                                                    Authentication authentication) {
+                                                    Authentication authentication,
+                                                    HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         InterviewResponse response = interviewService.create(userId, request);
+        auditService.log(userId, AuditAction.WRITE, "INTERVIEW", response.getId(), userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -51,9 +60,14 @@ public class InterviewController {
      * Lists all interviews for the authenticated user.
      */
     @GetMapping
-    public ResponseEntity<List<InterviewResponse>> list(Authentication authentication) {
+    public ResponseEntity<List<InterviewResponse>> list(Authentication authentication,
+                                                        HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         List<InterviewResponse> interviews = interviewService.listByUser(userId);
+        for (InterviewResponse interview : interviews) {
+            auditService.log(userId, AuditAction.READ, "INTERVIEW", interview.getId(), userId,
+                    getClientIp(httpRequest), "WEB");
+        }
         return ResponseEntity.ok(interviews);
     }
 
@@ -62,12 +76,15 @@ public class InterviewController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<InterviewResponse> getById(@PathVariable Long id,
-                                                     Authentication authentication) {
+                                                     Authentication authentication,
+                                                     HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         InterviewResponse response = interviewService.getByIdAndUser(id, userId);
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.READ, "INTERVIEW", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
 
@@ -77,12 +94,15 @@ public class InterviewController {
     @PutMapping("/{id}")
     public ResponseEntity<InterviewResponse> update(@PathVariable Long id,
                                                     @RequestBody @Valid InterviewRequest request,
-                                                    Authentication authentication) {
+                                                    Authentication authentication,
+                                                    HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         InterviewResponse response = interviewService.update(id, userId, request);
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.WRITE, "INTERVIEW", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
 
@@ -90,12 +110,15 @@ public class InterviewController {
      * Deletes an interview.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication,
+                                       HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         boolean deleted = interviewService.delete(id, userId);
         if (!deleted) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.DELETE, "INTERVIEW", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.noContent().build();
     }
 
@@ -105,9 +128,12 @@ public class InterviewController {
     @PostMapping("/{id}/audio")
     public ResponseEntity<AudioUploadResponse> uploadAudio(@PathVariable Long id,
                                                             @RequestParam("file") MultipartFile file,
-                                                            Authentication authentication) {
+                                                            Authentication authentication,
+                                                            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         AudioUploadResponse response = audioService.uploadAudio(id, userId, file);
+        auditService.log(userId, AuditAction.WRITE, "INTERVIEW", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -116,12 +142,15 @@ public class InterviewController {
      */
     @GetMapping("/{id}/audio")
     public ResponseEntity<AudioUploadResponse> getAudio(@PathVariable Long id,
-                                                         Authentication authentication) {
+                                                         Authentication authentication,
+                                                         HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         AudioUploadResponse response = audioService.getAudio(id, userId);
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.READ, "INTERVIEW", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
 
@@ -129,12 +158,23 @@ public class InterviewController {
      * Deletes the audio file for an interview.
      */
     @DeleteMapping("/{id}/audio")
-    public ResponseEntity<Void> deleteAudio(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<Void> deleteAudio(@PathVariable Long id, Authentication authentication,
+                                             HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         boolean deleted = audioService.deleteAudio(id, userId);
         if (!deleted) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.DELETE, "INTERVIEW", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.noContent().build();
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }
