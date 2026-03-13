@@ -118,6 +118,13 @@ The deploy workflow (`deploy.yml`) uses `role-to-assume: ${{ vars.AWS_ROLE_ARN }
 
 ### Claude API (Anthropic)
 
+> **Important (production):** Before processing real user data (PHI), sign Anthropic's
+> [Business Associate Agreement (BAA)](https://www.anthropic.com/legal/baa) or enrol in
+> [Zero Data Retention (ZDR)](https://www.anthropic.com/legal/privacy#zero-data-retention)
+> through your Anthropic account team. This is a prerequisite for HIPAA-compliant use of
+> the Claude API. MindTrack's AI consent gate (H-6) ensures no PHI is sent until the user
+> explicitly accepts, but the BAA/ZDR must be in place at the account level for production.
+
 1. Go to [Anthropic Console](https://console.anthropic.com/)
 2. Navigate to **API Keys**
 3. Create a new API key
