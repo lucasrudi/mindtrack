@@ -120,3 +120,20 @@ variable "rds_acu_threshold" {
   type        = number
   default     = 1.5
 }
+
+variable "api_gateway_log_group_name" {
+  description = "API Gateway access log group name for metric filters"
+  type        = string
+}
+
+variable "api_security_401_threshold" {
+  description = "HTTP 401 count threshold for security alarm"
+  type        = number
+  default     = 20
+}
+
+variable "api_security_403_threshold" {
+  description = "HTTP 403 count threshold for security alarm"
+  type        = number
+  default     = 20
+}

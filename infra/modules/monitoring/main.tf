@@ -242,3 +242,73 @@ resource "aws_cloudwatch_metric_alarm" "rds_acu_utilization" {
     Name = "${var.name_prefix}-rds-acu"
   }
 }
+
+# =============================================================================
+# CloudWatch Security Alarms — Unauthorized / Forbidden Spikes (M-9)
+# =============================================================================
+
+resource "aws_cloudwatch_log_metric_filter" "api_401" {
+  name           = "${var.name_prefix}-api-401"
+  log_group_name = var.api_gateway_log_group_name
+  pattern        = "[requestId, method, route, status=401, ...]"
+
+  metric_transformation {
+    name          = "Api401Count"
+    namespace     = "${var.name_prefix}/Security"
+    value         = "1"
+    default_value = "0"
+  }
+}
+
+resource "aws_cloudwatch_log_metric_filter" "api_403" {
+  name           = "${var.name_prefix}-api-403"
+  log_group_name = var.api_gateway_log_group_name
+  pattern        = "[requestId, method, route, status=403, ...]"
+
+  metric_transformation {
+    name          = "Api403Count"
+    namespace     = "${var.name_prefix}/Security"
+    value         = "1"
+    default_value = "0"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "api_401_spike" {
+  alarm_name          = "${var.name_prefix}-api-401-spike"
+  alarm_description   = "Spike in HTTP 401 Unauthorized responses — possible credential brute-force"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "Api401Count"
+  namespace           = "${var.name_prefix}/Security"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = var.api_security_401_threshold
+  treat_missing_data  = "notBreaching"
+  actions_enabled     = var.alarm_actions_enabled
+  alarm_actions       = local.alarm_actions
+  ok_actions          = local.alarm_actions
+
+  tags = {
+    Name = "${var.name_prefix}-api-401-spike"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "api_403_spike" {
+  alarm_name          = "${var.name_prefix}-api-403-spike"
+  alarm_description   = "Spike in HTTP 403 Forbidden responses — possible authorization bypass attempt"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "Api403Count"
+  namespace           = "${var.name_prefix}/Security"
+  period              = 300
+  statistic           = "Sum"
+  threshold           = var.api_security_403_threshold
+  treat_missing_data  = "notBreaching"
+  actions_enabled     = var.alarm_actions_enabled
+  alarm_actions       = local.alarm_actions
+  ok_actions          = local.alarm_actions
+
+  tags = {
+    Name = "${var.name_prefix}-api-403-spike"
+  }
+}
