@@ -2,17 +2,22 @@ package com.mindtrack.journal.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * JPA entity representing a journal entry.
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "journal_entries")
 public class JournalEntry {
 
@@ -39,6 +44,14 @@ public class JournalEntry {
 
     @Column(name = "shared_with_therapist", nullable = false)
     private boolean sharedWithTherapist;
+
+    @CreatedBy
+    @Column(name = "created_by")
+    private Long createdBy;
+
+    @LastModifiedBy
+    @Column(name = "updated_by")
+    private Long updatedBy;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -127,5 +140,21 @@ public class JournalEntry {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Long getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(Long createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Long getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

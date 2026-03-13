@@ -1,8 +1,11 @@
 package com.mindtrack.journal.controller;
 
+import com.mindtrack.audit.model.AuditAction;
+import com.mindtrack.audit.service.AuditService;
 import com.mindtrack.journal.dto.JournalEntryRequest;
 import com.mindtrack.journal.dto.JournalEntryResponse;
 import com.mindtrack.journal.service.JournalService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -29,9 +32,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class JournalController {
 
     private final JournalService journalService;
+    private final AuditService auditService;
 
-    public JournalController(JournalService journalService) {
+    public JournalController(JournalService journalService, AuditService auditService) {
         this.journalService = journalService;
+        this.auditService = auditService;
     }
 
     /**
@@ -40,9 +45,12 @@ public class JournalController {
     @PostMapping
     public ResponseEntity<JournalEntryResponse> create(
             @RequestBody @Valid JournalEntryRequest request,
-            Authentication authentication) {
+            Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         JournalEntryResponse response = journalService.create(userId, request);
+        auditService.log(userId, AuditAction.WRITE, "JOURNAL_ENTRY", response.getId(), userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -55,13 +63,18 @@ public class JournalController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            Authentication authentication) {
+            Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         List<JournalEntryResponse> entries;
         if (startDate != null && endDate != null) {
             entries = journalService.listByUserAndDateRange(userId, startDate, endDate);
         } else {
             entries = journalService.listByUser(userId);
+        }
+        for (JournalEntryResponse entry : entries) {
+            auditService.log(userId, AuditAction.READ, "JOURNAL_ENTRY", entry.getId(), userId,
+                    getClientIp(httpRequest), "WEB");
         }
         return ResponseEntity.ok(entries);
     }
@@ -71,12 +84,15 @@ public class JournalController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<JournalEntryResponse> getById(
-            @PathVariable Long id, Authentication authentication) {
+            @PathVariable Long id, Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         JournalEntryResponse response = journalService.getByIdAndUser(id, userId);
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.READ, "JOURNAL_ENTRY", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
 
@@ -87,12 +103,15 @@ public class JournalController {
     public ResponseEntity<JournalEntryResponse> update(
             @PathVariable Long id,
             @RequestBody @Valid JournalEntryRequest request,
-            Authentication authentication) {
+            Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         JournalEntryResponse response = journalService.update(id, userId, request);
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.WRITE, "JOURNAL_ENTRY", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
 
@@ -101,12 +120,15 @@ public class JournalController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
-            @PathVariable Long id, Authentication authentication) {
+            @PathVariable Long id, Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         boolean deleted = journalService.delete(id, userId);
         if (!deleted) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.DELETE, "JOURNAL_ENTRY", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.noContent().build();
     }
 
@@ -115,12 +137,23 @@ public class JournalController {
      */
     @PatchMapping("/{id}/share")
     public ResponseEntity<JournalEntryResponse> toggleSharing(
-            @PathVariable Long id, Authentication authentication) {
+            @PathVariable Long id, Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         JournalEntryResponse response = journalService.toggleSharing(id, userId);
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.WRITE, "JOURNAL_ENTRY", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

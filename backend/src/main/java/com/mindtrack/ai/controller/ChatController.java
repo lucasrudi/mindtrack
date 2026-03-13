@@ -4,6 +4,9 @@ import com.mindtrack.ai.dto.ChatRequest;
 import com.mindtrack.ai.dto.ChatResponse;
 import com.mindtrack.ai.dto.ConversationDto;
 import com.mindtrack.ai.service.ConversationService;
+import com.mindtrack.audit.model.AuditAction;
+import com.mindtrack.audit.service.AuditService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -25,14 +28,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChatController {
 
     private final ConversationService conversationService;
+    private final AuditService auditService;
 
     /**
      * Creates the chat controller.
      *
      * @param conversationService the conversation service
+     * @param auditService        the audit service
      */
-    public ChatController(ConversationService conversationService) {
+    public ChatController(ConversationService conversationService, AuditService auditService) {
         this.conversationService = conversationService;
+        this.auditService = auditService;
     }
 
     /**
@@ -44,10 +50,12 @@ public class ChatController {
      */
     @PostMapping("/chat")
     public ResponseEntity<ChatResponse> chat(@RequestBody @Valid ChatRequest request,
-                                             Authentication authentication) {
+                                             Authentication authentication,
+                                             HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
-
         ChatResponse response = conversationService.chat(userId, request);
+        auditService.log(userId, AuditAction.WRITE, "CONVERSATION", response.conversationId(),
+                userId, getClientIp(httpRequest), "WEB");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -59,7 +67,6 @@ public class ChatController {
     @GetMapping("/conversations")
     public ResponseEntity<List<ConversationDto>> listConversations(Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
-
         List<ConversationDto> conversations = conversationService.listConversations(userId);
         return ResponseEntity.ok(conversations);
     }
@@ -76,5 +83,13 @@ public class ChatController {
         Long userId = (Long) authentication.getPrincipal();
         ConversationDto conversation = conversationService.getConversation(id, userId);
         return ResponseEntity.ok(conversation);
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

@@ -2,6 +2,7 @@ package com.mindtrack.interview.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -10,11 +11,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * JPA entity representing a psychiatrist interview session.
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "interviews")
 public class Interview {
 
@@ -58,6 +63,14 @@ public class Interview {
     @Enumerated(EnumType.STRING)
     @Column(name = "transcription_status")
     private TranscriptionStatus transcriptionStatus;
+
+    @CreatedBy
+    @Column(name = "created_by")
+    private Long createdBy;
+
+    @LastModifiedBy
+    @Column(name = "updated_by")
+    private Long updatedBy;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -186,5 +199,21 @@ public class Interview {
 
     public void setTranscriptionStatus(TranscriptionStatus transcriptionStatus) {
         this.transcriptionStatus = transcriptionStatus;
+    }
+
+    public Long getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(Long createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Long getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }
