@@ -2,6 +2,12 @@ locals {
   name_prefix = "mindtrack-${var.environment}"
 }
 
+module "vpc" {
+  source = "./modules/vpc"
+
+  name_prefix = local.name_prefix
+}
+
 module "iam" {
   source = "./modules/iam"
 
@@ -28,17 +34,22 @@ module "rds" {
   min_capacity = var.db_min_capacity
   max_capacity = var.db_max_capacity
   lambda_sg_id = module.lambda.security_group_id
+  vpc_id       = module.vpc.vpc_id
+  subnet_ids   = module.vpc.private_subnet_ids
 }
 
 module "lambda" {
   source = "./modules/lambda"
 
-  name_prefix  = local.name_prefix
-  memory_size  = var.lambda_memory_size
-  role_arn     = module.iam.lambda_role_arn
-  rds_endpoint = module.rds.cluster_endpoint
-  rds_port     = module.rds.cluster_port
-  secrets_arns = module.secrets.secret_arns
+  name_prefix    = local.name_prefix
+  memory_size    = var.lambda_memory_size
+  role_arn       = module.iam.lambda_role_arn
+  rds_endpoint   = module.rds.cluster_endpoint
+  rds_port       = module.rds.cluster_port
+  secrets_arns   = module.secrets.secret_arns
+  vpc_id         = module.vpc.vpc_id
+  subnet_ids     = module.vpc.private_subnet_ids
+  vpc_cidr_block = module.vpc.vpc_cidr_block
 }
 
 module "api_gateway" {

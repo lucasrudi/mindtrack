@@ -1,7 +1,3 @@
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 resource "aws_kms_key" "rds" {
   description             = "${var.name_prefix} RDS encryption key"
   deletion_window_in_days = 7
@@ -10,28 +6,17 @@ resource "aws_kms_key" "rds" {
 
 resource "aws_db_subnet_group" "main" {
   name       = "${var.name_prefix}-db-subnet-group"
-  subnet_ids = data.aws_subnets.private.ids
+  subnet_ids = var.subnet_ids
 
   tags = {
     Name = "${var.name_prefix}-db-subnet-group"
   }
 }
 
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnets" "private" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
 resource "aws_security_group" "rds" {
   name        = "${var.name_prefix}-rds-sg"
   description = "Security group for Aurora Serverless v2"
-  vpc_id      = data.aws_vpc.default.id
+  vpc_id      = var.vpc_id
 
   ingress {
     from_port       = 3306
