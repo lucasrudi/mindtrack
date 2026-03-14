@@ -53,7 +53,9 @@ describe('AiConsentDialog', () => {
   })
 
   it('calls giveAiConsent and emits accepted when Accept is clicked', async () => {
-    const api = (await import('@/services/api')).default as { post: ReturnType<typeof vi.fn> }
+    const api = (await import('@/services/api')).default as unknown as {
+      post: ReturnType<typeof vi.fn>
+    }
     api.post.mockResolvedValueOnce({})
 
     const wrapper = mount(AiConsentDialog)
