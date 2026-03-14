@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, nextTick, watch } from 'vue'
 import { useChatStore } from '@/stores/chat'
+import AiConsentDialog from '@/components/AiConsentDialog.vue'
 
 const store = useChatStore()
 const messageInput = ref('')
@@ -83,6 +84,23 @@ function conversationPreview(conv: { messages: { content: string }[] }): string 
 function formatContent(content: string): string {
   return content.replaceAll('\n', '<br>')
 }
+
+async function handleConsentAccepted() {
+  store.clearError()
+  const pending = store.pendingMessage
+  store.pendingMessage = null
+  if (pending) {
+    try {
+      await store.sendMessage(pending)
+    } catch {
+      // Error handled by store
+    }
+  }
+}
+
+function handleConsentDeclined() {
+  store.clearError()
+}
 </script>
 
 <template>
@@ -94,10 +112,16 @@ function formatContent(content: string): string {
       </div>
     </header>
 
-    <div v-if="store.error" class="error-message">
+    <div v-if="store.error && store.error !== 'CONSENT_REQUIRED'" class="error-message">
       <p>{{ store.error }}</p>
       <button class="btn btn-secondary" @click="store.clearError()">Dismiss</button>
     </div>
+
+    <AiConsentDialog
+      v-if="store.error === 'CONSENT_REQUIRED'"
+      @accepted="handleConsentAccepted"
+      @declined="handleConsentDeclined"
+    />
 
     <div class="chat-layout">
       <!-- Sidebar: Conversation List -->

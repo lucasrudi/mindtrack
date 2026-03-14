@@ -45,6 +45,7 @@ public class ProfileMapper {
         response.setSurveyCompleted(profile.isSurveyCompleted());
         response.setPatient(profile.isPatient());
         response.setTherapist(profile.isTherapist());
+        response.setAiConsentGiven(profile.isAiConsentGiven());
         return response;
     }
 

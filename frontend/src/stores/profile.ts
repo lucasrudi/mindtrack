@@ -24,6 +24,7 @@ export interface UserProfile {
   surveyCompleted: boolean
   isPatient: boolean
   isTherapist: boolean
+  aiConsentGiven: boolean
 }
 
 export interface ProfileForm {
@@ -132,6 +133,22 @@ export const useProfileStore = defineStore('profile', () => {
     }
   }
 
+  async function giveAiConsent() {
+    saving.value = true
+    error.value = null
+    try {
+      await api.post('/ai/consent')
+      if (profile.value) {
+        profile.value.aiConsentGiven = true
+      }
+    } catch (err) {
+      error.value = 'Failed to record AI consent'
+      throw err
+    } finally {
+      saving.value = false
+    }
+  }
+
   function clearError() {
     error.value = null
   }
@@ -146,6 +163,7 @@ export const useProfileStore = defineStore('profile', () => {
     submitSurvey,
     skipSurvey,
     updateRoles,
+    giveAiConsent,
     clearError,
   }
 })

@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import { useProfileStore } from '@/stores/profile'
 
 export interface ChatMessage {
   id: number | null
@@ -24,6 +25,7 @@ export const useChatStore = defineStore('chat', () => {
   const loading = ref(false)
   const sending = ref(false)
   const error = ref<string | null>(null)
+  const pendingMessage = ref<string | null>(null)
 
   async function fetchConversations() {
     loading.value = true
@@ -55,6 +57,13 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   async function sendMessage(message: string, conversationId?: number | null) {
+    const profileStore = useProfileStore()
+    if (!profileStore.profile?.aiConsentGiven) {
+      pendingMessage.value = message
+      error.value = 'CONSENT_REQUIRED'
+      return
+    }
+
     sending.value = true
     error.value = null
 
@@ -117,6 +126,7 @@ export const useChatStore = defineStore('chat', () => {
     loading,
     sending,
     error,
+    pendingMessage,
     fetchConversations,
     fetchConversation,
     sendMessage,

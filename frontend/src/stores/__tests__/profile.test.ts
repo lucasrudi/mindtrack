@@ -16,6 +16,7 @@ const mockProfile = {
   surveyCompleted: false,
   isPatient: true,
   isTherapist: false,
+  aiConsentGiven: false,
 }
 
 vi.mock('@/services/api', () => ({
@@ -37,6 +38,7 @@ vi.mock('@/stores/auth', () => ({
 describe('useProfileStore', () => {
   let api: {
     get: ReturnType<typeof vi.fn>
+    post: ReturnType<typeof vi.fn>
     put: ReturnType<typeof vi.fn>
     patch: ReturnType<typeof vi.fn>
   }
@@ -187,6 +189,30 @@ describe('useProfileStore', () => {
 
       await expect(store.updateRoles(false, true)).rejects.toThrow()
       expect(store.error).toBe('Failed to update roles')
+      expect(store.saving).toBe(false)
+    })
+  })
+
+  describe('giveAiConsent', () => {
+    it('calls POST /ai/consent and sets aiConsentGiven to true', async () => {
+      api.post.mockResolvedValueOnce({})
+      const store = useProfileStore()
+      store.profile = { ...mockProfile, aiConsentGiven: false }
+
+      await store.giveAiConsent()
+
+      expect(api.post).toHaveBeenCalledWith('/ai/consent')
+      expect(store.profile?.aiConsentGiven).toBe(true)
+      expect(store.saving).toBe(false)
+    })
+
+    it('sets error on failure', async () => {
+      api.post.mockRejectedValueOnce(new Error('Network error'))
+      const store = useProfileStore()
+      store.profile = { ...mockProfile }
+
+      await expect(store.giveAiConsent()).rejects.toThrow()
+      expect(store.error).toBe('Failed to record AI consent')
       expect(store.saving).toBe(false)
     })
   })
