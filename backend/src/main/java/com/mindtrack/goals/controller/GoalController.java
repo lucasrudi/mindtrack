@@ -1,11 +1,14 @@
 package com.mindtrack.goals.controller;
 
+import com.mindtrack.audit.model.AuditAction;
+import com.mindtrack.audit.service.AuditService;
 import com.mindtrack.goals.dto.GoalRequest;
 import com.mindtrack.goals.dto.GoalResponse;
 import com.mindtrack.goals.dto.MilestoneRequest;
 import com.mindtrack.goals.dto.MilestoneResponse;
 import com.mindtrack.goals.model.GoalStatus;
 import com.mindtrack.goals.service.GoalService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +34,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class GoalController {
 
     private final GoalService goalService;
+    private final AuditService auditService;
 
-    public GoalController(GoalService goalService) {
+    public GoalController(GoalService goalService, AuditService auditService) {
         this.goalService = goalService;
+        this.auditService = auditService;
     }
 
     /**
@@ -42,9 +47,12 @@ public class GoalController {
     @PostMapping
     public ResponseEntity<GoalResponse> create(
             @RequestBody @Valid GoalRequest request,
-            Authentication authentication) {
+            Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         GoalResponse response = goalService.create(userId, request);
+        auditService.log(userId, AuditAction.WRITE, "GOAL", response.getId(), userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -54,9 +62,14 @@ public class GoalController {
     @GetMapping
     public ResponseEntity<List<GoalResponse>> list(
             @RequestParam(required = false) GoalStatus status,
-            Authentication authentication) {
+            Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         List<GoalResponse> goals = goalService.listByUser(userId, status);
+        for (GoalResponse goal : goals) {
+            auditService.log(userId, AuditAction.READ, "GOAL", goal.getId(), userId,
+                    getClientIp(httpRequest), "WEB");
+        }
         return ResponseEntity.ok(goals);
     }
 
@@ -65,12 +78,15 @@ public class GoalController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<GoalResponse> getById(
-            @PathVariable Long id, Authentication authentication) {
+            @PathVariable Long id, Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         GoalResponse response = goalService.getByIdAndUser(id, userId);
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.READ, "GOAL", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
 
@@ -81,12 +97,15 @@ public class GoalController {
     public ResponseEntity<GoalResponse> update(
             @PathVariable Long id,
             @RequestBody @Valid GoalRequest request,
-            Authentication authentication) {
+            Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         GoalResponse response = goalService.update(id, userId, request);
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.WRITE, "GOAL", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
 
@@ -97,7 +116,8 @@ public class GoalController {
     public ResponseEntity<GoalResponse> updateStatus(
             @PathVariable Long id,
             @RequestBody Map<String, String> body,
-            Authentication authentication) {
+            Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         GoalStatus newStatus;
         try {
@@ -109,6 +129,8 @@ public class GoalController {
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.WRITE, "GOAL", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
 
@@ -117,12 +139,15 @@ public class GoalController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
-            @PathVariable Long id, Authentication authentication) {
+            @PathVariable Long id, Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         boolean deleted = goalService.delete(id, userId);
         if (!deleted) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.DELETE, "GOAL", id, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.noContent().build();
     }
 
@@ -133,12 +158,15 @@ public class GoalController {
     public ResponseEntity<MilestoneResponse> addMilestone(
             @PathVariable Long goalId,
             @RequestBody @Valid MilestoneRequest request,
-            Authentication authentication) {
+            Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         MilestoneResponse response = goalService.addMilestone(goalId, userId, request);
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.WRITE, "GOAL", goalId, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -149,13 +177,16 @@ public class GoalController {
     public ResponseEntity<MilestoneResponse> toggleMilestone(
             @PathVariable Long goalId,
             @PathVariable Long milestoneId,
-            Authentication authentication) {
+            Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         MilestoneResponse response = goalService.toggleMilestoneCompletion(
                 goalId, userId, milestoneId);
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.WRITE, "GOAL", goalId, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
 
@@ -166,12 +197,23 @@ public class GoalController {
     public ResponseEntity<Void> deleteMilestone(
             @PathVariable Long goalId,
             @PathVariable Long milestoneId,
-            Authentication authentication) {
+            Authentication authentication,
+            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         boolean deleted = goalService.deleteMilestone(goalId, userId, milestoneId);
         if (!deleted) {
             return ResponseEntity.notFound().build();
         }
+        auditService.log(userId, AuditAction.DELETE, "GOAL", goalId, userId,
+                getClientIp(httpRequest), "WEB");
         return ResponseEntity.noContent().build();
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

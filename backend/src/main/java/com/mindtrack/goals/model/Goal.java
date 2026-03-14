@@ -3,6 +3,7 @@ package com.mindtrack.goals.model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -14,11 +15,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * JPA entity representing a user goal.
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "goals")
 public class Goal {
 
@@ -55,8 +60,13 @@ public class Goal {
     @Column(name = "validated_at")
     private LocalDateTime validatedAt;
 
+    @CreatedBy
     @Column(name = "created_by")
     private Long createdBy;
+
+    @LastModifiedBy
+    @Column(name = "updated_by")
+    private Long updatedBy;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -156,6 +166,14 @@ public class Goal {
 
     public void setCreatedBy(Long createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public Long getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
     }
 
     public LocalDateTime getCreatedAt() {
