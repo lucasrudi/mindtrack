@@ -2,10 +2,13 @@ package com.mindtrack.auth.controller;
 
 import com.mindtrack.auth.config.OAuth2LoginSuccessHandler;
 import com.mindtrack.auth.dto.AuthResponse;
+import com.mindtrack.auth.dto.RefreshRequest;
 import com.mindtrack.auth.dto.SelfRolesRequest;
 import com.mindtrack.auth.dto.TherapistRegistrationRedeemRequest;
 import com.mindtrack.auth.dto.UserInfo;
+import com.mindtrack.auth.repository.UserRepository;
 import com.mindtrack.auth.service.JwtService;
+import com.mindtrack.auth.service.RefreshTokenService;
 import com.mindtrack.auth.service.TherapistRegistrationService;
 import com.mindtrack.auth.service.UserService;
 import com.mindtrack.common.model.User;
@@ -15,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,6 +28,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Authentication controller for user info, session management, and therapist registration.
@@ -37,16 +42,22 @@ public class AuthController {
     private final JwtService jwtService;
     private final ProfileService profileService;
     private final TherapistRegistrationService therapistRegistrationService;
+    private final RefreshTokenService refreshTokenService;
+    private final UserRepository userRepository;
     private final boolean cookieSecure;
 
     public AuthController(UserService userService, JwtService jwtService,
                           ProfileService profileService,
                           TherapistRegistrationService therapistRegistrationService,
+                          RefreshTokenService refreshTokenService,
+                          UserRepository userRepository,
                           @Value("${mindtrack.auth.cookie-secure:true}") boolean cookieSecure) {
         this.userService = userService;
         this.jwtService = jwtService;
         this.profileService = profileService;
         this.therapistRegistrationService = therapistRegistrationService;
+        this.refreshTokenService = refreshTokenService;
+        this.userRepository = userRepository;
         this.cookieSecure = cookieSecure;
     }
 
@@ -82,7 +93,8 @@ public class AuthController {
     }
 
     /**
-     * Updates the current user's patient/therapist role flags and returns a refreshed JWT.
+     * Updates the current user's patient/therapist role flags and returns a refreshed JWT
+     * together with a new refresh token.
      */
     @PatchMapping("/me/roles")
     public ResponseEntity<AuthResponse> updateRoles(
@@ -94,15 +106,18 @@ public class AuthController {
         User user = userService.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
         String token = jwtService.generateToken(user.getId(), user.getEmail(),
-                user.getRole().getName(), profile.isPatient(), profile.isTherapist());
-        return ResponseEntity.ok(new AuthResponse(token, user.getEmail(),
+                user.getRole().getName(), profile.isPatient(), profile.isTherapist(),
+                user.getTokenVersion());
+        String newRefreshToken = refreshTokenService.createRefreshToken(userId);
+        return ResponseEntity.ok(new AuthResponse(token, newRefreshToken, user.getEmail(),
                 user.getName(), user.getRole().getName(),
                 profile.isPatient(), profile.isTherapist()));
     }
 
     /**
      * Redeems an admin-issued therapist registration token and upgrades the caller's
-     * system role to THERAPIST. Returns a refreshed JWT that includes the new role.
+     * system role to THERAPIST. Returns a refreshed JWT that includes the new role,
+     * together with a new refresh token.
      *
      * <p>This is the safe replacement for the removed H-3 self-service endpoint:
      * THERAPIST role is still gated — it requires a single-use token that only an admin
@@ -119,8 +134,30 @@ public class AuthController {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
         UserProfile profile = profileService.getOrCreateProfile(userId);
         String jwt = jwtService.generateToken(user.getId(), user.getEmail(),
-                user.getRole().getName(), profile.isPatient(), profile.isTherapist());
-        return ResponseEntity.ok(new AuthResponse(jwt, user.getEmail(),
+                user.getRole().getName(), profile.isPatient(), profile.isTherapist(),
+                user.getTokenVersion());
+        String newRefreshToken = refreshTokenService.createRefreshToken(userId);
+        return ResponseEntity.ok(new AuthResponse(jwt, newRefreshToken, user.getEmail(),
+                user.getName(), user.getRole().getName(),
+                profile.isPatient(), profile.isTherapist()));
+    }
+
+    /**
+     * Rotates a refresh token and issues a new JWT + refresh token pair.
+     * The submitted refresh token is immediately marked as used (single-use rotation).
+     * Returns 401 if the token is invalid, already used, or expired.
+     */
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+        Long userId = refreshTokenService.rotateRefreshToken(request.getRefreshToken());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+        UserProfile profile = profileService.getOrCreateProfile(userId);
+        String jwt = jwtService.generateToken(user.getId(), user.getEmail(),
+                user.getRole().getName(), profile.isPatient(), profile.isTherapist(),
+                user.getTokenVersion());
+        String newRefreshToken = refreshTokenService.createRefreshToken(userId);
+        return ResponseEntity.ok(new AuthResponse(jwt, newRefreshToken, user.getEmail(),
                 user.getName(), user.getRole().getName(),
                 profile.isPatient(), profile.isTherapist()));
     }

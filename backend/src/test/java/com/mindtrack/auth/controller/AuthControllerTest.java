@@ -1,6 +1,7 @@
 package com.mindtrack.auth.controller;
 
 import com.mindtrack.auth.service.JwtService;
+import com.mindtrack.auth.service.RefreshTokenService;
 import com.mindtrack.auth.service.UserService;
 import com.mindtrack.common.model.Role;
 import com.mindtrack.common.model.User;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -47,6 +49,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private ProfileService profileService;
+
+    @MockitoBean
+    private RefreshTokenService refreshTokenService;
 
     private static UsernamePasswordAuthenticationToken mockAuth(Long userId) {
         return new UsernamePasswordAuthenticationToken(
@@ -101,7 +106,7 @@ class AuthControllerTest {
         UserProfile profile = createProfile(true, true);
         when(profileService.updateRoles(1L, true, true)).thenReturn(profile);
         when(userService.findById(1L)).thenReturn(Optional.of(user));
-        when(jwtService.generateToken(anyLong(), anyString(), anyString(), anyBoolean(), anyBoolean()))
+        when(jwtService.generateToken(anyLong(), anyString(), anyString(), anyBoolean(), anyBoolean(), anyInt()))
                 .thenReturn("new-token-both-roles");
 
         mockMvc.perform(patch("/api/auth/me/roles")
@@ -120,7 +125,7 @@ class AuthControllerTest {
         UserProfile profile = createProfile(false, true);
         when(profileService.updateRoles(1L, false, true)).thenReturn(profile);
         when(userService.findById(1L)).thenReturn(Optional.of(user));
-        when(jwtService.generateToken(anyLong(), anyString(), anyString(), anyBoolean(), anyBoolean()))
+        when(jwtService.generateToken(anyLong(), anyString(), anyString(), anyBoolean(), anyBoolean(), anyInt()))
                 .thenReturn("new-token-therapist-only");
 
         mockMvc.perform(patch("/api/auth/me/roles")

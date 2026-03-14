@@ -58,6 +58,7 @@ public class SecurityConfig {
                         .permitAll().requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/actuator/health")
                         .permitAll().requestMatchers("/api/oauth2/**", "/api/login/oauth2/**").permitAll()
+                        .requestMatchers("/api/auth/refresh").permitAll()
                         .requestMatchers("/api/webhooks/**").permitAll().anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> endpoint.baseUri("/api/oauth2/authorization"))

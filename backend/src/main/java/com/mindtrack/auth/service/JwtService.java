@@ -39,10 +39,10 @@ public class JwtService {
     }
 
     /**
-     * Generates a JWT token for the given user with patient/therapist role flags.
+     * Generates a JWT token for the given user with patient/therapist role flags and token version.
      */
     public String generateToken(Long userId, String email, String role,
-                                boolean isPatient, boolean isTherapist) {
+                                boolean isPatient, boolean isTherapist, int tokenVersion) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(userId.toString())
@@ -50,6 +50,7 @@ public class JwtService {
                 .claim("role", role)
                 .claim("isPatient", isPatient)
                 .claim("isTherapist", isTherapist)
+                .claim("ver", tokenVersion)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusMillis(expirationMs)))
                 .signWith(signingKey)
@@ -57,10 +58,18 @@ public class JwtService {
     }
 
     /**
-     * Generates a JWT token for the given user (defaults: isPatient=true, isTherapist=false).
+     * Generates a JWT token for the given user with patient/therapist role flags (tokenVersion defaults to 0).
+     */
+    public String generateToken(Long userId, String email, String role,
+                                boolean isPatient, boolean isTherapist) {
+        return generateToken(userId, email, role, isPatient, isTherapist, 0);
+    }
+
+    /**
+     * Generates a JWT token for the given user (defaults: isPatient=true, isTherapist=false, tokenVersion=0).
      */
     public String generateToken(Long userId, String email, String role) {
-        return generateToken(userId, email, role, true, false);
+        return generateToken(userId, email, role, true, false, 0);
     }
 
     /**
@@ -99,6 +108,14 @@ public class JwtService {
      */
     public Boolean getIsTherapistFromToken(String token) {
         return parseClaims(token).get("isTherapist", Boolean.class);
+    }
+
+    /**
+     * Extracts the token version (ver claim) from a valid JWT token.
+     * Returns null if the claim is absent (e.g. legacy tokens issued before versioning).
+     */
+    public Integer getVersionFromToken(String token) {
+        return parseClaims(token).get("ver", Integer.class);
     }
 
     /**
