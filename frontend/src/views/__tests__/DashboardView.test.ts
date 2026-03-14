@@ -208,6 +208,7 @@ describe('DashboardView', () => {
         surveyCompleted: false,
         isPatient: true,
         isTherapist: false,
+        aiConsentGiven: false,
       }
       await wrapper.vm.$nextTick()
 
@@ -231,6 +232,7 @@ describe('DashboardView', () => {
         surveyCompleted: true,
         isPatient: true,
         isTherapist: false,
+        aiConsentGiven: false,
       }
       await wrapper.vm.$nextTick()
 
@@ -273,6 +275,7 @@ describe('DashboardView', () => {
         surveyCompleted: false,
         isPatient: true,
         isTherapist: false,
+        aiConsentGiven: false,
       }
       await wrapper.vm.$nextTick()
 
@@ -298,6 +301,7 @@ describe('DashboardView', () => {
         surveyCompleted: false,
         isPatient: true,
         isTherapist: false,
+        aiConsentGiven: false,
       }
       await wrapper.vm.$nextTick()
 

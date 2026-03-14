@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@sentry/vue": "^10.42.0",
-    "@vueuse/core": "^11.0.0",
+    "@vueuse/core": "^14.0.0",
     "axios": "^1.13.6",
     "chart.js": "^4.4.0",
     "pinia": "^2.0.0",
@@ -24,6 +24,7 @@
     "vue-router": "^4.0.0"
   },
   "overrides": {
+    "yauzl": "3.2.1",
     "editorconfig": {
       "minimatch": "9.0.9"
     }

@@ -54,6 +54,9 @@ public class UserProfile {
     @Column(name = "is_therapist", nullable = false)
     private boolean therapist = false;
 
+    @Column(name = "ai_consent_given", nullable = false)
+    private boolean aiConsentGiven = false;
+
     public UserProfile() {
     }
 
@@ -159,5 +162,13 @@ public class UserProfile {
 
     public void setTherapist(boolean therapist) {
         this.therapist = therapist;
+    }
+
+    public boolean isAiConsentGiven() {
+        return aiConsentGiven;
+    }
+
+    public void setAiConsentGiven(boolean aiConsentGiven) {
+        this.aiConsentGiven = aiConsentGiven;
     }
 }

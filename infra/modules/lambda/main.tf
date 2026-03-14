@@ -1,18 +1,7 @@
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnets" "private" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
 resource "aws_security_group" "lambda" {
   name        = "${var.name_prefix}-lambda-sg"
   description = "Security group for Lambda function"
-  vpc_id      = data.aws_vpc.default.id
+  vpc_id      = var.vpc_id
 
   #tfsec:ignore:aws-ec2-no-public-egress-sgr
   egress {
@@ -27,7 +16,7 @@ resource "aws_security_group" "lambda" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [data.aws_vpc.default.cidr_block]
+    cidr_blocks = [var.vpc_cidr_block]
     description = "MySQL to RDS"
   }
 
@@ -56,7 +45,7 @@ resource "aws_lambda_function" "api" {
   }
 
   vpc_config {
-    subnet_ids         = data.aws_subnets.private.ids
+    subnet_ids         = var.subnet_ids
     security_group_ids = [aws_security_group.lambda.id]
   }
 

@@ -88,6 +88,9 @@ public class AdminService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
         user.setEnabled(enabled);
+        if (!enabled) {
+            user.setTokenVersion(user.getTokenVersion() + 1);
+        }
         user.setUpdatedAt(LocalDateTime.now());
         User saved = userRepository.save(user);
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useChatStore } from '../chat'
+import { useProfileStore } from '../profile'
 
 const mockConversations = [
   {
@@ -35,6 +36,23 @@ const mockChatResponse = {
   tokensUsed: 50,
 }
 
+const mockProfileWithConsent = {
+  id: 1,
+  userId: 10,
+  displayName: null,
+  avatarUrl: null,
+  timezone: null,
+  notificationPrefs: null,
+  telegramChatId: null,
+  whatsappNumber: null,
+  tutorialCompleted: false,
+  onboardingCompleted: true,
+  surveyCompleted: false,
+  isPatient: true,
+  isTherapist: false,
+  aiConsentGiven: true,
+}
+
 vi.mock('@/services/api', () => ({
   default: {
     get: vi.fn(),
@@ -43,6 +61,12 @@ vi.mock('@/services/api', () => ({
     patch: vi.fn(),
     delete: vi.fn(),
   },
+}))
+
+vi.mock('@/stores/auth', () => ({
+  useAuthStore: () => ({
+    fetchCurrentUser: vi.fn().mockResolvedValue(undefined),
+  }),
 }))
 
 describe('useChatStore', () => {
@@ -56,6 +80,9 @@ describe('useChatStore', () => {
     const module = await import('@/services/api')
     api = module.default as unknown as typeof api
     vi.clearAllMocks()
+    // Default: profile with consent given
+    const profileStore = useProfileStore()
+    profileStore.profile = { ...mockProfileWithConsent }
   })
 
   describe('fetchConversations', () => {
@@ -120,6 +147,18 @@ describe('useChatStore', () => {
   })
 
   describe('sendMessage', () => {
+    it('sets CONSENT_REQUIRED error and returns early when consent not given', async () => {
+      const profileStore = useProfileStore()
+      profileStore.profile = { ...mockProfileWithConsent, aiConsentGiven: false }
+      const store = useChatStore()
+
+      await store.sendMessage('Hello')
+
+      expect(store.error).toBe('CONSENT_REQUIRED')
+      expect(api.post).not.toHaveBeenCalled()
+      expect(store.messages).toHaveLength(0)
+    })
+
     it('sends message and adds response', async () => {
       api.post.mockResolvedValueOnce({ data: mockChatResponse })
       api.get.mockResolvedValueOnce({ data: mockConversations })
