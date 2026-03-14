@@ -319,7 +319,7 @@ Use this runbook after a temporary branch-protection bypass or a broken `GH_CONF
 | `ANTHROPIC_API_KEY` | Secret | `code-review.yml` | Claude API key for automated PR review |
 | `GH_CONFIG_TOKEN` | Secret | `renovate.yml`, `github-config-sync.yml` | GitHub PAT for Renovate and GitHub settings Terraform |
 | `SENTRY_AUTH_TOKEN` | Secret | `deploy.yml` | Frontend Sentry release/source-map upload |
-| `SNYK_TOKEN` | Secret | `feature.yml`, `verify.yml`, `snyk-monitor.yml` | Snyk authentication token |
+| `SNYK_TOKEN` | Secret | `snyk-monitor.yml` | Snyk authentication token |
 | `SONAR_TOKEN` | Secret | `feature.yml`, `verify.yml` | SonarCloud analysis token |
 | `GITHUB_TOKEN` | Built-in | Most workflows | GitHub-provided token (auto-injected) |
 | `AWS_ROLE_ARN` | Variable | `deploy.yml`, `github-config-sync.yml` | IAM role for OIDC-based AWS workflows |
