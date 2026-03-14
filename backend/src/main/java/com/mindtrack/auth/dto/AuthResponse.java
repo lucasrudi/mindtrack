@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class AuthResponse {
 
     private String token;
+    private String refreshToken;
     private String email;
     private String name;
     private String role;
@@ -34,12 +35,31 @@ public class AuthResponse {
         this.isTherapist = isTherapist;
     }
 
+    public AuthResponse(String token, String refreshToken, String email, String name, String role,
+                        boolean isPatient, boolean isTherapist) {
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.email = email;
+        this.name = name;
+        this.role = role;
+        this.isPatient = isPatient;
+        this.isTherapist = isTherapist;
+    }
+
     public String getToken() {
         return token;
     }
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public String getEmail() {

@@ -1,5 +1,8 @@
 package com.mindtrack.auth.config;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.mindtrack.auth.repository.UserRepository;
 import com.mindtrack.auth.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,7 +22,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Filter that validates JWT tokens on each request.
+ * Filter that validates JWT tokens on each request, including token-version revocation check.
+ * Token version is cached for 30 seconds to reduce DB load.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -28,9 +33,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtService jwtService;
+    private final UserRepository userRepository;
+    /** Cache: userId -> current token version. TTL 30 s. */
+    private final Cache<Long, Integer> versionCache = Caffeine.newBuilder()
+            .expireAfterWrite(30, TimeUnit.SECONDS)
+            .maximumSize(10_000)
+            .build();
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
         this.jwtService = jwtService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -40,20 +52,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null && jwtService.isTokenValid(token)) {
             Long userId = jwtService.getUserIdFromToken(token);
-            String role = jwtService.getRoleFromToken(token);
+            Integer tokenVer = jwtService.getVersionFromToken(token);
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            userId,
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                    );
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            LOG.debug("Authenticated user {} with role {}", userId, role);
+            if (isVersionValid(userId, tokenVer)) {
+                String role = jwtService.getRoleFromToken(token);
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                userId,
+                                null,
+                                List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                        );
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                LOG.debug("Authenticated user {} with role {}", userId, role);
+            } else {
+                LOG.debug("Token revoked for user {} (version mismatch)", userId);
+            }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Returns true if the token version matches the stored version (or if versioning is not yet
+     * applied to this token — null ver claim treated as version 0).
+     */
+    private boolean isVersionValid(Long userId, Integer tokenVer) {
+        int ver = tokenVer != null ? tokenVer : 0;
+        int storedVer = versionCache.get(userId, id ->
+                userRepository.findById(id)
+                        .map(u -> u.getTokenVersion())
+                        .orElse(0));
+        return ver >= storedVer;
     }
 
     /**
