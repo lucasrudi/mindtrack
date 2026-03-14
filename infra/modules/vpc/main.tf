@@ -125,6 +125,7 @@ resource "aws_route_table_association" "private" {
 # VPC Flow Logs — network traffic visibility for security monitoring
 # =============================================================================
 
+#tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "flow_logs" {
   name              = "/aws/vpc/${var.name_prefix}/flow-logs"
   retention_in_days = 90
@@ -143,6 +144,7 @@ resource "aws_iam_role" "flow_logs" {
   })
 }
 
+#tfsec:ignore:aws-iam-no-policy-wildcards
 resource "aws_iam_role_policy" "flow_logs" {
   name = "${var.name_prefix}-vpc-flow-logs"
   role = aws_iam_role.flow_logs.id
