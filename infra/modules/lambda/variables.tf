@@ -27,3 +27,18 @@ variable "secrets_arns" {
   description = "List of Secrets Manager secret ARNs"
   type        = list(string)
 }
+
+variable "vpc_id" {
+  description = "VPC ID for the Lambda security group"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "Private subnet IDs for VPC config"
+  type        = list(string)
+}
+
+variable "vpc_cidr_block" {
+  description = "VPC CIDR block for the MySQL egress rule"
+  type        = string
+}
