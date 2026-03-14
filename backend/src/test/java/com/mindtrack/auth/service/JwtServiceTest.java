@@ -83,4 +83,32 @@ class JwtServiceTest {
 
         assertFalse(jwtService.isTokenValid(token));
     }
+
+    @Test
+    void shouldEmbedVersionClaimInToken() {
+        String token = jwtService.generateToken(1L, "test@example.com", "USER", true, false, 3);
+
+        assertEquals(3, jwtService.getVersionFromToken(token));
+    }
+
+    @Test
+    void shouldReturnZeroVersionForDefaultToken() {
+        String token = jwtService.generateToken(1L, "test@example.com", "USER");
+
+        assertEquals(0, jwtService.getVersionFromToken(token));
+    }
+
+    @Test
+    void shouldExtractIsPatientFromToken() {
+        String token = jwtService.generateToken(1L, "test@example.com", "USER", true, false, 0);
+
+        assertTrue(jwtService.getIsPatientFromToken(token));
+    }
+
+    @Test
+    void shouldExtractIsTherapistFromToken() {
+        String token = jwtService.generateToken(1L, "test@example.com", "THERAPIST", false, true, 0);
+
+        assertTrue(jwtService.getIsTherapistFromToken(token));
+    }
 }
