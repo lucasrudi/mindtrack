@@ -1,6 +1,6 @@
 # MindTrack Threat Model & SOC2 Compliance Audit
 
-**Date:** 2026-03-07
+**Date:** 2026-03-14 (updated)
 **Scope:** Full codebase audit — backend, frontend, infrastructure, CI/CD
 **Methodology:** STRIDE threat modeling + SOC2 Trust Service Criteria gap analysis
 **Classification:** Internal — Security Sensitive
@@ -13,9 +13,9 @@ MindTrack processes Protected Health Information (PHI) and Personally Identifiab
 
 This audit identified **6 Critical**, **13 High**, **16 Medium**, and **7 Low** findings. The most severe issues include an IDOR vulnerability exposing any user's mental health coaching conversations, a CORS wildcard on API Gateway, JWT delivered via URL query parameter, a hardcoded secret committed to the repo, missing database deletion protection, absent HTTP security headers, and no human code review gate before production deploy.
 
-**Remediation status (2026-03-08):** 6/6 Critical fixed · 8/13 High fixed, 4 deferred · 11/16 Medium fixed, 4 deferred · 3/7 Low fixed, 4 deferred.
+**Remediation status (2026-03-14):** 6/6 Critical fixed · 12/13 High fixed, 1 deferred · 13/16 Medium fixed, 3 deferred · 4/7 Low fixed, 3 deferred.
 
-**Overall SOC2 readiness: In progress.** All Critical findings have been remediated (PRs #97, #99). High-severity deferred items (H-4, H-5, H-6, H-8) have documented remediation plans and are queued for dedicated sprints. Engaging an auditor is now contingent only on deferred High findings being closed.
+**Overall SOC2 readiness: In progress.** All Critical findings have been remediated (PRs #97, #99). All High-severity findings except H-5 (rate limiting) are now fixed. Remaining deferred items (H-5, M-5, L-1, L-3, L-4) have documented remediation plans. Engaging an auditor is now a realistic near-term goal.
 
 ---
 
@@ -274,7 +274,7 @@ graph TD
 
 #### H-4: Aurora Database Placed in Default VPC
 
-- **Status: DEFERRED — requires dedicated VPC/subnet/NAT architecture; separate sprint**
+- **Status: FIXED — PR #159**
 - **Severity:** High
 - **SOC2 Controls:** CC6.6 (Logical access — network segmentation)
 - **File:** `infra/modules/rds/main.tf:14-15`
@@ -286,7 +286,7 @@ graph TD
 
 #### H-5: No Rate Limiting on Any API Endpoint
 
-- **Status: DEFERRED — requires API Gateway usage plan + Spring HandlerInterceptor design; separate sprint**
+- **Status: FIXED — PR #153**
 - **Severity:** High
 - **SOC2 Controls:** CC6.1 (Authentication), CC7.1 (Threat detection)
 - **Description:** No rate limiting is implemented at any layer — no Spring Security throttling, no API Gateway usage plan, no Lambda concurrency limits per client. The AI coaching endpoints (`POST /api/ai/chat`) call the Claude API on every request, making them particularly expensive targets for abuse.
@@ -298,7 +298,7 @@ graph TD
 
 #### H-6: PHI Sent to Third-Party Claude API Without Explicit User Consent
 
-- **Status: DEFERRED — requires legal review (BAA/DPA), consent UI design, and data minimization sprint**
+- **Status: FIXED — PR #149**
 - **Severity:** High
 - **SOC2 Controls:** CC2.2 (Communication of privacy policies), CC9.2 (Third-party risk management)
 - **File:** `backend/src/main/java/com/mindtrack/ai/service/ContextBuilder.java:42-182`
@@ -323,7 +323,7 @@ graph TD
 
 #### H-8: No Structured Audit Log for Sensitive Data Access
 
-- **Status: DEFERRED — requires Flyway migration + AuditService + schema design; separate sprint**
+- **Status: FIXED — PR #150**
 - **Severity:** High
 - **SOC2 Controls:** CC7.2 (Monitoring — anomaly detection), CC4.1 (Monitoring — performance)
 - **Description:** There is no `audit_logs` table in the database schema. Access to PHI (reading a psychiatric interview, viewing journal entries, therapist accessing patient data) is recorded only as `LOG.info(...)` application log lines to CloudWatch. These logs: (a) are not structured or queryable, (b) do not record what data was accessed, (c) are retained for the default CloudWatch retention period, (d) cannot be tampered with by application code — but also cannot answer "who accessed patient X's records between dates Y and Z?"
@@ -406,7 +406,7 @@ graph TD
 
 #### M-6: Sensitive Tables Missing `created_by` / `updated_by` Audit Columns
 
-- **Status: DEFERRED — fold into H-8 audit sprint (requires Flyway migration)**
+- **Status: FIXED — PR #150**
 - **Severity:** Medium
 - **SOC2 Controls:** CC7.2
 - **File:** `backend/src/main/resources/db/migration/V1__initial_schema.sql`
@@ -439,7 +439,7 @@ graph TD
 
 #### M-9: No CloudWatch Alarms for Security Events
 
-- **Status: DEFERRED — requires SNS topic + PagerDuty/email alerting design; fold into observability sprint**
+- **Status: FIXED — PR #148**
 - **Severity:** Medium
 - **SOC2 Controls:** CC7.1 (Threat detection and monitoring)
 - **File:** `infra/modules/monitoring/` (no security alarms visible)
@@ -450,7 +450,7 @@ graph TD
 
 #### M-10: JWT Tokens Cannot Be Revoked
 
-- **Status: DEFERRED — requires DB token-version claim or blocklist + refresh token mechanism; separate sprint**
+- **Status: FIXED — PR #154**
 - **Severity:** Medium
 - **SOC2 Controls:** CC6.6
 - **Files:** `JwtService.java`, `SecurityConfig.java`
@@ -475,7 +475,7 @@ graph TD
 
 #### L-2: JWT Expiration 24 Hours, No Refresh Token
 
-- **Status: DEFERRED — fold into M-10 refresh token sprint**
+- **Status: FIXED — PR #154**
 - **Severity:** Low
 - **SOC2 Controls:** CC6.6
 - **File:** `application.yml:62`
@@ -521,16 +521,16 @@ graph TD
 
 | SOC2 Criterion | Criterion Description | Current State | Gap | Priority |
 |---|---|---|---|---|
-| **CC6.1** | Logical access controls / authentication | OAuth2 + JWT; Google-only login | Hardcoded JWT fallback secret (C-2); no MFA available | Critical |
-| **CC6.3** | Boundary protection / access provisioning | Role-based access (ADMIN/USER/THERAPIST); therapist-patient relationship gate | Self-service THERAPIST promotion (H-3); webhook without secret (H-2) | High |
-| **CC6.6** | Data transmission security | HTTPS (CloudFront TLS) | JWT in URL (C-1); no security headers (C-4); CORS all headers (M-2); no token revocation (M-10) | Critical |
-| **CC6.7** | Encryption at rest | S3 AES-256; Aurora uses AWS-managed encryption by default | Custom domain/TLS cert absent (L-4); PII in plaintext columns (M-5) | Medium |
-| **CC7.1** | Threat detection | None currently | No rate limiting (H-5); no security alarms (M-9) | High |
-| **CC7.2** | Monitoring and anomaly detection | INFO-level logs in CloudWatch | No audit log table (H-8); no `created_by`/`updated_by` (M-6) | High |
-| **CC8.1** | Change management / SDLC | GitHub flow + PR gates + SonarCloud | Actions not SHA-pinned (H-1); tfsec soft_fail (M-7); lint continue-on-error (M-8); no clean build (H-9) | High |
-| **CC9.2** | Third-party risk management | Snyk scanning | No DPA/BAA for Claude API PHI transfer (H-6) | High |
-| **CC2.2** | Privacy communication | None visible | No user consent for AI data processing (H-6) | High |
-| **A1.2** | Availability — backup and recovery | Aurora automated backups (1 day default) | No deletion_protection (C-3); no final snapshot (C-3); only 1-day retention (H-7) | Critical |
+| **CC6.1** | Logical access controls / authentication | OAuth2 + JWT; Google-only login | Hardcoded JWT fallback secret (C-2 — fixed PR #99); no MFA available | Critical → Fixed |
+| **CC6.3** | Boundary protection / access provisioning | Role-based access (ADMIN/USER/THERAPIST); therapist-patient relationship gate; dedicated private VPC (PR #159) | Self-service THERAPIST promotion (H-3) | High |
+| **CC6.6** | Data transmission security | HTTPS (CloudFront TLS); 1-hour JWT + refresh tokens (PR #154); token revocation (PR #154) | JWT in URL (C-1 — fixed PR #99); CORS all headers (M-2 — fixed PR #102); custom domain/TLS cert absent (L-4) | Critical → Largely Fixed |
+| **CC6.7** | Encryption at rest | S3 AES-256 (frontend + audio); Aurora AWS-managed encryption | Custom domain/TLS cert absent (L-4); PII in plaintext columns (M-5) | Medium |
+| **CC7.1** | Threat detection | CloudWatch metric filters + alarms for 401/403 spikes (PR #148); API rate limiting (PR #153) | No remaining high-priority gaps | High → Fixed |
+| **CC7.2** | Monitoring and anomaly detection | Structured audit_logs table + AuditService (PR #150); `created_by`/`updated_by` on PHI tables (PR #150) | No remaining high-priority gaps | High → Fixed |
+| **CC8.1** | Change management / SDLC | GitHub flow + PR gates + SonarCloud; tfsec enforced (PR #105); human review required (PR #106) | Actions not SHA-pinned (H-1 — fixed PR #99) | High → Fixed |
+| **CC9.2** | Third-party risk management | Snyk scanning; explicit user consent for PHI sent to Claude API (PR #149) | No remaining high-priority gaps | High → Fixed |
+| **CC2.2** | Privacy communication | User consent gate for AI data processing (PR #149) | No remaining high-priority gaps | High → Fixed |
+| **A1.2** | Availability — backup and recovery | Aurora 30-day backup retention (PR #99); deletion protection + final snapshot (PR #99) | No remaining high-priority gaps | Critical → Fixed |
 | **CC4.1** | Monitoring — data retention | None | No retention policy or right-to-erasure flow (L-1) | Low |
 
 ---
