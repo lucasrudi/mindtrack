@@ -28,6 +28,7 @@ describe('AiConsentDialog', () => {
 
   it('renders the dialog with consent text', () => {
     const wrapper = mount(AiConsentDialog)
+    expect(wrapper.find('dialog[open]').exists()).toBe(true)
     expect(wrapper.text()).toContain('AI Coaching Consent')
     expect(wrapper.text()).toContain('Claude API')
   })

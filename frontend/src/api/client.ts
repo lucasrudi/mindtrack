@@ -15,7 +15,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       globalThis.location.href = '/login'
     }
-    return Promise.reject(error)
+    throw error
   },
 )
 

@@ -1,13 +1,14 @@
 <template>
-  <div
-    class="consent-dialog-overlay"
-    role="dialog"
-    aria-modal="true"
+  <dialog
+    class="consent-dialog"
+    open
     aria-labelledby="consent-title"
+    aria-describedby="consent-description"
+    @cancel.prevent="onDecline"
   >
-    <div class="consent-dialog">
+    <div class="consent-dialog__content">
       <h2 id="consent-title">AI Coaching Consent</h2>
-      <p>
+      <p id="consent-description">
         MindTrack uses the
         <a href="https://www.anthropic.com/claude" target="_blank" rel="noopener noreferrer"
           >Claude API</a
@@ -32,13 +33,13 @@
         for details on how your data is handled.
       </p>
       <div class="consent-dialog__actions">
-        <button class="btn btn--secondary" @click="onDecline">Decline</button>
-        <button class="btn btn--primary" :disabled="saving" @click="onAccept">
+        <button type="button" class="btn btn--secondary" @click="onDecline">Decline</button>
+        <button type="button" class="btn btn--primary" :disabled="saving" @click="onAccept">
           {{ saving ? 'Saving...' : 'Accept' }}
         </button>
       </div>
     </div>
-  </div>
+  </dialog>
 </template>
 
 <script setup lang="ts">
@@ -69,22 +70,22 @@ function onDecline() {
 </script>
 
 <style scoped>
-.consent-dialog-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.consent-dialog {
+  border: none;
+  background: white;
+  border-radius: 8px;
+  max-width: 540px;
+  width: min(90vw, 540px);
+  padding: 0;
   z-index: 1000;
 }
 
-.consent-dialog {
-  background: white;
-  border-radius: 8px;
+.consent-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.consent-dialog__content {
   padding: 2rem;
-  max-width: 540px;
-  width: 90%;
 }
 
 .consent-dialog h2 {

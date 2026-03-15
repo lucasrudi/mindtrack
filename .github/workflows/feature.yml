@@ -44,6 +44,12 @@ jobs:
           name: backend-coverage
           path: backend/target/site/jacoco/
 
+      - name: Upload backend classes for Sonar
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v7.6.2
+        with:
+          name: backend-classes
+          path: backend/target/classes/
+
   frontend:
     name: Frontend Build & Test
     runs-on: ubuntu-latest
@@ -164,6 +170,13 @@ jobs:
         with:
           name: backend-coverage
           path: backend/target/site/jacoco/
+
+      - name: Download backend classes
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v8.3.0
+        if: needs.backend.result == 'success'
+        with:
+          name: backend-classes
+          path: backend/target/classes/
 
       - name: Download frontend coverage
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v8.3.0
