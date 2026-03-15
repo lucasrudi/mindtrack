@@ -54,6 +54,7 @@ resource "aws_lambda_function" "api" {
       SPRING_PROFILES_ACTIVE = "prod"
       DB_URL                 = "jdbc:mysql://${var.rds_endpoint}:${var.rds_port}/mindtrack"
       SECRETS_ARNS           = join(",", var.secrets_arns)
+      ENCRYPTION_KEY_ARN     = var.encryption_key_arn
     }
   }
 

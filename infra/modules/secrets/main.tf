@@ -4,6 +4,17 @@ resource "aws_kms_key" "secrets" {
   enable_key_rotation     = true
 }
 
+resource "aws_kms_key" "app_encryption" {
+  description             = "${var.name_prefix} application-level PII column encryption key"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+}
+
+resource "aws_kms_alias" "app_encryption" {
+  name          = "alias/${var.name_prefix}-app-encryption"
+  target_key_id = aws_kms_key.app_encryption.key_id
+}
+
 resource "aws_secretsmanager_secret" "claude_api_key" {
   name        = "${var.name_prefix}/claude-api-key"
   description = "Anthropic Claude API key"

@@ -11,12 +11,13 @@ module "vpc" {
 module "iam" {
   source = "./modules/iam"
 
-  name_prefix          = local.name_prefix
-  audio_bucket_arn     = module.s3.audio_bucket_arn
-  secrets_arns         = module.secrets.secret_arns
-  github_org           = var.github_org
-  github_repo          = var.github_repo
-  create_oidc_provider = var.create_oidc_provider
+  name_prefix            = local.name_prefix
+  audio_bucket_arn       = module.s3.audio_bucket_arn
+  secrets_arns           = module.secrets.secret_arns
+  app_encryption_key_arn = module.secrets.app_encryption_key_arn
+  github_org             = var.github_org
+  github_repo            = var.github_repo
+  create_oidc_provider   = var.create_oidc_provider
 }
 
 module "s3" {
@@ -41,15 +42,16 @@ module "rds" {
 module "lambda" {
   source = "./modules/lambda"
 
-  name_prefix    = local.name_prefix
-  memory_size    = var.lambda_memory_size
-  role_arn       = module.iam.lambda_role_arn
-  rds_endpoint   = module.rds.cluster_endpoint
-  rds_port       = module.rds.cluster_port
-  secrets_arns   = module.secrets.secret_arns
-  vpc_id         = module.vpc.vpc_id
-  subnet_ids     = module.vpc.private_subnet_ids
-  vpc_cidr_block = module.vpc.vpc_cidr_block
+  name_prefix        = local.name_prefix
+  memory_size        = var.lambda_memory_size
+  role_arn           = module.iam.lambda_role_arn
+  rds_endpoint       = module.rds.cluster_endpoint
+  rds_port           = module.rds.cluster_port
+  secrets_arns       = module.secrets.secret_arns
+  encryption_key_arn = module.secrets.app_encryption_key_arn
+  vpc_id             = module.vpc.vpc_id
+  subnet_ids         = module.vpc.private_subnet_ids
+  vpc_cidr_block     = module.vpc.vpc_cidr_block
 }
 
 module "api_gateway" {
