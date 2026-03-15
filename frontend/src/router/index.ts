@@ -1,154 +1,105 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteMeta, RouteRecordSingleView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfileStore } from '@/stores/profile'
+
+const publicRoute = (
+  path: string,
+  name: string,
+  component: RouteRecordSingleView['component'],
+): RouteRecordSingleView => ({
+  path,
+  name,
+  component,
+  meta: { requiresAuth: false },
+})
+
+const protectedRoute = (
+  path: string,
+  name: string,
+  component: RouteRecordSingleView['component'],
+  meta: RouteMeta = {},
+): RouteRecordSingleView => ({
+  path,
+  name,
+  component,
+  meta: { requiresAuth: true, ...meta },
+})
+
+function shouldRedirectToDashboard(
+  requiresAdmin: unknown,
+  isAdmin: boolean,
+  requiresTherapist: unknown,
+  isTherapist: boolean,
+): boolean {
+  return (Boolean(requiresAdmin) && !isAdmin) || (Boolean(requiresTherapist) && !isTherapist)
+}
+
+function shouldRedirectToOnboarding(
+  requiresAuth: unknown,
+  isAuthenticated: boolean,
+  routeName: string | symbol | null | undefined,
+  onboardingCompleted: boolean | undefined,
+): boolean {
+  return (
+    Boolean(requiresAuth) &&
+    isAuthenticated &&
+    routeName !== 'onboarding' &&
+    onboardingCompleted === false
+  )
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/',
-      name: 'landing',
-      component: () => import('@/views/LandingView.vue'),
-      meta: { requiresAuth: false },
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/LoginView.vue'),
-      meta: { requiresAuth: false },
-    },
-    {
-      path: '/dashboard',
-      name: 'dashboard',
-      component: () => import('@/views/DashboardView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/interviews',
-      name: 'interviews',
-      component: () => import('@/views/InterviewsView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/interviews/new',
-      name: 'interview-new',
-      component: () => import('@/views/InterviewFormView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/interviews/:id',
-      name: 'interview-detail',
-      component: () => import('@/views/InterviewDetailView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/interviews/:id/edit',
-      name: 'interview-edit',
-      component: () => import('@/views/InterviewFormView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/activities',
-      name: 'activities',
-      component: () => import('@/views/ActivitiesView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/activities/new',
-      name: 'activity-new',
-      component: () => import('@/views/ActivityFormView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/activities/:id/edit',
-      name: 'activity-edit',
-      component: () => import('@/views/ActivityFormView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/journal',
-      name: 'journal',
-      component: () => import('@/views/JournalView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/journal/new',
-      name: 'journal-new',
-      component: () => import('@/views/JournalFormView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/journal/:id',
-      name: 'journal-detail',
-      component: () => import('@/views/JournalDetailView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/journal/:id/edit',
-      name: 'journal-edit',
-      component: () => import('@/views/JournalFormView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/goals',
-      name: 'goals',
-      component: () => import('@/views/GoalsView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/goals/new',
-      name: 'goal-new',
-      component: () => import('@/views/GoalFormView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/goals/:id',
-      name: 'goal-detail',
-      component: () => import('@/views/GoalDetailView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/goals/:id/edit',
-      name: 'goal-edit',
-      component: () => import('@/views/GoalFormView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/chat',
-      name: 'chat',
-      component: () => import('@/views/ChatView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/profile',
-      name: 'profile',
-      component: () => import('@/views/ProfileView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/admin',
-      name: 'admin',
-      component: () => import('@/views/AdminView.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true },
-    },
-    {
-      path: '/therapist',
-      name: 'therapist',
-      component: () => import('@/views/TherapistView.vue'),
-      meta: { requiresAuth: true, requiresTherapist: true },
-    },
-    {
-      path: '/onboarding',
-      name: 'onboarding',
-      component: () => import('@/views/OnboardingView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/invite/:token',
-      name: 'invite',
-      component: () => import('@/views/InviteView.vue'),
-      meta: { requiresAuth: false },
-    },
+    publicRoute('/', 'landing', () => import('@/views/LandingView.vue')),
+    publicRoute('/login', 'login', () => import('@/views/LoginView.vue')),
+    protectedRoute('/dashboard', 'dashboard', () => import('@/views/DashboardView.vue')),
+    protectedRoute('/interviews', 'interviews', () => import('@/views/InterviewsView.vue')),
+    protectedRoute(
+      '/interviews/new',
+      'interview-new',
+      () => import('@/views/InterviewFormView.vue'),
+    ),
+    protectedRoute(
+      '/interviews/:id',
+      'interview-detail',
+      () => import('@/views/InterviewDetailView.vue'),
+    ),
+    protectedRoute(
+      '/interviews/:id/edit',
+      'interview-edit',
+      () => import('@/views/InterviewFormView.vue'),
+    ),
+    protectedRoute('/activities', 'activities', () => import('@/views/ActivitiesView.vue')),
+    protectedRoute('/activities/new', 'activity-new', () => import('@/views/ActivityFormView.vue')),
+    protectedRoute(
+      '/activities/:id/edit',
+      'activity-edit',
+      () => import('@/views/ActivityFormView.vue'),
+    ),
+    protectedRoute('/journal', 'journal', () => import('@/views/JournalView.vue')),
+    protectedRoute('/journal/new', 'journal-new', () => import('@/views/JournalFormView.vue')),
+    protectedRoute('/journal/:id', 'journal-detail', () => import('@/views/JournalDetailView.vue')),
+    protectedRoute(
+      '/journal/:id/edit',
+      'journal-edit',
+      () => import('@/views/JournalFormView.vue'),
+    ),
+    protectedRoute('/goals', 'goals', () => import('@/views/GoalsView.vue')),
+    protectedRoute('/goals/new', 'goal-new', () => import('@/views/GoalFormView.vue')),
+    protectedRoute('/goals/:id', 'goal-detail', () => import('@/views/GoalDetailView.vue')),
+    protectedRoute('/goals/:id/edit', 'goal-edit', () => import('@/views/GoalFormView.vue')),
+    protectedRoute('/chat', 'chat', () => import('@/views/ChatView.vue')),
+    protectedRoute('/profile', 'profile', () => import('@/views/ProfileView.vue')),
+    protectedRoute('/admin', 'admin', () => import('@/views/AdminView.vue'), {
+      requiresAdmin: true,
+    }),
+    protectedRoute('/therapist', 'therapist', () => import('@/views/TherapistView.vue'), {
+      requiresTherapist: true,
+    }),
+    protectedRoute('/onboarding', 'onboarding', () => import('@/views/OnboardingView.vue')),
+    publicRoute('/invite/:token', 'invite', () => import('@/views/InviteView.vue')),
   ],
 })
 
@@ -160,11 +111,14 @@ router.beforeEach((to) => {
     return { name: 'landing' }
   }
 
-  if (to.meta.requiresAdmin && !auth.isAdmin) {
-    return { name: 'dashboard' }
-  }
-
-  if (to.meta.requiresTherapist && !auth.isTherapist) {
+  if (
+    shouldRedirectToDashboard(
+      to.meta.requiresAdmin,
+      auth.isAdmin,
+      to.meta.requiresTherapist,
+      auth.isTherapist,
+    )
+  ) {
     return { name: 'dashboard' }
   }
 
@@ -173,11 +127,12 @@ router.beforeEach((to) => {
   }
 
   if (
-    to.meta.requiresAuth &&
-    auth.isAuthenticated &&
-    to.name !== 'onboarding' &&
-    profileStore.profile &&
-    !profileStore.profile.onboardingCompleted
+    shouldRedirectToOnboarding(
+      to.meta.requiresAuth,
+      auth.isAuthenticated,
+      to.name,
+      profileStore.profile?.onboardingCompleted,
+    )
   ) {
     return { name: 'onboarding' }
   }

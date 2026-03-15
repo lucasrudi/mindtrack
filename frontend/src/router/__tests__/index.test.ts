@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createApp } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
+import { useProfileStore } from '@/stores/profile'
 import router from '../index'
 
 // Ensure localStorage is available in test environment
@@ -90,6 +91,72 @@ describe('Router', () => {
     await router.push('/journal')
     await router.isReady()
     expect(router.currentRoute.value.name).toBe('journal')
+  })
+
+  it('redirects non-admin users away from admin routes', async () => {
+    const auth = useAuthStore()
+    auth.setUser({
+      id: '1',
+      email: 'test@test.com',
+      name: 'Test',
+      role: 'USER',
+      isPatient: true,
+      isTherapist: false,
+    })
+
+    await router.push('/admin')
+    await router.isReady()
+    expect(router.currentRoute.value.name).toBe('dashboard')
+  })
+
+  it('redirects non-therapists away from therapist routes', async () => {
+    const auth = useAuthStore()
+    auth.setUser({
+      id: '1',
+      email: 'test@test.com',
+      name: 'Test',
+      role: 'USER',
+      isPatient: true,
+      isTherapist: false,
+    })
+
+    await router.push('/therapist')
+    await router.isReady()
+    expect(router.currentRoute.value.name).toBe('dashboard')
+  })
+
+  it('redirects authenticated users with incomplete onboarding to onboarding', async () => {
+    const auth = useAuthStore()
+    const profileStore = useProfileStore()
+
+    auth.setUser({
+      id: '1',
+      email: 'test@test.com',
+      name: 'Test',
+      role: 'USER',
+      isPatient: true,
+      isTherapist: false,
+    })
+    profileStore.profile = {
+      id: 1,
+      userId: 1,
+      displayName: null,
+      avatarUrl: null,
+      timezone: null,
+      notificationPrefs: null,
+      telegramChatId: null,
+      whatsappNumber: null,
+      tutorialCompleted: false,
+      onboardingCompleted: false,
+      surveyCompleted: false,
+      isPatient: true,
+      isTherapist: false,
+      aiConsentGiven: false,
+    }
+
+    await router.push('/chat')
+    await router.isReady()
+    expect(router.currentRoute.value.name).toBe('onboarding')
   })
 
   it('has all expected protected routes', () => {

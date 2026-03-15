@@ -36,7 +36,7 @@ api.interceptors.response.use(
       auth.logout()
       router.push('/')
     }
-    return Promise.reject(error)
+    throw error
   },
 )
 
