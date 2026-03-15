@@ -15,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -55,7 +54,7 @@ class MessagingServiceTest {
         UserProfile profile = new UserProfile();
         profile.setUserId(1L);
         profile.setTelegramChatId("12345");
-        when(userProfileRepository.findByTelegramChatId("12345")).thenReturn(Optional.of(profile));
+        when(userProfileRepository.findAllByTelegramChatIdNotNull()).thenReturn(List.of(profile));
 
         ChatResponse response = new ChatResponse(1L, 10L, "You're doing great!", false, 100);
         when(conversationService.chatWithChannel(eq(1L), any(ChatRequest.class), eq(Channel.TELEGRAM)))
@@ -69,7 +68,7 @@ class MessagingServiceTest {
     @Test
     void shouldReplyUnlinkedForUnknownTelegramChat() {
         TelegramUpdate update = createTelegramUpdate("99999", "Hello");
-        when(userProfileRepository.findByTelegramChatId("99999")).thenReturn(Optional.empty());
+        when(userProfileRepository.findAllByTelegramChatIdNotNull()).thenReturn(List.of());
 
         messagingService.handleTelegramMessage(update);
 
@@ -104,7 +103,8 @@ class MessagingServiceTest {
 
         UserProfile profile = new UserProfile();
         profile.setUserId(1L);
-        when(userProfileRepository.findByTelegramChatId("12345")).thenReturn(Optional.of(profile));
+        profile.setTelegramChatId("12345");
+        when(userProfileRepository.findAllByTelegramChatIdNotNull()).thenReturn(List.of(profile));
         when(conversationService.chatWithChannel(eq(1L), any(ChatRequest.class), eq(Channel.TELEGRAM)))
                 .thenThrow(new RuntimeException("AI error"));
 
@@ -122,7 +122,7 @@ class MessagingServiceTest {
         UserProfile profile = new UserProfile();
         profile.setUserId(2L);
         profile.setWhatsappNumber("+1234567890");
-        when(userProfileRepository.findByWhatsappNumber("+1234567890")).thenReturn(Optional.of(profile));
+        when(userProfileRepository.findAllByWhatsappNumberNotNull()).thenReturn(List.of(profile));
 
         ChatResponse response = new ChatResponse(2L, 20L, "Great progress!", false, 80);
         when(conversationService.chatWithChannel(eq(2L), any(ChatRequest.class), eq(Channel.WHATSAPP)))
@@ -136,7 +136,7 @@ class MessagingServiceTest {
     @Test
     void shouldReplyUnlinkedForUnknownWhatsAppNumber() {
         WhatsAppWebhook webhook = createWhatsAppWebhook("+9999999999", "Hello");
-        when(userProfileRepository.findByWhatsappNumber("+9999999999")).thenReturn(Optional.empty());
+        when(userProfileRepository.findAllByWhatsappNumberNotNull()).thenReturn(List.of());
 
         messagingService.handleWhatsAppMessage(webhook);
 
@@ -159,7 +159,8 @@ class MessagingServiceTest {
 
         UserProfile profile = new UserProfile();
         profile.setUserId(2L);
-        when(userProfileRepository.findByWhatsappNumber("+1234567890")).thenReturn(Optional.of(profile));
+        profile.setWhatsappNumber("+1234567890");
+        when(userProfileRepository.findAllByWhatsappNumberNotNull()).thenReturn(List.of(profile));
         when(conversationService.chatWithChannel(eq(2L), any(ChatRequest.class), eq(Channel.WHATSAPP)))
                 .thenThrow(new RuntimeException("AI error"));
 
