@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 /**
  * JPA entity representing a user's profile settings.
@@ -60,6 +61,9 @@ public class UserProfile {
 
     @Column(name = "ai_consent_given", nullable = false)
     private boolean aiConsentGiven = false;
+
+    @Column(name = "anonymized_at")
+    private LocalDateTime anonymizedAt;
 
     public UserProfile() {
     }
@@ -174,5 +178,13 @@ public class UserProfile {
 
     public void setAiConsentGiven(boolean aiConsentGiven) {
         this.aiConsentGiven = aiConsentGiven;
+    }
+
+    public LocalDateTime getAnonymizedAt() {
+        return anonymizedAt;
+    }
+
+    public void setAnonymizedAt(LocalDateTime anonymizedAt) {
+        this.anonymizedAt = anonymizedAt;
     }
 }

@@ -2,9 +2,11 @@
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProfileStore, type ProfileForm } from '@/stores/profile'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const store = useProfileStore()
+const authStore = useAuthStore()
 const roleChanging = ref(false)
 const roleError = ref<string | null>(null)
 const roleSuccess = ref(false)
@@ -179,6 +181,29 @@ async function replayTutorial() {
     router.push('/dashboard')
   } catch {
     // Error handled by store
+  }
+}
+
+const showDeleteConfirm = ref(false)
+const deleteConfirmText = ref('')
+const deleting = ref(false)
+const deleteError = ref<string | null>(null)
+
+function cancelDelete() {
+  showDeleteConfirm.value = false
+  deleteConfirmText.value = ''
+}
+
+async function handleDeleteAccount() {
+  if (deleteConfirmText.value !== 'DELETE') return
+  deleting.value = true
+  deleteError.value = null
+  try {
+    await authStore.deleteAccount()
+    router.push('/login')
+  } catch {
+    deleteError.value = 'Could not delete account. Please try again.'
+    deleting.value = false
   }
 }
 </script>
@@ -522,6 +547,59 @@ async function replayTutorial() {
           {{ store.saving ? 'Saving...' : 'Save Changes' }}
         </button>
       </div>
+
+      <!-- Danger Zone -->
+      <section class="form-section danger-zone">
+        <h2>Danger Zone</h2>
+        <p class="field-description">
+          Permanently delete your account and all associated data. This action cannot be undone.
+          Your data will be anonymised immediately and permanently removed after 30 days.
+        </p>
+        <button
+          v-if="!showDeleteConfirm"
+          type="button"
+          class="btn btn-danger-outline"
+          @click="showDeleteConfirm = true"
+        >
+          Delete Account
+        </button>
+
+        <div v-if="showDeleteConfirm" class="delete-confirm-panel">
+          <p class="delete-warning">
+            This will immediately anonymise your account and schedule all data for deletion. You
+            will be logged out and will not be able to log back in. Type <strong>DELETE</strong> to
+            confirm.
+          </p>
+          <div v-if="deleteError" class="error-message">
+            <p>{{ deleteError }}</p>
+          </div>
+          <div class="delete-confirm-actions">
+            <input
+              v-model="deleteConfirmText"
+              type="text"
+              class="form-input delete-confirm-input"
+              placeholder="Type DELETE to confirm"
+              :disabled="deleting"
+            />
+            <button
+              type="button"
+              class="btn btn-danger"
+              :disabled="deleteConfirmText !== 'DELETE' || deleting"
+              @click="handleDeleteAccount"
+            >
+              {{ deleting ? 'Deleting...' : 'Confirm Delete' }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              :disabled="deleting"
+              @click="cancelDelete"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </section>
     </form>
   </div>
 </template>
@@ -924,5 +1002,57 @@ async function replayTutorial() {
 
 .metric-slider {
   width: 100%;
+}
+
+.danger-zone {
+  border-color: #fecaca;
+}
+
+.danger-zone h2 {
+  color: var(--color-error);
+  border-bottom-color: #fecaca;
+}
+
+.btn-danger-outline {
+  background: transparent;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--border-radius);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-danger-outline:hover {
+  background: #fef2f2;
+}
+
+.delete-confirm-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.delete-warning {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--border-radius);
+}
+
+.delete-confirm-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.delete-confirm-input {
+  max-width: 220px;
 }
 </style>
