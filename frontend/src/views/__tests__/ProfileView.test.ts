@@ -84,7 +84,7 @@ describe('ProfileView', () => {
 
     expect(wrapper.find('.profile-form').exists()).toBe(true)
     const sections = wrapper.findAll('.form-section')
-    expect(sections).toHaveLength(7)
+    expect(sections).toHaveLength(8)
   })
 
   it('populates form with profile data', async () => {

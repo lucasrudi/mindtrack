@@ -13,9 +13,9 @@ MindTrack processes Protected Health Information (PHI) and Personally Identifiab
 
 This audit identified **6 Critical**, **13 High**, **16 Medium**, and **7 Low** findings. The most severe issues include an IDOR vulnerability exposing any user's mental health coaching conversations, a CORS wildcard on API Gateway, JWT delivered via URL query parameter, a hardcoded secret committed to the repo, missing database deletion protection, absent HTTP security headers, and no human code review gate before production deploy.
 
-**Remediation status (2026-03-14):** 6/6 Critical fixed · 12/13 High fixed, 1 deferred · 13/16 Medium fixed, 3 deferred · 4/7 Low fixed, 3 deferred.
+**Remediation status (2026-03-15):** 6/6 Critical fixed · 12/13 High fixed, 1 deferred · 13/16 Medium fixed, 3 deferred · 5/7 Low fixed, 2 deferred.
 
-**Overall SOC2 readiness: In progress.** All Critical findings have been remediated (PRs #97, #99). All High-severity findings except H-5 (rate limiting) are now fixed. Remaining deferred items (H-5, M-5, L-1, L-3, L-4) have documented remediation plans. Engaging an auditor is now a realistic near-term goal.
+**Overall SOC2 readiness: In progress.** All Critical findings have been remediated (PRs #97, #99). All High-severity findings except H-5 (rate limiting) are now fixed. Remaining deferred items (H-5, M-5, L-3, L-4) have documented remediation plans. Engaging an auditor is now a realistic near-term goal.
 
 ---
 
@@ -465,11 +465,11 @@ graph TD
 
 #### L-1: No Data Retention or Deletion Policy
 
-- **Status: DEFERRED — requires privacy policy, delete-account endpoint, and jurisdiction decision**
+- **Status: FIXED — PR #166**
 - **Severity:** Low
 - **SOC2 Controls:** CC4.1 (Privacy — data retention)
 - **Description:** No scheduled job, TTL, or policy governs how long user data is retained after account closure. Mental health records accumulate indefinitely. This conflicts with GDPR's right to erasure and CCPA's deletion rights.
-- **Recommended Fix:** Implement a data retention policy. Add a "delete my account" endpoint that cascades deletion of all user-linked PHI. Define retention periods per data type and document them in a Privacy Policy.
+- **Fix:** Implemented GDPR Art.17 / CCPA §1798.105 right-to-erasure via two-phase deletion: (1) `DELETE /api/auth/account` immediately pseudonymises all PII (email, name, googleId; profile display name, Telegram/WhatsApp IDs) and disables the account + bumps tokenVersion to revoke all sessions; (2) a nightly `@Scheduled` job hard-deletes accounts after a 30-day retention window (satisfying HIPAA 45 CFR §164.530 minimum retention). Audit logs are retained without PII. EventBridge rule added for the nightly Lambda invocation. Frontend Danger Zone section added to Profile view with typed confirmation (`DELETE`) guard.
 
 ---
 
@@ -531,7 +531,7 @@ graph TD
 | **CC9.2** | Third-party risk management | Snyk scanning; explicit user consent for PHI sent to Claude API (PR #149) | No remaining high-priority gaps | High → Fixed |
 | **CC2.2** | Privacy communication | User consent gate for AI data processing (PR #149) | No remaining high-priority gaps | High → Fixed |
 | **A1.2** | Availability — backup and recovery | Aurora 30-day backup retention (PR #99); deletion protection + final snapshot (PR #99) | No remaining high-priority gaps | Critical → Fixed |
-| **CC4.1** | Monitoring — data retention | None | No retention policy or right-to-erasure flow (L-1) | Low |
+| **CC4.1** | Monitoring — data retention | 30-day pseudonymisation + hard-delete lifecycle; `DELETE /api/auth/account`; nightly EventBridge job (PR #166) | None | Low → Fixed |
 
 ---
 
@@ -777,7 +777,7 @@ The following findings were identified by deep-dive analysis of the AI service, 
 
 | ID | Task |
 |----|------|
-| L-1 | Implement data retention policy and right-to-erasure endpoint | (**DEFERRED**) |
+| L-1 | Implement data retention policy and right-to-erasure endpoint | (**DONE — PR #166**) |
 | L-2 | Reduce JWT expiry to 1 hour; add refresh token rotation | (**DEFERRED — fold into M-10**) |
 | L-3 | Evaluate geo-restriction on CloudFront; implement if jurisdictionally required | (**DEFERRED**) |
 | L-4 | Register custom domain; configure ACM certificate on CloudFront | (**DEFERRED**) |
