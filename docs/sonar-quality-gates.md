@@ -45,7 +45,10 @@ The SonarCloud analysis runs in two pipelines:
 - **`feature.yml`** — on every push to `feature/**`, `bugfix/**`, `chore/**`, and on PRs to `main`
 - **`verify.yml`** — on every push to `main`
 
-Both pipelines consume coverage artifacts from prior build steps (JaCoCo for backend, lcov for frontend) before uploading to SonarCloud.
+Both pipelines consume coverage artifacts from prior build steps before uploading to SonarCloud:
+
+- backend JaCoCo XML: `backend/target/site/jacoco/jacoco.xml`
+- frontend LCOV: `frontend/coverage/lcov.info`
 
 The `SONAR_TOKEN` secret must be configured in GitHub Actions settings (managed via Terraform — see `infra/modules/github/`).
 
