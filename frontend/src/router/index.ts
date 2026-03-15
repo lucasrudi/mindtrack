@@ -1,13 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import type { RouteRecordRaw } from 'vue-router'
+import type { RouteMeta, RouteRecordSingleView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfileStore } from '@/stores/profile'
 
 const publicRoute = (
   path: string,
   name: string,
-  component: RouteRecordRaw['component'],
-): RouteRecordRaw => ({
+  component: RouteRecordSingleView['component'],
+): RouteRecordSingleView => ({
   path,
   name,
   component,
@@ -17,9 +17,9 @@ const publicRoute = (
 const protectedRoute = (
   path: string,
   name: string,
-  component: RouteRecordRaw['component'],
-  meta: NonNullable<RouteRecordRaw['meta']> = {},
-): RouteRecordRaw => ({
+  component: RouteRecordSingleView['component'],
+  meta: RouteMeta = {},
+): RouteRecordSingleView => ({
   path,
   name,
   component,
