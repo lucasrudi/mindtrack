@@ -3,8 +3,8 @@
 ## Backend
 
 ```bash
-# Compile, checkstyle, spotbugs, unit tests
-cd backend && mvn verify
+# Compile, checkstyle, spotbugs, unit tests, and JaCoCo coverage
+cd backend && mvn clean verify
 ```
 
 ## Frontend
@@ -17,8 +17,13 @@ cd frontend && npm run lint
 cd frontend && npm run test:unit
 
 # Vitest unit tests with coverage
-cd frontend && npm run test:unit -- --run --coverage
+cd frontend && npm run test:coverage
 ```
+
+Coverage reports generated for SonarCloud:
+
+- Backend: `backend/target/site/jacoco/jacoco.xml`
+- Frontend: `frontend/coverage/lcov.info`
 
 ## Infrastructure
 
