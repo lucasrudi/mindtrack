@@ -6,5 +6,7 @@ package com.mindtrack.audit.model;
 public enum AuditAction {
     READ,
     WRITE,
-    DELETE
+    DELETE,
+    ACCOUNT_DELETION_REQUESTED,
+    ACCOUNT_HARD_DELETED
 }

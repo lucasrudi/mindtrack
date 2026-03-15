@@ -7,6 +7,7 @@ import com.mindtrack.auth.dto.SelfRolesRequest;
 import com.mindtrack.auth.dto.TherapistRegistrationRedeemRequest;
 import com.mindtrack.auth.dto.UserInfo;
 import com.mindtrack.auth.repository.UserRepository;
+import com.mindtrack.auth.service.AccountDeletionService;
 import com.mindtrack.auth.service.JwtService;
 import com.mindtrack.auth.service.RefreshTokenService;
 import com.mindtrack.auth.service.TherapistRegistrationService;
@@ -14,6 +15,7 @@ import com.mindtrack.auth.service.UserService;
 import com.mindtrack.common.model.User;
 import com.mindtrack.profile.model.UserProfile;
 import com.mindtrack.profile.service.ProfileService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,6 +47,7 @@ public class AuthController {
     private final TherapistRegistrationService therapistRegistrationService;
     private final RefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
+    private final AccountDeletionService accountDeletionService;
     private final boolean cookieSecure;
 
     public AuthController(UserService userService, JwtService jwtService,
@@ -51,6 +55,7 @@ public class AuthController {
                           TherapistRegistrationService therapistRegistrationService,
                           RefreshTokenService refreshTokenService,
                           UserRepository userRepository,
+                          AccountDeletionService accountDeletionService,
                           @Value("${mindtrack.auth.cookie-secure:true}") boolean cookieSecure) {
         this.userService = userService;
         this.jwtService = jwtService;
@@ -58,6 +63,7 @@ public class AuthController {
         this.therapistRegistrationService = therapistRegistrationService;
         this.refreshTokenService = refreshTokenService;
         this.userRepository = userRepository;
+        this.accountDeletionService = accountDeletionService;
         this.cookieSecure = cookieSecure;
     }
 
@@ -160,6 +166,28 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(jwt, newRefreshToken, user.getEmail(),
                 user.getName(), user.getRole().getName(),
                 profile.isPatient(), profile.isTherapist()));
+    }
+
+    /**
+     * Immediately pseudonymises all PII for the authenticated user (GDPR Art.17 / CCPA §1798.105)
+     * and schedules the account for permanent deletion after 30 days. Clears the auth cookie so
+     * the client is logged out before the response returns.
+     */
+    @DeleteMapping("/account")
+    public ResponseEntity<Void> deleteAccount(Authentication authentication,
+                                              HttpServletRequest request,
+                                              HttpServletResponse response) {
+        Long userId = (Long) authentication.getPrincipal();
+        accountDeletionService.requestDeletion(userId, request.getRemoteAddr());
+        ResponseCookie clearCookie = ResponseCookie.from(OAuth2LoginSuccessHandler.AUTH_COOKIE_NAME, "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, clearCookie.toString());
+        return ResponseEntity.noContent().build();
     }
 
     private UserInfo toUserInfo(User user) {

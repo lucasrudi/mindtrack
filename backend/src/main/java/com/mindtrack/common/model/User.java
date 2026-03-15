@@ -47,6 +47,12 @@ public class User {
     @Column(name = "token_version", nullable = false)
     private int tokenVersion = 0;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @Column(name = "deletion_scheduled_at")
+    private LocalDateTime deletionScheduledAt;
+
     public User() {
     }
 
@@ -120,5 +126,21 @@ public class User {
 
     public void setTokenVersion(int tokenVersion) {
         this.tokenVersion = tokenVersion;
+    }
+
+    public LocalDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public LocalDateTime getDeletionScheduledAt() {
+        return deletionScheduledAt;
+    }
+
+    public void setDeletionScheduledAt(LocalDateTime deletionScheduledAt) {
+        this.deletionScheduledAt = deletionScheduledAt;
     }
 }
