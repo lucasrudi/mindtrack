@@ -73,8 +73,13 @@ public class MessagingService {
             return;
         }
 
-        // Resolve user by Telegram chat ID
-        Optional<UserProfile> profileOpt = userProfileRepository.findByTelegramChatId(chatId);
+        // Resolve user by Telegram chat ID.
+        // The column is KMS-encrypted, so exact-match DB queries do not work; we load all
+        // linked profiles and compare against the decrypted value in application code.
+        Optional<UserProfile> profileOpt = userProfileRepository.findAllByTelegramChatIdNotNull()
+                .stream()
+                .filter(p -> chatId.equals(p.getTelegramChatId()))
+                .findFirst();
         if (profileOpt.isEmpty()) {
             telegramService.sendMessage(chatId,
                     "Your Telegram account is not linked to MindTrack. "
@@ -133,8 +138,11 @@ public class MessagingService {
 
             LOG.info("WhatsApp message received from phone={}", phoneNumber);
 
-            // Resolve user by WhatsApp number
-            Optional<UserProfile> profileOpt = userProfileRepository.findByWhatsappNumber(phoneNumber);
+            // Resolve user by WhatsApp number; see Telegram lookup above for encryption rationale.
+            Optional<UserProfile> profileOpt = userProfileRepository.findAllByWhatsappNumberNotNull()
+                    .stream()
+                    .filter(p -> phoneNumber.equals(p.getWhatsappNumber()))
+                    .findFirst();
             if (profileOpt.isEmpty()) {
                 whatsAppService.sendMessage(phoneNumber,
                         "Your WhatsApp number is not linked to MindTrack. "

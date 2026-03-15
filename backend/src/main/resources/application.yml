@@ -57,6 +57,8 @@ sentry:
     - org.springframework.security.core.AuthenticationException
 
 mindtrack:
+  encryption:
+    key-arn: ${ENCRYPTION_KEY_ARN:}
   auth:
     jwt-secret: ${JWT_SECRET}
     jwt-expiration-ms: ${JWT_EXPIRATION_MS:3600000}

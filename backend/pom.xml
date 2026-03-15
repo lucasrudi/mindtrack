@@ -127,6 +127,12 @@
             <artifactId>spring-cloud-aws-starter-s3</artifactId>
         </dependency>
 
+        <!-- AWS KMS (version managed by spring-cloud-aws-dependencies BOM) -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>kms</artifactId>
+        </dependency>
+
         <!-- Observability: OpenTelemetry + Micrometer -->
         <dependency>
             <groupId>io.micrometer</groupId>

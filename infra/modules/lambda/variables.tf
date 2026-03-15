@@ -42,3 +42,8 @@ variable "vpc_cidr_block" {
   description = "VPC CIDR block for the MySQL egress rule"
   type        = string
 }
+
+variable "encryption_key_arn" {
+  description = "ARN of the KMS key for application-level PII column encryption"
+  type        = string
+}
