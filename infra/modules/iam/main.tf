@@ -176,6 +176,17 @@ data "aws_iam_policy_document" "lambda_permissions" {
     resources = var.secrets_arns
   }
 
+  # KMS — application-level PII column encryption / decryption
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:GenerateDataKey",
+    ]
+    resources = [var.app_encryption_key_arn]
+  }
+
   # AWS Transcribe
   statement {
     effect = "Allow"

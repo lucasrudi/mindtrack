@@ -1,6 +1,8 @@
 package com.mindtrack.profile.model;
 
+import com.mindtrack.common.service.KmsEncryptionConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -33,10 +35,12 @@ public class UserProfile {
     @Column(name = "notification_prefs", columnDefinition = "JSON")
     private String notificationPrefs;
 
-    @Column(name = "telegram_chat_id", length = 100)
+    @Convert(converter = KmsEncryptionConverter.class)
+    @Column(name = "telegram_chat_id", length = 512)
     private String telegramChatId;
 
-    @Column(name = "whatsapp_number", length = 20)
+    @Convert(converter = KmsEncryptionConverter.class)
+    @Column(name = "whatsapp_number", length = 512)
     private String whatsappNumber;
 
     @Column(name = "tutorial_completed", nullable = false)
