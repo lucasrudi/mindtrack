@@ -34,6 +34,10 @@ resource "github_repository" "this" {
 
   vulnerability_alerts = true
 
+  pages {
+    build_type = "workflow"
+  }
+
   security_and_analysis {
     secret_scanning {
       status = var.enable_secret_scanning ? "enabled" : "disabled"

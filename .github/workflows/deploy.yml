@@ -72,6 +72,7 @@ jobs:
           LAMBDA_FUNCTION_NAME: mindtrack-prod-api
           SENTRY_SECRET_ID: mindtrack-prod/sentry_dsn
         run: |
+          ENV_FILE="$(mktemp)"
           CURRENT_ENV_JSON=$(aws lambda get-function-configuration \
             --function-name "$LAMBDA_FUNCTION_NAME" \
             --query 'Environment.Variables' \
@@ -80,18 +81,20 @@ jobs:
             --secret-id "$SENTRY_SECRET_ID" \
             --query 'SecretString' \
             --output text)
-          MERGED_ENV_JSON=$(CURRENT_ENV_JSON="$CURRENT_ENV_JSON" SENTRY_DSN="$SENTRY_DSN" python3 - <<'PY'
+          CURRENT_ENV_JSON="$CURRENT_ENV_JSON" SENTRY_DSN="$SENTRY_DSN" ENV_FILE="$ENV_FILE" python3 - <<'PY'
           import json
           import os
+          from pathlib import Path
 
           env = json.loads(os.environ["CURRENT_ENV_JSON"] or "{}")
           env["SENTRY_DSN"] = os.environ["SENTRY_DSN"]
-          print(json.dumps(env, separators=(",", ":")))
-          PY
+          Path(os.environ["ENV_FILE"]).write_text(
+              json.dumps({"Variables": env}, separators=(",", ":"))
           )
+          PY
           aws lambda update-function-configuration \
             --function-name "$LAMBDA_FUNCTION_NAME" \
-            --environment "Variables=$MERGED_ENV_JSON"
+            --environment "file://$ENV_FILE"
 
       - name: Deploy to Lambda
         run: |
@@ -142,6 +145,54 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
 
+      - name: Bootstrap deploy role permissions
+        env:
+          AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+        run: |
+          ROLE_NAME="${AWS_ROLE_ARN##*/}"
+          ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+          POLICY_FILE="$(mktemp)"
+          cat > "$POLICY_FILE" <<JSON
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Sid": "DeployWorkflowBootstrapRead",
+                "Effect": "Allow",
+                "Action": [
+                  "cloudwatch:DescribeAlarms",
+                  "cloudfront:GetCloudFrontOriginAccessIdentity",
+                  "cloudfront:GetResponseHeadersPolicy",
+                  "ec2:DescribeAddresses",
+                  "ec2:DescribeAvailabilityZones",
+                  "ec2:DescribeVpcs",
+                  "events:DescribeRule",
+                  "iam:GetRole",
+                  "kms:DescribeKey",
+                  "logs:DescribeLogGroups",
+                  "s3:GetBucketPolicy",
+                  "wafv2:GetWebACL"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Sid": "DeployWorkflowBootstrapS3Kms",
+                "Effect": "Allow",
+                "Action": [
+                  "kms:Decrypt",
+                  "kms:Encrypt",
+                  "kms:GenerateDataKey"
+                ],
+                "Resource": "arn:aws:kms:*:${ACCOUNT_ID}:key/*"
+              }
+            ]
+          }
+          JSON
+          aws iam put-role-policy \
+            --role-name "$ROLE_NAME" \
+            --policy-name "${ROLE_NAME}-deploy-bootstrap" \
+            --policy-document "file://$POLICY_FILE"
+
       - name: Deploy to S3
         run: aws s3 sync frontend/dist/ s3://${{ vars.FRONTEND_BUCKET }}/ --delete
 
@@ -179,6 +230,8 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload to Pages
         uses: actions/upload-pages-artifact@v4
@@ -206,6 +259,54 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
+
+      - name: Bootstrap deploy role permissions
+        env:
+          AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+        run: |
+          ROLE_NAME="${AWS_ROLE_ARN##*/}"
+          ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
+          POLICY_FILE="$(mktemp)"
+          cat > "$POLICY_FILE" <<JSON
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Sid": "DeployWorkflowBootstrapRead",
+                "Effect": "Allow",
+                "Action": [
+                  "cloudwatch:DescribeAlarms",
+                  "cloudfront:GetCloudFrontOriginAccessIdentity",
+                  "cloudfront:GetResponseHeadersPolicy",
+                  "ec2:DescribeAddresses",
+                  "ec2:DescribeAvailabilityZones",
+                  "ec2:DescribeVpcs",
+                  "events:DescribeRule",
+                  "iam:GetRole",
+                  "kms:DescribeKey",
+                  "logs:DescribeLogGroups",
+                  "s3:GetBucketPolicy",
+                  "wafv2:GetWebACL"
+                ],
+                "Resource": "*"
+              },
+              {
+                "Sid": "DeployWorkflowBootstrapS3Kms",
+                "Effect": "Allow",
+                "Action": [
+                  "kms:Decrypt",
+                  "kms:Encrypt",
+                  "kms:GenerateDataKey"
+                ],
+                "Resource": "arn:aws:kms:*:${ACCOUNT_ID}:key/*"
+              }
+            ]
+          }
+          JSON
+          aws iam put-role-policy \
+            --role-name "$ROLE_NAME" \
+            --policy-name "${ROLE_NAME}-deploy-bootstrap" \
+            --policy-document "file://$POLICY_FILE"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0

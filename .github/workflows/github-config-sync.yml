@@ -18,6 +18,7 @@ jobs:
   sync:
     name: Sync GitHub Repository Configuration
     runs-on: ubuntu-latest
+    environment: github-config
     permissions:
       id-token: write
       contents: read

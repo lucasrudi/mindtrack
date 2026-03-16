@@ -13,11 +13,18 @@ module "iam" {
 
   name_prefix            = local.name_prefix
   audio_bucket_arn       = module.s3.audio_bucket_arn
+  s3_encryption_key_arn  = module.s3.s3_kms_key_arn
   secrets_arns           = module.secrets.secret_arns
   app_encryption_key_arn = module.secrets.app_encryption_key_arn
-  github_org             = var.github_org
-  github_repo            = var.github_repo
-  create_oidc_provider   = var.create_oidc_provider
+  managed_kms_key_arns = [
+    module.s3.s3_kms_key_arn,
+    module.secrets.app_encryption_key_arn,
+    module.secrets.secrets_encryption_key_arn,
+    module.rds.encryption_key_arn,
+  ]
+  github_org           = var.github_org
+  github_repo          = var.github_repo
+  create_oidc_provider = var.create_oidc_provider
 }
 
 module "s3" {

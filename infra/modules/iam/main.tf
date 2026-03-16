@@ -31,6 +31,7 @@ data "aws_iam_policy_document" "github_actions_trust" {
       variable = "token.actions.githubusercontent.com:sub"
       values = [
         "repo:${var.github_org}/${var.github_repo}:ref:refs/heads/main",
+        "repo:${var.github_org}/${var.github_repo}:environment:github-config",
         "repo:${var.github_org}/${var.github_repo}:environment:production",
       ]
     }
@@ -72,8 +73,16 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "s3:PutObject",
       "s3:DeleteObject",
       "s3:ListBucket",
+      "s3:GetBucketAcl",
+      "s3:GetBucketLogging",
       "s3:GetObject",
       "s3:GetBucketLocation",
+      "s3:GetBucketOwnershipControls",
+      "s3:GetBucketPolicy",
+      "s3:GetBucketPublicAccessBlock",
+      "s3:GetBucketVersioning",
+      "s3:GetEncryptionConfiguration",
+      "s3:GetLifecycleConfiguration",
     ]
     resources = [
       "arn:aws:s3:::${var.name_prefix}-*",
@@ -177,34 +186,61 @@ data "aws_iam_policy_document" "github_actions_permissions" {
   }
 
   # CloudWatch Logs — log groups and metric filters (scoped to account + resource type)
+  # Log delivery APIs and DescribeLogGroups are account-scoped; AWS does not expose narrower resource ARNs.
+  #tfsec:ignore:aws-iam-no-policy-wildcards
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogDelivery",
+      "logs:DeleteLogDelivery",
+      "logs:DescribeLogGroups",
+      "logs:GetLogDelivery",
+      "logs:ListLogDeliveries",
+      "logs:UpdateLogDelivery",
+    ]
+    resources = ["*"]
+  }
+
   statement {
     effect = "Allow"
     actions = [
       "logs:AssociateKmsKey",
-      "logs:CreateLogDelivery",
       "logs:CreateLogGroup",
-      "logs:DeleteLogDelivery",
+    ]
+    resources = [
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name_prefix}-*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name_prefix}-*:*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/${var.name_prefix}",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/${var.name_prefix}:*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/vpc/${var.name_prefix}/*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/vpc/${var.name_prefix}/*:*",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
       "logs:DeleteLogGroup",
       "logs:DeleteMetricFilter",
       "logs:DeleteRetentionPolicy",
-      "logs:DescribeLogGroups",
       "logs:DescribeMetricFilters",
-      "logs:GetLogDelivery",
-      "logs:ListLogDeliveries",
       "logs:ListTagsForResource",
       "logs:PutMetricFilter",
       "logs:PutRetentionPolicy",
       "logs:TagResource",
       "logs:UntagResource",
-      "logs:UpdateLogDelivery",
     ]
     resources = [
-      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:*",
-      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:*:*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name_prefix}-*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name_prefix}-*:*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/${var.name_prefix}",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/${var.name_prefix}:*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/vpc/${var.name_prefix}/*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/vpc/${var.name_prefix}/*:*",
     ]
   }
 
-  # CloudWatch — alarms (scoped by name prefix)
+  # CloudWatch — alarms. DescribeAlarms is account-scoped and requires "*".
   statement {
     effect = "Allow"
     actions = [
@@ -254,6 +290,27 @@ data "aws_iam_policy_document" "github_actions_permissions" {
     ]
   }
 
+  # IAM — read/list actions for Terraform refresh
+  statement {
+    effect = "Allow"
+    actions = [
+      "iam:GetRole",
+      "iam:GetRolePolicy",
+      "iam:ListAttachedRolePolicies",
+      "iam:ListRolePolicies",
+      "iam:ListRoleTags",
+    ]
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.name_prefix}-*",
+    ]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["iam:GetOpenIDConnectProvider"]
+    resources = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com"]
+  }
+
   # IAM — role and OIDC provider management for Terraform
   statement {
     effect = "Allow"
@@ -265,12 +322,6 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "iam:DeleteRole",
       "iam:DeleteRolePolicy",
       "iam:DetachRolePolicy",
-      "iam:GetOpenIDConnectProvider",
-      "iam:GetRole",
-      "iam:GetRolePolicy",
-      "iam:ListAttachedRolePolicies",
-      "iam:ListRolePolicies",
-      "iam:ListRoleTags",
       "iam:PassRole",
       "iam:PutRolePolicy",
       "iam:TagRole",
@@ -306,17 +357,25 @@ data "aws_iam_policy_document" "github_actions_permissions" {
     ]
   }
 
+  # KMS — read operations for Terraform refresh
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:DescribeKey",
+      "kms:GetKeyPolicy",
+      "kms:GetKeyRotationStatus",
+      "kms:ListResourceTags",
+    ]
+    resources = var.managed_kms_key_arns
+  }
+
   # KMS — operations on existing keys (key IDs are UUIDs; scope to account + key resource type)
   statement {
     effect = "Allow"
     actions = [
       "kms:CancelKeyDeletion",
-      "kms:DescribeKey",
       "kms:EnableKey",
       "kms:EnableKeyRotation",
-      "kms:GetKeyPolicy",
-      "kms:GetKeyRotationStatus",
-      "kms:ListResourceTags",
       "kms:PutKeyPolicy",
       "kms:ScheduleKeyDeletion",
       "kms:TagResource",
@@ -325,6 +384,17 @@ data "aws_iam_policy_document" "github_actions_permissions" {
     resources = [
       "arn:aws:kms:*:${data.aws_caller_identity.current.account_id}:key/*",
     ]
+  }
+
+  # KMS — S3 bucket encryption key access for deployments
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:GenerateDataKey",
+    ]
+    resources = [var.s3_encryption_key_arn]
   }
 
   # KMS — key creation (no pre-existing resource ARN; * is unavoidable for create operations)
@@ -378,26 +448,73 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "cloudfront:CreateOriginAccessControl",
       "cloudfront:DeleteCachePolicy",
       "cloudfront:DeleteDistribution",
+      "cloudfront:DeleteResponseHeadersPolicy",
       "cloudfront:DeleteOriginAccessControl",
+      "cloudfront:DeleteCloudFrontOriginAccessIdentity",
       "cloudfront:GetCachePolicy",
+      "cloudfront:GetCloudFrontOriginAccessIdentity",
       "cloudfront:GetDistribution",
       "cloudfront:GetDistributionConfig",
       "cloudfront:GetOriginAccessControl",
+      "cloudfront:GetResponseHeadersPolicy",
       "cloudfront:ListCachePolicies",
+      "cloudfront:ListCloudFrontOriginAccessIdentities",
       "cloudfront:ListDistributions",
       "cloudfront:ListOriginAccessControls",
+      "cloudfront:ListResponseHeadersPolicies",
       "cloudfront:ListTagsForResource",
       "cloudfront:TagResource",
       "cloudfront:UntagResource",
+      "cloudfront:UpdateCloudFrontOriginAccessIdentity",
       "cloudfront:UpdateCachePolicy",
       "cloudfront:UpdateDistribution",
       "cloudfront:UpdateOriginAccessControl",
+      "cloudfront:UpdateResponseHeadersPolicy",
+      "cloudfront:CreateCloudFrontOriginAccessIdentity",
+      "cloudfront:CreateResponseHeadersPolicy",
     ]
     resources = [
       "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/*",
+      "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:origin-access-identity/*",
       "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:origin-access-control/*",
       "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:cache-policy/*",
+      "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:response-headers-policy/*",
     ]
+  }
+
+  # EventBridge — scheduled rules and targets
+  statement {
+    effect = "Allow"
+    actions = [
+      "events:DeleteRule",
+      "events:DescribeRule",
+      "events:ListTargetsByRule",
+      "events:PutRule",
+      "events:PutTargets",
+      "events:RemoveTargets",
+      "events:TagResource",
+      "events:UntagResource",
+    ]
+    resources = [
+      "arn:aws:events:*:${data.aws_caller_identity.current.account_id}:rule/${var.name_prefix}-*",
+    ]
+  }
+
+  # WAFv2 — CloudFront Web ACL management
+  #tfsec:ignore:aws-iam-no-policy-wildcards
+  statement {
+    effect = "Allow"
+    actions = [
+      "wafv2:CreateWebACL",
+      "wafv2:DeleteWebACL",
+      "wafv2:GetWebACL",
+      "wafv2:ListResourcesForWebACL",
+      "wafv2:ListWebACLs",
+      "wafv2:TagResource",
+      "wafv2:UntagResource",
+      "wafv2:UpdateWebACL",
+    ]
+    resources = ["*"]
   }
 
   # API Gateway v2 — HTTP API management
