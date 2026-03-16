@@ -24,6 +24,11 @@ variable "audio_bucket_arn" {
   type        = string
 }
 
+variable "s3_encryption_key_arn" {
+  description = "ARN of the KMS key used for encrypted S3 buckets"
+  type        = string
+}
+
 variable "secrets_arns" {
   description = "List of Secrets Manager secret ARNs"
   type        = list(string)

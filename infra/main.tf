@@ -13,6 +13,7 @@ module "iam" {
 
   name_prefix            = local.name_prefix
   audio_bucket_arn       = module.s3.audio_bucket_arn
+  s3_encryption_key_arn  = module.s3.s3_kms_key_arn
   secrets_arns           = module.secrets.secret_arns
   app_encryption_key_arn = module.secrets.app_encryption_key_arn
   github_org             = var.github_org

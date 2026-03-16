@@ -8,6 +8,11 @@ output "audio_bucket_name" {
   value       = aws_s3_bucket.audio.id
 }
 
+output "s3_kms_key_arn" {
+  description = "ARN of the shared KMS key used for S3 bucket encryption"
+  value       = aws_kms_key.s3.arn
+}
+
 output "frontend_bucket_name" {
   description = "Name of the frontend S3 bucket"
   value       = aws_s3_bucket.frontend.id
