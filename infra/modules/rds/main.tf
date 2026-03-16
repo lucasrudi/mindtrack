@@ -59,9 +59,9 @@ resource "aws_db_instance" "main" {
   storage_encrypted       = true
   kms_key_id              = aws_kms_key.rds.arn
 
-  performance_insights_enabled          = true
-  performance_insights_kms_key_id       = aws_kms_key.rds.arn
-  performance_insights_retention_period = 7 # free tier
+  performance_insights_enabled          = var.enable_performance_insights
+  performance_insights_kms_key_id       = var.enable_performance_insights ? aws_kms_key.rds.arn : null
+  performance_insights_retention_period = var.enable_performance_insights ? 7 : null
 
   tags = {
     Name = "${var.name_prefix}-mysql"
