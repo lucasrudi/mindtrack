@@ -82,7 +82,7 @@ flowchart TD
 **Trigger:** Push to `feature/**`, `bugfix/**`, `chore/**`, or `renovate/**`; also on pull_request to `main`
 **Purpose:** Validate every code change before it can be merged.
 
-Starts with a lightweight change-detection job. On feature-branch pushes, backend and frontend run together when application code or Sonar config changes so the Sonar job always has Java classes plus both coverage reports; infra runs only when infrastructure files change. On PRs and manual runs, all validation paths are enabled. The `sonar` job runs only after both backend and frontend succeed and fails immediately if coverage artifacts or the scan are missing.
+Starts with a lightweight change-detection job. On feature-branch pushes, backend and frontend run together when application code or Sonar config changes so the Sonar job always has Java classes plus both coverage reports; infra runs only when infrastructure files change. On pull requests and manual runs, all validation paths are enabled regardless of the branch-push diff so the full merge gate is exercised before review. The `sonar` job runs only after both backend and frontend succeed and fails immediately if coverage artifacts or the scan are missing.
 
 | Job | Steps |
 |-----|-------|
