@@ -13,6 +13,7 @@ public class TherapistRegistrationRedeemRequest {
     private String token;
 
     public TherapistRegistrationRedeemRequest() {
+        // Required by Jackson for request-body deserialization.
     }
 
     public String getToken() {

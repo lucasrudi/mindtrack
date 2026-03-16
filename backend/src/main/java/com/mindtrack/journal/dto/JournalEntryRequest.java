@@ -27,6 +27,7 @@ public class JournalEntryRequest {
     private boolean sharedWithTherapist;
 
     public JournalEntryRequest() {
+        // Required by Jackson for request-body deserialization.
     }
 
     public LocalDate getEntryDate() {

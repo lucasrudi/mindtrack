@@ -1,6 +1,7 @@
 package com.mindtrack.messaging.service;
 
 import com.mindtrack.messaging.config.MessagingProperties;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -69,7 +70,10 @@ public class WhatsAppService {
             } else {
                 LOG.debug("WhatsApp message sent to phone={}", phoneNumber);
             }
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.error("WhatsApp send interrupted for phone={}", phoneNumber, e);
+        } catch (IOException e) {
             LOG.error("Failed to send WhatsApp message to phone={}", phoneNumber, e);
         }
     }

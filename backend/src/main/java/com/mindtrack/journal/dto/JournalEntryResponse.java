@@ -20,6 +20,7 @@ public class JournalEntryResponse {
     private LocalDateTime updatedAt;
 
     public JournalEntryResponse() {
+        // Required by Jackson for response serialization/deserialization.
     }
 
     public Long getId() {

@@ -18,6 +18,7 @@ public class MilestoneResponse {
     private LocalDateTime createdAt;
 
     public MilestoneResponse() {
+        // Required by Jackson for response serialization/deserialization.
     }
 
     public Long getId() {

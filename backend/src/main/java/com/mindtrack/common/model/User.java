@@ -54,6 +54,7 @@ public class User {
     private LocalDateTime deletionScheduledAt;
 
     public User() {
+        // Required by JPA for entity materialization.
     }
 
     public Long getId() {

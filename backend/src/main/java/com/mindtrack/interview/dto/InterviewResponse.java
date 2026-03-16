@@ -24,6 +24,7 @@ public class InterviewResponse {
     private LocalDateTime updatedAt;
 
     public InterviewResponse() {
+        // Required by Jackson for response serialization/deserialization.
     }
 
     public Long getId() {

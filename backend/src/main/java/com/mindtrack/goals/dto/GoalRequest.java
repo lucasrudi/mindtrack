@@ -18,6 +18,7 @@ public class GoalRequest {
     private LocalDate targetDate;
 
     public GoalRequest() {
+        // Required by Jackson for request-body deserialization.
     }
 
     public String getTitle() {

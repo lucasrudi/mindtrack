@@ -2,6 +2,7 @@ package com.mindtrack.common.service;
 
 import jakarta.annotation.PostConstruct;
 import java.util.Base64;
+import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.SdkBytes;
@@ -27,7 +28,7 @@ public class KmsEncryptionService {
     static final String ENC_PREFIX = "ENC:";
 
     // Holder accessed by KmsEncryptionConverter (not a Spring bean)
-    private static KmsEncryptionService instance;
+    private static final AtomicReference<KmsEncryptionService> INSTANCE = new AtomicReference<>();
 
     private final String keyArn;
     private KmsClient kmsClient;
@@ -46,7 +47,7 @@ public class KmsEncryptionService {
         if (isEnabled()) {
             this.kmsClient = KmsClient.create();
         }
-        setInstance(this);
+        INSTANCE.set(this);
     }
 
     /**
@@ -55,11 +56,7 @@ public class KmsEncryptionService {
      * @return the live service bean, or {@code null} if the Spring context is not yet ready
      */
     public static KmsEncryptionService getInstance() {
-        return instance;
-    }
-
-    private static void setInstance(KmsEncryptionService service) {
-        instance = service;
+        return INSTANCE.get();
     }
 
     /** Returns {@code true} when a KMS key ARN is configured. */
