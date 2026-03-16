@@ -176,7 +176,7 @@ data "aws_iam_policy_document" "github_actions_permissions" {
     resources = ["*"]
   }
 
-  # CloudWatch Logs — log groups, metric filters, and log delivery
+  # CloudWatch Logs — log groups and metric filters (scoped to account + resource type)
   statement {
     effect = "Allow"
     actions = [
@@ -198,25 +198,40 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "logs:UntagResource",
       "logs:UpdateLogDelivery",
     ]
-    resources = ["*"]
+    resources = [
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:*:*",
+    ]
   }
 
-  # CloudWatch — alarms and dashboards
+  # CloudWatch — alarms (scoped by name prefix)
   statement {
     effect = "Allow"
     actions = [
       "cloudwatch:DeleteAlarms",
-      "cloudwatch:DeleteDashboards",
       "cloudwatch:DescribeAlarms",
-      "cloudwatch:GetDashboard",
-      "cloudwatch:ListDashboards",
       "cloudwatch:ListTagsForResource",
-      "cloudwatch:PutDashboard",
       "cloudwatch:PutMetricAlarm",
       "cloudwatch:TagResource",
       "cloudwatch:UntagResource",
     ]
-    resources = ["*"]
+    resources = [
+      "arn:aws:cloudwatch:*:${data.aws_caller_identity.current.account_id}:alarm:${var.name_prefix}-*",
+    ]
+  }
+
+  # CloudWatch — dashboards (scoped by name prefix; no region in dashboard ARNs)
+  statement {
+    effect = "Allow"
+    actions = [
+      "cloudwatch:DeleteDashboards",
+      "cloudwatch:GetDashboard",
+      "cloudwatch:ListDashboards",
+      "cloudwatch:PutDashboard",
+    ]
+    resources = [
+      "arn:aws:cloudwatch::${data.aws_caller_identity.current.account_id}:dashboard/${var.name_prefix}-*",
+    ]
   }
 
   # SNS — alarm notification topics
@@ -269,7 +284,7 @@ data "aws_iam_policy_document" "github_actions_permissions" {
     ]
   }
 
-  # RDS — DB instance and subnet group management
+  # RDS — DB instance and subnet group management (scoped by name prefix)
   statement {
     effect = "Allow"
     actions = [
@@ -285,15 +300,17 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "rds:ModifyDBSubnetGroup",
       "rds:RemoveTagsFromResource",
     ]
-    resources = ["*"]
+    resources = [
+      "arn:aws:rds:*:${data.aws_caller_identity.current.account_id}:db:${var.name_prefix}-*",
+      "arn:aws:rds:*:${data.aws_caller_identity.current.account_id}:subgrp:${var.name_prefix}-*",
+    ]
   }
 
-  # KMS — encryption key management for RDS, S3, and Lambda
+  # KMS — operations on existing keys (key IDs are UUIDs; scope to account + key resource type)
   statement {
     effect = "Allow"
     actions = [
       "kms:CancelKeyDeletion",
-      "kms:CreateKey",
       "kms:DescribeKey",
       "kms:EnableKey",
       "kms:EnableKeyRotation",
@@ -305,6 +322,16 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "kms:TagResource",
       "kms:UntagResource",
     ]
+    resources = [
+      "arn:aws:kms:*:${data.aws_caller_identity.current.account_id}:key/*",
+    ]
+  }
+
+  # KMS — key creation (no pre-existing resource ARN; * is unavoidable for create operations)
+  #tfsec:ignore:aws-iam-no-policy-wildcards
+  statement {
+    effect    = "Allow"
+    actions   = ["kms:CreateKey"]
     resources = ["*"]
   }
 
@@ -341,6 +368,8 @@ data "aws_iam_policy_document" "github_actions_permissions" {
   }
 
   # CloudFront — distribution and OAC management
+  # IDs (dist-id, oac-id, policy-id) are generated UUIDs; scope to account + resource type.
+  # Note: CloudFront ARNs have no region component.
   statement {
     effect = "Allow"
     actions = [
@@ -364,7 +393,11 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "cloudfront:UpdateDistribution",
       "cloudfront:UpdateOriginAccessControl",
     ]
-    resources = ["*"]
+    resources = [
+      "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:distribution/*",
+      "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:origin-access-control/*",
+      "arn:aws:cloudfront::${data.aws_caller_identity.current.account_id}:cache-policy/*",
+    ]
   }
 
   # API Gateway v2 — HTTP API management
