@@ -31,6 +31,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/ai")
 public class ChatController {
 
+    private static final String RESOURCE_CONVERSATION = "CONVERSATION";
+
     private final ConversationService conversationService;
     private final AuditService auditService;
     private final ProfileService profileService;
@@ -81,7 +83,7 @@ public class ChatController {
         }
 
         ChatResponse response = conversationService.chat(userId, request);
-        auditService.log(userId, AuditAction.WRITE, "CONVERSATION", response.conversationId(),
+        auditService.log(userId, AuditAction.WRITE, RESOURCE_CONVERSATION, response.conversationId(),
                 userId, getClientIp(httpRequest), "WEB");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -96,7 +98,7 @@ public class ChatController {
                                                                    HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         List<ConversationDto> conversations = conversationService.listConversations(userId);
-        conversations.forEach(c -> auditService.log(userId, AuditAction.READ, "CONVERSATION",
+        conversations.forEach(c -> auditService.log(userId, AuditAction.READ, RESOURCE_CONVERSATION,
                 c.id(), userId, getClientIp(httpRequest), "WEB"));
         return ResponseEntity.ok(conversations);
     }
@@ -113,7 +115,7 @@ public class ChatController {
                                                            HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         ConversationDto conversation = conversationService.getConversation(id, userId);
-        auditService.log(userId, AuditAction.READ, "CONVERSATION", id,
+        auditService.log(userId, AuditAction.READ, RESOURCE_CONVERSATION, id,
                 userId, getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(conversation);
     }

@@ -22,6 +22,7 @@ public class ActivityRequest {
     private Long linkedInterviewId;
 
     public ActivityRequest() {
+        // Required by Jackson for request-body deserialization.
     }
 
     public ActivityType getType() {

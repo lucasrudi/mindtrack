@@ -22,6 +22,7 @@ public class ActivityLogRequest {
     private Integer moodRating;
 
     public ActivityLogRequest() {
+        // Required by Jackson for request-body deserialization.
     }
 
     public LocalDate getLogDate() {
