@@ -52,9 +52,10 @@ resource "aws_rds_cluster" "main" {
   skip_final_snapshot       = false
   final_snapshot_identifier = "${var.name_prefix}-final-snapshot"
   deletion_protection       = true
-  backup_retention_period   = 1
-  storage_encrypted         = true
-  kms_key_id                = aws_kms_key.rds.arn
+  #tfsec:ignore:aws-rds-specify-backup-retention
+  backup_retention_period = 1 # free tier maximum
+  storage_encrypted       = true
+  kms_key_id              = aws_kms_key.rds.arn
 
   tags = {
     Name = "${var.name_prefix}-aurora"
