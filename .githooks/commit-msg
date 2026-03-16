@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# commit-msg hook: validates that commit messages start with a GitHub issue reference.
-# Format: #<number> <type>[(<scope>)]: <description>
-# Use #0 for housekeeping commits with no associated issue.
+# commit-msg hook: validates that commit messages follow Conventional Commits format.
+# Format: <type>[(<scope>)]: <description>
+# Link issues in the PR body with "Closes #N" — not in the commit title.
 
 COMMIT_MSG_FILE="$1"
 COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
@@ -16,16 +16,18 @@ if echo "$COMMIT_MSG" | grep -qE "^chore\(release\)"; then
     exit 0
 fi
 
-# Validate pattern: #<number> followed by conventional commit type
-if ! echo "$COMMIT_MSG" | grep -qE "^#[0-9]+ (feat|fix|chore|docs|test|refactor|ci|infra|style|perf|build)(\([^)]+\))?: .+"; then
+# Validate Conventional Commits format
+if ! echo "$COMMIT_MSG" | grep -qE "^(feat|fix|chore|docs|test|refactor|ci|infra|style|perf|build)(\([^)]+\))?: .+"; then
     echo ""
     echo "!! Commit message does not follow the required format."
     echo ""
-    echo "   Expected: #<issue-id> <type>[(<scope>)]: <description>"
+    echo "   Expected: <type>[(<scope>)]: <description>"
     echo "   Examples:"
-    echo "     #17 chore: review and fix TODOs"
-    echo "     #18 test(interview): add integration tests"
-    echo "     #0  chore: housekeeping with no issue"
+    echo "     feat(auth): add JWT token versioning"
+    echo "     fix(security): resolve SonarCloud findings"
+    echo "     chore: update dependencies"
+    echo ""
+    echo "   Link issues in the PR body: Closes #N"
     echo ""
     echo "   Your message: $COMMIT_MSG"
     echo ""
