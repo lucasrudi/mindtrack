@@ -52,7 +52,7 @@ resource "aws_rds_cluster" "main" {
   skip_final_snapshot       = false
   final_snapshot_identifier = "${var.name_prefix}-final-snapshot"
   deletion_protection       = true
-  backup_retention_period   = 30
+  backup_retention_period   = 1
   storage_encrypted         = true
   kms_key_id                = aws_kms_key.rds.arn
 
