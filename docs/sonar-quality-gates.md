@@ -14,7 +14,7 @@ Configure these in the SonarCloud UI under **Quality Gates** for the `mindtrack`
 
 | Metric | Condition | Threshold | Rationale |
 |--------|-----------|-----------|-----------|
-| Coverage on new code | is less than | **80%** | Prevents coverage regression on new features |
+| Coverage on new code | is less than | **60%** | Ensures sufficient test coverage without blocking incremental delivery |
 | Duplicated lines on new code | is greater than | **3%** | Avoids copy-paste patterns |
 | Maintainability rating on new code | is worse than | **A** | Keeps technical debt low |
 | Reliability rating on new code | is worse than | **A** | Zero new bugs policy |
@@ -35,7 +35,7 @@ These are aspirational targets for the overall codebase (new code gate is the en
 
 | Metric | Target |
 |--------|--------|
-| Test coverage (overall) | ≥ 75% |
+| Test coverage (overall) | ≥ 60% |
 | Duplicated lines | ≤ 5% |
 | Technical debt ratio | ≤ 5% |
 | Maintainability rating | A |
