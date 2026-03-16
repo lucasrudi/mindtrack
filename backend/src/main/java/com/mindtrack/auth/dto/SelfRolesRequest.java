@@ -14,6 +14,7 @@ public class SelfRolesRequest {
     private Boolean isTherapist;
 
     public SelfRolesRequest() {
+        // Required by Jackson for request-body deserialization.
     }
 
     public Boolean getIsPatient() {

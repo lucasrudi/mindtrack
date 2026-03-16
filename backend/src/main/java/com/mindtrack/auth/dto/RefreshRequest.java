@@ -11,6 +11,7 @@ public class RefreshRequest {
     private String refreshToken;
 
     public RefreshRequest() {
+        // Required by Jackson for request-body deserialization.
     }
 
     /**

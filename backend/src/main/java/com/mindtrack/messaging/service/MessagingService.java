@@ -128,41 +128,48 @@ public class MessagingService {
 
     private void processWhatsAppMessages(List<WhatsAppWebhook.Message> messages) {
         for (WhatsAppWebhook.Message msg : messages) {
-            if (!"text".equals(msg.getType()) || msg.getText() == null) {
+            if (isNonTextWhatsAppMessage(msg)) {
                 LOG.debug("Ignoring non-text WhatsApp message type={}", msg.getType());
-                continue;
+            } else {
+                processWhatsAppMessage(msg);
             }
+        }
+    }
 
-            String phoneNumber = msg.getFrom();
-            String text = msg.getText().getBody();
+    private boolean isNonTextWhatsAppMessage(WhatsAppWebhook.Message message) {
+        return !"text".equals(message.getType()) || message.getText() == null;
+    }
 
-            LOG.info("WhatsApp message received from phone={}", phoneNumber);
+    private void processWhatsAppMessage(WhatsAppWebhook.Message message) {
+        String phoneNumber = message.getFrom();
+        String text = message.getText().getBody();
 
-            // Resolve user by WhatsApp number; see Telegram lookup above for encryption rationale.
-            Optional<UserProfile> profileOpt = userProfileRepository.findAllByWhatsappNumberNotNull()
-                    .stream()
-                    .filter(p -> phoneNumber.equals(p.getWhatsappNumber()))
-                    .findFirst();
-            if (profileOpt.isEmpty()) {
-                whatsAppService.sendMessage(phoneNumber,
-                        "Your WhatsApp number is not linked to MindTrack. "
-                                + "Please add your number in your profile settings.");
-                continue;
-            }
+        LOG.info("WhatsApp message received from phone={}", phoneNumber);
 
-            Long userId = profileOpt.get().getUserId();
+        // Resolve user by WhatsApp number; see Telegram lookup above for encryption rationale.
+        Optional<UserProfile> profileOpt = userProfileRepository.findAllByWhatsappNumberNotNull()
+                .stream()
+                .filter(profile -> phoneNumber.equals(profile.getWhatsappNumber()))
+                .findFirst();
+        if (profileOpt.isEmpty()) {
+            whatsAppService.sendMessage(phoneNumber,
+                    "Your WhatsApp number is not linked to MindTrack. "
+                            + "Please add your number in your profile settings.");
+            return;
+        }
 
-            try {
-                ChatRequest chatRequest = new ChatRequest(null, text, ConversationType.QUICK_CHECKIN);
-                ChatResponse response = conversationService.chatWithChannel(
-                        userId, chatRequest, Channel.WHATSAPP);
+        Long userId = profileOpt.get().getUserId();
 
-                whatsAppService.sendMessage(phoneNumber, response.content());
-            } catch (Exception e) {
-                LOG.error("Error processing WhatsApp message from phone={}", phoneNumber, e);
-                whatsAppService.sendMessage(phoneNumber,
-                        "Sorry, I encountered an error processing your message. Please try again later.");
-            }
+        try {
+            ChatRequest chatRequest = new ChatRequest(null, text, ConversationType.QUICK_CHECKIN);
+            ChatResponse response = conversationService.chatWithChannel(
+                    userId, chatRequest, Channel.WHATSAPP);
+
+            whatsAppService.sendMessage(phoneNumber, response.content());
+        } catch (Exception e) {
+            LOG.error("Error processing WhatsApp message from phone={}", phoneNumber, e);
+            whatsAppService.sendMessage(phoneNumber,
+                    "Sorry, I encountered an error processing your message. Please try again later.");
         }
     }
 }

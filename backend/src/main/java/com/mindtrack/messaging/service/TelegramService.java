@@ -1,6 +1,7 @@
 package com.mindtrack.messaging.service;
 
 import com.mindtrack.messaging.config.MessagingProperties;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -65,7 +66,10 @@ public class TelegramService {
             } else {
                 LOG.debug("Telegram message sent to chat={}", chatId);
             }
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.error("Telegram send interrupted for chat={}", chatId, e);
+        } catch (IOException e) {
             LOG.error("Failed to send Telegram message to chat={}", chatId, e);
         }
     }

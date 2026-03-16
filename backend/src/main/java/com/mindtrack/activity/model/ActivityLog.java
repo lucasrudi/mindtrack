@@ -43,6 +43,7 @@ public class ActivityLog {
     private LocalDateTime createdAt;
 
     public ActivityLog() {
+        // Required by JPA for entity materialization.
     }
 
     public Long getId() {

@@ -79,6 +79,7 @@ public class Interview {
     private LocalDateTime updatedAt;
 
     public Interview() {
+        // Required by JPA for entity materialization.
     }
 
     public Long getId() {

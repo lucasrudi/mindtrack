@@ -16,6 +16,7 @@ public class MilestoneRequest {
     private String notes;
 
     public MilestoneRequest() {
+        // Required by Jackson for request-body deserialization.
     }
 
     public String getTitle() {

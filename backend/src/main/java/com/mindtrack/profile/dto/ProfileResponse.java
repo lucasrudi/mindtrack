@@ -23,6 +23,7 @@ public class ProfileResponse {
     private boolean aiConsentGiven;
 
     public ProfileResponse() {
+        // Required by Jackson for response serialization/deserialization.
     }
 
     public Long getId() {

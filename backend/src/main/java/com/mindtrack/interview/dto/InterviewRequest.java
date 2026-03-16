@@ -31,6 +31,7 @@ public class InterviewRequest {
     private String notes;
 
     public InterviewRequest() {
+        // Required by Jackson for request-body deserialization.
     }
 
     public LocalDate getInterviewDate() {

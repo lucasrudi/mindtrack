@@ -11,6 +11,7 @@ public class SelfRoleRequest {
     private String role;
 
     public SelfRoleRequest() {
+        // Required by Jackson for request-body deserialization.
     }
 
     public String getRole() {
