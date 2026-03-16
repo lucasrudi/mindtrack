@@ -2,7 +2,7 @@
 
 ## Overview
 
-MindTrack uses [SonarCloud](https://sonarcloud.io/) for continuous code quality and security analysis. The quality gate is enforced in CI via `sonar.qualitygate.wait=true` in `sonar-project.properties` — any PR or push to `main` that fails the gate will fail the CI pipeline.
+MindTrack uses [SonarCloud](https://sonarcloud.io/) for continuous code quality and security analysis. The quality gate result is enforced in CI via `sonar.qualitygate.wait=true` in `sonar-project.properties`, but the gate itself is owned by SonarCloud project settings, not by the properties file.
 
 Automatic Analysis must remain disabled for this project. MindTrack imports external JaCoCo and LCOV coverage reports from GitHub Actions, and the CI workflows are the only supported analysis path for coverage ingestion.
 
@@ -10,9 +10,11 @@ Automatic Analysis must remain disabled for this project. MindTrack imports exte
 If the SonarCloud project is private and CI waits for the quality gate result, the token in GitHub Actions must belong to a user who can both submit analysis and browse the project. A Scoped Organization Token is not sufficient for this flow because it only grants Execute Analysis. In practice, `SONAR_TOKEN` should be a Personal Access Token from a SonarCloud user with both **Execute Analysis** and **Browse** access to `lucasrudi_mindtrack`.
 
 After rotating `SONAR_TOKEN`, trigger a fresh PR analysis by opening a new pull request or pushing a new commit to an existing PR branch. That forces SonarCloud to rebuild the PR issue review state with the updated token permissions.
+
+The repository also includes `.github/workflows/sonar-quality-gate-sync.yml`, which creates or updates the custom `MindTrack Gate`, sets `Coverage on new code` to `60`, and re-associates the `lucasrudi_mindtrack` project with that gate. For this workflow to succeed, `SONAR_TOKEN` must belong to a SonarCloud user who can administer quality gates for the project.
 ## Quality Gate Thresholds
 
-Configure these in the SonarCloud UI under **Quality Gates** for the `mindtrack` project:
+These are the target conditions for the custom `MindTrack Gate`. The sync workflow enforces the `Coverage on new code` threshold automatically; the other conditions should still be present on the custom gate in SonarCloud:
 
 | Metric | Condition | Threshold | Rationale |
 |--------|-----------|-----------|-----------|
@@ -26,10 +28,10 @@ Configure these in the SonarCloud UI under **Quality Gates** for the `mindtrack`
 ## How to Configure in SonarCloud
 
 1. Go to [sonarcloud.io](https://sonarcloud.io/) → your organization → **Quality Gates**
-2. Create a new gate named `MindTrack Gate` (or edit the existing default)
-3. Add each condition from the table above
-4. Navigate to the **mindtrack** project → **Project Settings** → **Quality Gate**
-5. Select `MindTrack Gate`
+2. Create a new gate named `MindTrack Gate` by copying `Sonar way` if it does not already exist
+3. Ensure each condition from the table above is present
+4. Run the `Sonar Quality Gate Sync` workflow or navigate to the **mindtrack** project → **Project Settings** → **Quality Gate**
+5. Confirm the project is associated with `MindTrack Gate`
 
 ## Overall Code Quality Targets
 

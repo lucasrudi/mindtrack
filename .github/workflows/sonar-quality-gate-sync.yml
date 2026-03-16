@@ -1,0 +1,128 @@
+name: Sonar Quality Gate Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sonar-project.properties'
+      - 'docs/sonar-quality-gates.md'
+      - '.github/workflows/sonar-quality-gate-sync.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sync SonarCloud Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure Sonar token is configured
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [[ -z "$SONAR_TOKEN" ]]; then
+            echo "SONAR_TOKEN is required to manage SonarCloud quality gates." >&2
+            exit 1
+          fi
+
+      - name: Sync project quality gate
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+          SONAR_ORGANIZATION: lucasrudi
+          SONAR_PROJECT_KEY: lucasrudi_mindtrack
+          SONAR_GATE_NAME: MindTrack Gate
+          SONAR_NEW_COVERAGE_THRESHOLD: "60"
+        run: |
+          set -euo pipefail
+
+          api_get() {
+            curl --fail --silent --show-error \
+              -u "${SONAR_TOKEN}:" \
+              "$SONAR_HOST_URL$1"
+          }
+
+          api_post() {
+            local endpoint="$1"
+            shift
+            curl --fail --silent --show-error \
+              -u "${SONAR_TOKEN}:" \
+              -X POST \
+              "$SONAR_HOST_URL$endpoint" \
+              "$@"
+          }
+
+          list_gates() {
+            api_get "/api/qualitygates/list?organization=$SONAR_ORGANIZATION"
+          }
+
+          gate_id_from_list() {
+            jq -r --arg name "$1" '.qualitygates[] | select(.name == $name) | .id'
+          }
+
+          gate_list_json="$(list_gates)"
+          gate_id="$(printf '%s' "$gate_list_json" | gate_id_from_list "$SONAR_GATE_NAME" | head -n 1)"
+
+          if [[ -z "$gate_id" ]]; then
+            sonar_way_id="$(printf '%s' "$gate_list_json" | gate_id_from_list "Sonar way" | head -n 1)"
+            if [[ -z "$sonar_way_id" ]]; then
+              echo "Unable to locate the built-in Sonar way quality gate." >&2
+              exit 1
+            fi
+
+            api_post "/api/qualitygates/copy" \
+              --data-urlencode "organization=$SONAR_ORGANIZATION" \
+              --data-urlencode "id=$sonar_way_id" \
+              --data-urlencode "name=$SONAR_GATE_NAME" \
+              >/dev/null
+
+            gate_list_json="$(list_gates)"
+            gate_id="$(printf '%s' "$gate_list_json" | gate_id_from_list "$SONAR_GATE_NAME" | head -n 1)"
+          fi
+
+          if [[ -z "$gate_id" ]]; then
+            echo "Unable to create or locate quality gate '$SONAR_GATE_NAME'." >&2
+            exit 1
+          fi
+
+          gate_json="$(api_get "/api/qualitygates/show?organization=$SONAR_ORGANIZATION&id=$gate_id")"
+          coverage_condition_id="$(
+            printf '%s' "$gate_json" \
+              | jq -r '.conditions[] | select(.metric == "new_coverage") | .id'
+          )"
+
+          if [[ -z "$coverage_condition_id" ]]; then
+            api_post "/api/qualitygates/create_condition" \
+              --data-urlencode "organization=$SONAR_ORGANIZATION" \
+              --data-urlencode "gateId=$gate_id" \
+              --data-urlencode "metric=new_coverage" \
+              --data-urlencode "op=LT" \
+              --data-urlencode "error=$SONAR_NEW_COVERAGE_THRESHOLD" \
+              >/dev/null
+          else
+            api_post "/api/qualitygates/update_condition" \
+              --data-urlencode "organization=$SONAR_ORGANIZATION" \
+              --data-urlencode "id=$coverage_condition_id" \
+              --data-urlencode "metric=new_coverage" \
+              --data-urlencode "op=LT" \
+              --data-urlencode "error=$SONAR_NEW_COVERAGE_THRESHOLD" \
+              >/dev/null
+          fi
+
+          api_post "/api/qualitygates/select" \
+            --data-urlencode "organization=$SONAR_ORGANIZATION" \
+            --data-urlencode "gateId=$gate_id" \
+            --data-urlencode "projectKey=$SONAR_PROJECT_KEY" \
+            >/dev/null
+
+          current_gate="$(api_get "/api/qualitygates/get_by_project?organization=$SONAR_ORGANIZATION&project=$SONAR_PROJECT_KEY")"
+          current_gate_name="$(printf '%s' "$current_gate" | jq -r '.qualityGate.name')"
+          current_gate_id="$(printf '%s' "$current_gate" | jq -r '.qualityGate.id')"
+
+          echo "Project quality gate is now '$current_gate_name' (id=$current_gate_id)."
+
+          if [[ "$current_gate_name" != "$SONAR_GATE_NAME" ]]; then
+            echo "Quality gate association did not switch to '$SONAR_GATE_NAME'." >&2
+            exit 1
+          fi
