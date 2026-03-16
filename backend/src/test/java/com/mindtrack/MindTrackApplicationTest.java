@@ -10,5 +10,6 @@ class MindTrackApplicationTest {
 
     @Test
     void contextLoads() {
+        // Smoke test only: the application context loading without errors is the assertion.
     }
 }

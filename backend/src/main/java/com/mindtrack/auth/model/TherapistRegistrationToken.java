@@ -39,6 +39,7 @@ public class TherapistRegistrationToken {
     private LocalDateTime createdAt;
 
     public TherapistRegistrationToken() {
+        // Required by JPA for entity materialization.
     }
 
     public Long getId() {

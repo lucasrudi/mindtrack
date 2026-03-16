@@ -28,6 +28,7 @@ public class GoalResponse {
     private Long createdBy;
 
     public GoalResponse() {
+        // Required by Jackson for response serialization/deserialization.
     }
 
     public Long getId() {

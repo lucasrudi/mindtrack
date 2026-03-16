@@ -17,6 +17,7 @@ public class DailyChecklistResponse {
     private Integer moodRating;
 
     public DailyChecklistResponse() {
+        // Required by Jackson for response serialization/deserialization.
     }
 
     public Long getActivityId() {

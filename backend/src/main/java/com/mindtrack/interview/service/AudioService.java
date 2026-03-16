@@ -6,6 +6,7 @@ import com.mindtrack.interview.model.Interview;
 import com.mindtrack.interview.model.TranscriptionStatus;
 import com.mindtrack.interview.repository.InterviewRepository;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -57,7 +58,7 @@ public class AudioService {
         try {
             storageService.upload(key, file.getInputStream(), file.getContentType(), file.getSize());
         } catch (IOException ex) {
-            throw new RuntimeException("Failed to read uploaded file", ex);
+            throw new UncheckedIOException("Failed to read uploaded file", ex);
         }
 
         interview.setAudioS3Key(key);

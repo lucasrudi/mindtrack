@@ -15,12 +15,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String ERROR_KEY = "error";
+
     /**
      * Handles illegal argument exceptions with a generic 400 response.
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(Map.of("error", "Invalid request"));
+        return ResponseEntity.badRequest().body(Map.of(ERROR_KEY, "Invalid request"));
     }
 
     /**
@@ -28,7 +30,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
-        return ResponseEntity.badRequest().body(Map.of("error", "Invalid request"));
+        return ResponseEntity.badRequest().body(Map.of(ERROR_KEY, "Invalid request"));
     }
 
     /**
@@ -36,6 +38,6 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied"));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(ERROR_KEY, "Access denied"));
     }
 }

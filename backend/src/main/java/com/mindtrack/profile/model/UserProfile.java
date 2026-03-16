@@ -66,6 +66,7 @@ public class UserProfile {
     private LocalDateTime anonymizedAt;
 
     public UserProfile() {
+        // Required by JPA for entity materialization.
     }
 
     public Long getId() {

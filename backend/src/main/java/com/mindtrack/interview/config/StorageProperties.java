@@ -19,6 +19,7 @@ public class StorageProperties {
     private String localStoragePath = System.getProperty("java.io.tmpdir") + "/mindtrack-audio";
 
     public StorageProperties() {
+        // Required by Spring Boot's configuration properties binder.
     }
 
     public String getBucketName() {

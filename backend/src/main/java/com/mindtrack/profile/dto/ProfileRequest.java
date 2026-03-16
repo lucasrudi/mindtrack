@@ -16,6 +16,7 @@ public class ProfileRequest {
     private Boolean tutorialCompleted;
 
     public ProfileRequest() {
+        // Required by Jackson for request-body deserialization.
     }
 
     public String getDisplayName() {

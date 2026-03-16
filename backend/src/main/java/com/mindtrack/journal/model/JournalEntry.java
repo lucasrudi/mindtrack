@@ -60,6 +60,7 @@ public class JournalEntry {
     private LocalDateTime updatedAt;
 
     public JournalEntry() {
+        // Required by JPA for entity materialization.
     }
 
     public Long getId() {

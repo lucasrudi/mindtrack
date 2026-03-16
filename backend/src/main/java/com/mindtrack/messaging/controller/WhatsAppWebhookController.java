@@ -204,35 +204,55 @@ public class WhatsAppWebhookController {
         }
 
         for (var entry : webhook.getEntry()) {
-            if (entry.getChanges() != null) {
-                for (var change : entry.getChanges()) {
-                    if (change.getValue() != null) {
-                        var value = change.getValue();
-
-                        // Sanitize phone numbers to contain only digits
-                        if (value.getContacts() != null) {
-                            value.getContacts().forEach(contact -> {
-                                if (contact.getWaId() != null) {
-                                    contact.setWaId(contact.getWaId().replaceAll("[^0-9]", ""));
-                                }
-                            });
-                        }
-
-                        // Sanitize message text to prevent URL injection
-                        if (value.getMessages() != null) {
-                            value.getMessages().forEach(message -> {
-                                if (message.getText() != null && message.getText().getBody() != null) {
-                                    String body = message.getText().getBody();
-                                    // Only allow basic alphanumeric, spaces, and common punctuation
-                                    String sanitized = body.replaceAll("[^a-zA-Z0-9\\s\\p{P}]", "");
-                                    message.getText().setBody(sanitized);
-                                }
-                            });
-                        }
-                    }
-                }
-            }
+            sanitizeEntry(entry);
         }
+    }
+
+    private void sanitizeEntry(WhatsAppWebhook.Entry entry) {
+        if (entry.getChanges() == null) {
+            return;
+        }
+
+        for (var change : entry.getChanges()) {
+            sanitizeChange(change);
+        }
+    }
+
+    private void sanitizeChange(WhatsAppWebhook.Change change) {
+        if (change.getValue() == null) {
+            return;
+        }
+
+        var value = change.getValue();
+        sanitizeContacts(value);
+        sanitizeMessages(value);
+    }
+
+    private void sanitizeContacts(WhatsAppWebhook.Value value) {
+        if (value.getContacts() == null) {
+            return;
+        }
+
+        value.getContacts().forEach(contact -> {
+            if (contact.getWaId() != null) {
+                contact.setWaId(contact.getWaId().replaceAll("\\D", ""));
+            }
+        });
+    }
+
+    private void sanitizeMessages(WhatsAppWebhook.Value value) {
+        if (value.getMessages() == null) {
+            return;
+        }
+
+        value.getMessages().forEach(message -> {
+            if (message.getText() != null && message.getText().getBody() != null) {
+                String body = message.getText().getBody();
+                // Only allow basic alphanumeric, spaces, and common punctuation.
+                String sanitized = body.replaceAll("[^a-zA-Z0-9\\s\\p{P}]", "");
+                message.getText().setBody(sanitized);
+            }
+        });
     }
 
     /**

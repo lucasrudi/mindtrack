@@ -41,6 +41,7 @@ public class InviteToken {
     private LocalDateTime createdAt;
 
     public InviteToken() {
+        // Required by JPA for entity materialization.
     }
 
     public Long getId() {

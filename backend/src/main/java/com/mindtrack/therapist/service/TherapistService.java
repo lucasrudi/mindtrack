@@ -39,6 +39,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class TherapistService {
 
     private static final Logger LOG = LoggerFactory.getLogger(TherapistService.class);
+    private static final String PATIENT_NOT_FOUND_PREFIX = "Patient not found: ";
+    private static final String GOAL_NOT_FOUND_PREFIX = "Goal not found: ";
 
     private final TherapistPatientRepository therapistPatientRepository;
     private final UserRepository userRepository;
@@ -87,7 +89,7 @@ public class TherapistService {
                 .map(rel -> {
                     User patient = userRepository.findById(rel.getPatientId())
                             .orElseThrow(() -> new IllegalArgumentException(
-                                    "Patient not found: " + rel.getPatientId()));
+                                    PATIENT_NOT_FOUND_PREFIX + rel.getPatientId()));
                     List<Interview> interviews = interviewRepository
                             .findByUserIdOrderByInterviewDateDesc(rel.getPatientId());
                     List<Goal> activeGoals = goalRepository
@@ -113,7 +115,7 @@ public class TherapistService {
         validateTherapistPatientRelationship(therapistId, patientId);
 
         User patient = userRepository.findById(patientId)
-                .orElseThrow(() -> new IllegalArgumentException("Patient not found: " + patientId));
+                .orElseThrow(() -> new IllegalArgumentException(PATIENT_NOT_FOUND_PREFIX + patientId));
 
         List<InterviewResponse> interviews = interviewRepository
                 .findByUserIdOrderByInterviewDateDesc(patientId).stream()
@@ -187,7 +189,7 @@ public class TherapistService {
                 .map(rel -> {
                     User patient = userRepository.findById(rel.getPatientId())
                             .orElseThrow(() -> new IllegalArgumentException(
-                                    "Patient not found: " + rel.getPatientId()));
+                                    PATIENT_NOT_FOUND_PREFIX + rel.getPatientId()));
                     return therapistMapper.toPatientSummary(patient, 0, 0, 0, null);
                 })
                 .toList();
@@ -240,7 +242,7 @@ public class TherapistService {
         validateTherapistPatientRelationship(therapistId, patientId);
 
         Goal goal = goalRepository.findByIdAndUserId(goalId, patientId)
-                .orElseThrow(() -> new IllegalArgumentException("Goal not found: " + goalId));
+                .orElseThrow(() -> new IllegalArgumentException(GOAL_NOT_FOUND_PREFIX + goalId));
         goalMapper.applyRequest(request, goal);
         goal.setValidationStatus(GoalValidationStatus.OVERRIDDEN);
         goal.setValidatedBy(therapistId);
@@ -260,7 +262,7 @@ public class TherapistService {
         validateTherapistPatientRelationship(therapistId, patientId);
 
         Goal goal = goalRepository.findByIdAndUserId(goalId, patientId)
-                .orElseThrow(() -> new IllegalArgumentException("Goal not found: " + goalId));
+                .orElseThrow(() -> new IllegalArgumentException(GOAL_NOT_FOUND_PREFIX + goalId));
         goal.setValidationStatus(GoalValidationStatus.VALIDATED);
         goal.setValidatedBy(therapistId);
         goal.setValidatedAt(LocalDateTime.now());
@@ -279,7 +281,7 @@ public class TherapistService {
         validateTherapistPatientRelationship(therapistId, patientId);
 
         Goal goal = goalRepository.findByIdAndUserId(goalId, patientId)
-                .orElseThrow(() -> new IllegalArgumentException("Goal not found: " + goalId));
+                .orElseThrow(() -> new IllegalArgumentException(GOAL_NOT_FOUND_PREFIX + goalId));
         goal.setValidationStatus(GoalValidationStatus.REJECTED);
         goal.setValidatedBy(therapistId);
         goal.setValidatedAt(LocalDateTime.now());

@@ -38,6 +38,7 @@ public class GrowthMetric {
     private LocalDateTime createdAt;
 
     public GrowthMetric() {
+        // Required by JPA for entity materialization.
     }
 
     public Long getId() {

@@ -78,6 +78,7 @@ public class Goal {
     private List<Milestone> milestones = new ArrayList<>();
 
     public Goal() {
+        // Required by JPA for entity materialization.
     }
 
     public Long getId() {

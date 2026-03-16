@@ -3,6 +3,7 @@ package com.mindtrack.interview.service;
 import com.mindtrack.interview.config.StorageProperties;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,7 +45,7 @@ public class LocalStorageService implements StorageService {
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
             LOG.info("Stored file locally: {}", filePath);
         } catch (IOException ex) {
-            throw new RuntimeException("Failed to store file locally: " + key, ex);
+            throw new UncheckedIOException("Failed to store file locally: " + key, ex);
         }
     }
 
@@ -60,7 +61,7 @@ public class LocalStorageService implements StorageService {
             Path filePath = validatePath(key);
             return Files.readAllBytes(filePath);
         } catch (IOException ex) {
-            throw new RuntimeException("Failed to read file: " + key, ex);
+            throw new UncheckedIOException("Failed to read file: " + key, ex);
         }
     }
 

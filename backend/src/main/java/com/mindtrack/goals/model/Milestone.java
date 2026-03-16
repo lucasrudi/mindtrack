@@ -56,6 +56,7 @@ public class Milestone {
     private LocalDateTime createdAt;
 
     public Milestone() {
+        // Required by JPA for entity materialization.
     }
 
     public Long getId() {
