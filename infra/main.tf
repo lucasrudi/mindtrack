@@ -32,8 +32,6 @@ module "rds" {
   source = "./modules/rds"
 
   name_prefix  = local.name_prefix
-  min_capacity = var.db_min_capacity
-  max_capacity = var.db_max_capacity
   lambda_sg_id = module.lambda.security_group_id
   vpc_id       = module.vpc.vpc_id
   subnet_ids   = module.vpc.private_subnet_ids
@@ -100,7 +98,6 @@ module "monitoring" {
   aws_region                 = var.aws_region
   lambda_function_name       = module.lambda.function_name
   api_gateway_id             = module.api_gateway.api_id
-  rds_cluster_identifier     = module.rds.cluster_identifier
   rds_instance_identifier    = module.rds.instance_identifier
   audio_bucket_name          = module.s3.audio_bucket_name
   frontend_bucket_name       = module.s3.frontend_bucket_name

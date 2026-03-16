@@ -1,21 +1,21 @@
 output "cluster_endpoint" {
-  description = "Aurora cluster endpoint"
-  value       = aws_rds_cluster.main.endpoint
+  description = "RDS instance endpoint"
+  value       = aws_db_instance.main.address
 }
 
 output "cluster_port" {
-  description = "Aurora cluster port"
-  value       = aws_rds_cluster.main.port
+  description = "RDS instance port"
+  value       = aws_db_instance.main.port
 }
 
 output "cluster_identifier" {
-  description = "Aurora cluster identifier"
-  value       = aws_rds_cluster.main.cluster_identifier
+  description = "RDS instance identifier"
+  value       = aws_db_instance.main.identifier
 }
 
 output "instance_identifier" {
-  description = "Aurora instance identifier"
-  value       = aws_rds_cluster_instance.main.identifier
+  description = "RDS instance identifier"
+  value       = aws_db_instance.main.identifier
 }
 
 output "security_group_id" {
