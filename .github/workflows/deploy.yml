@@ -98,9 +98,14 @@ jobs:
 
       - name: Deploy to Lambda
         run: |
+          JAR_PATH=$(find backend/target -maxdepth 1 -type f -name 'mindtrack-*.jar' ! -name '*.original' | head -n 1)
+          if [[ -z "$JAR_PATH" ]]; then
+            echo "Packaged backend JAR not found in backend/target" >&2
+            exit 1
+          fi
           aws lambda update-function-code \
             --function-name mindtrack-prod-api \
-            --zip-file fileb://backend/target/mindtrack-*.jar
+            --zip-file "fileb://$JAR_PATH"
 
   deploy-frontend:
     name: Deploy Frontend
@@ -144,54 +149,6 @@ jobs:
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
-
-      - name: Bootstrap deploy role permissions
-        env:
-          AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
-        run: |
-          ROLE_NAME="${AWS_ROLE_ARN##*/}"
-          ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-          POLICY_FILE="$(mktemp)"
-          cat > "$POLICY_FILE" <<JSON
-          {
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Sid": "DeployWorkflowBootstrapRead",
-                "Effect": "Allow",
-                "Action": [
-                  "cloudwatch:DescribeAlarms",
-                  "cloudfront:GetCloudFrontOriginAccessIdentity",
-                  "cloudfront:GetResponseHeadersPolicy",
-                  "ec2:DescribeAddresses",
-                  "ec2:DescribeAvailabilityZones",
-                  "ec2:DescribeVpcs",
-                  "events:DescribeRule",
-                  "iam:GetRole",
-                  "kms:DescribeKey",
-                  "logs:DescribeLogGroups",
-                  "s3:GetBucketPolicy",
-                  "wafv2:GetWebACL"
-                ],
-                "Resource": "*"
-              },
-              {
-                "Sid": "DeployWorkflowBootstrapS3Kms",
-                "Effect": "Allow",
-                "Action": [
-                  "kms:Decrypt",
-                  "kms:Encrypt",
-                  "kms:GenerateDataKey"
-                ],
-                "Resource": "arn:aws:kms:*:${ACCOUNT_ID}:key/*"
-              }
-            ]
-          }
-          JSON
-          aws iam put-role-policy \
-            --role-name "$ROLE_NAME" \
-            --policy-name "${ROLE_NAME}-deploy-bootstrap" \
-            --policy-document "file://$POLICY_FILE"
 
       - name: Deploy to S3
         run: aws s3 sync frontend/dist/ s3://${{ vars.FRONTEND_BUCKET }}/ --delete
@@ -248,6 +205,8 @@ jobs:
     needs: detect-component
     if: needs.detect-component.outputs.component == 'infra'
     environment: production
+    env:
+      HAS_BOOTSTRAP_AWS_CREDS: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' }}
     permissions:
       contents: read
       id-token: write
@@ -255,58 +214,19 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Configure AWS credentials
+        if: env.HAS_BOOTSTRAP_AWS_CREDS != 'true'
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
 
-      - name: Bootstrap deploy role permissions
-        env:
-          AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
-        run: |
-          ROLE_NAME="${AWS_ROLE_ARN##*/}"
-          ACCOUNT_ID=$(aws sts get-caller-identity --query 'Account' --output text)
-          POLICY_FILE="$(mktemp)"
-          cat > "$POLICY_FILE" <<JSON
-          {
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Sid": "DeployWorkflowBootstrapRead",
-                "Effect": "Allow",
-                "Action": [
-                  "cloudwatch:DescribeAlarms",
-                  "cloudfront:GetCloudFrontOriginAccessIdentity",
-                  "cloudfront:GetResponseHeadersPolicy",
-                  "ec2:DescribeAddresses",
-                  "ec2:DescribeAvailabilityZones",
-                  "ec2:DescribeVpcs",
-                  "events:DescribeRule",
-                  "iam:GetRole",
-                  "kms:DescribeKey",
-                  "logs:DescribeLogGroups",
-                  "s3:GetBucketPolicy",
-                  "wafv2:GetWebACL"
-                ],
-                "Resource": "*"
-              },
-              {
-                "Sid": "DeployWorkflowBootstrapS3Kms",
-                "Effect": "Allow",
-                "Action": [
-                  "kms:Decrypt",
-                  "kms:Encrypt",
-                  "kms:GenerateDataKey"
-                ],
-                "Resource": "arn:aws:kms:*:${ACCOUNT_ID}:key/*"
-              }
-            ]
-          }
-          JSON
-          aws iam put-role-policy \
-            --role-name "$ROLE_NAME" \
-            --policy-name "${ROLE_NAME}-deploy-bootstrap" \
-            --policy-document "file://$POLICY_FILE"
+      - name: Configure AWS credentials with admin bootstrap user
+        if: env.HAS_BOOTSTRAP_AWS_CREDS == 'true'
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
