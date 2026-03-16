@@ -44,6 +44,8 @@ jobs:
     needs: detect-component
     if: needs.detect-component.outputs.component == 'backend'
     environment: production
+    env:
+      HAS_BOOTSTRAP_AWS_CREDS: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' }}
     permissions:
       contents: read
       id-token: write
@@ -62,9 +64,18 @@ jobs:
         run: mvn clean package -DskipTests -B -q
 
       - name: Configure AWS credentials
+        if: env.HAS_BOOTSTRAP_AWS_CREDS != 'true'
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Configure AWS credentials with admin bootstrap user
+        if: env.HAS_BOOTSTRAP_AWS_CREDS == 'true'
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
       - name: Configure backend Sentry environment
@@ -103,9 +114,16 @@ jobs:
             echo "Packaged backend JAR not found in backend/target" >&2
             exit 1
           fi
+          ARTIFACT_KEY="deployments/backend/${GITHUB_RUN_ID}/$(basename "$JAR_PATH")"
+          cleanup() {
+            aws s3 rm "s3://${{ vars.FRONTEND_BUCKET }}/$ARTIFACT_KEY" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          aws s3 cp "$JAR_PATH" "s3://${{ vars.FRONTEND_BUCKET }}/$ARTIFACT_KEY"
           aws lambda update-function-code \
             --function-name mindtrack-prod-api \
-            --zip-file "fileb://$JAR_PATH"
+            --s3-bucket "${{ vars.FRONTEND_BUCKET }}" \
+            --s3-key "$ARTIFACT_KEY"
 
   deploy-frontend:
     name: Deploy Frontend
@@ -113,6 +131,8 @@ jobs:
     needs: detect-component
     if: needs.detect-component.outputs.component == 'frontend'
     environment: production
+    env:
+      HAS_BOOTSTRAP_AWS_CREDS: ${{ secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' }}
     permissions:
       contents: read
       id-token: write
@@ -145,9 +165,18 @@ jobs:
         run: npm run build
 
       - name: Configure AWS credentials
+        if: env.HAS_BOOTSTRAP_AWS_CREDS != 'true'
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Configure AWS credentials with admin bootstrap user
+        if: env.HAS_BOOTSTRAP_AWS_CREDS == 'true'
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
       - name: Deploy to S3
