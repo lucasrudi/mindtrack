@@ -31,6 +31,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/journal")
 public class JournalController {
 
+    private static final String RESOURCE_JOURNAL_ENTRY = "JOURNAL_ENTRY";
+
     private final JournalService journalService;
     private final AuditService auditService;
 
@@ -49,7 +51,7 @@ public class JournalController {
             HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         JournalEntryResponse response = journalService.create(userId, request);
-        auditService.log(userId, AuditAction.WRITE, "JOURNAL_ENTRY", response.getId(), userId,
+        auditService.log(userId, AuditAction.WRITE, RESOURCE_JOURNAL_ENTRY, response.getId(), userId,
                 getClientIp(httpRequest), "WEB");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -73,7 +75,7 @@ public class JournalController {
             entries = journalService.listByUser(userId);
         }
         for (JournalEntryResponse entry : entries) {
-            auditService.log(userId, AuditAction.READ, "JOURNAL_ENTRY", entry.getId(), userId,
+            auditService.log(userId, AuditAction.READ, RESOURCE_JOURNAL_ENTRY, entry.getId(), userId,
                     getClientIp(httpRequest), "WEB");
         }
         return ResponseEntity.ok(entries);
@@ -91,7 +93,7 @@ public class JournalController {
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
-        auditService.log(userId, AuditAction.READ, "JOURNAL_ENTRY", id, userId,
+        auditService.log(userId, AuditAction.READ, RESOURCE_JOURNAL_ENTRY, id, userId,
                 getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
@@ -110,7 +112,7 @@ public class JournalController {
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
-        auditService.log(userId, AuditAction.WRITE, "JOURNAL_ENTRY", id, userId,
+        auditService.log(userId, AuditAction.WRITE, RESOURCE_JOURNAL_ENTRY, id, userId,
                 getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
@@ -127,7 +129,7 @@ public class JournalController {
         if (!deleted) {
             return ResponseEntity.notFound().build();
         }
-        auditService.log(userId, AuditAction.DELETE, "JOURNAL_ENTRY", id, userId,
+        auditService.log(userId, AuditAction.DELETE, RESOURCE_JOURNAL_ENTRY, id, userId,
                 getClientIp(httpRequest), "WEB");
         return ResponseEntity.noContent().build();
     }
@@ -144,7 +146,7 @@ public class JournalController {
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
-        auditService.log(userId, AuditAction.WRITE, "JOURNAL_ENTRY", id, userId,
+        auditService.log(userId, AuditAction.WRITE, RESOURCE_JOURNAL_ENTRY, id, userId,
                 getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }

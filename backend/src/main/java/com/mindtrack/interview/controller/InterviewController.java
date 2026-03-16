@@ -31,6 +31,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/interviews")
 public class InterviewController {
 
+    private static final String RESOURCE_INTERVIEW = "INTERVIEW";
+
     private final InterviewService interviewService;
     private final AudioService audioService;
     private final AuditService auditService;
@@ -51,7 +53,7 @@ public class InterviewController {
                                                     HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         InterviewResponse response = interviewService.create(userId, request);
-        auditService.log(userId, AuditAction.WRITE, "INTERVIEW", response.getId(), userId,
+        auditService.log(userId, AuditAction.WRITE, RESOURCE_INTERVIEW, response.getId(), userId,
                 getClientIp(httpRequest), "WEB");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -65,7 +67,7 @@ public class InterviewController {
         Long userId = (Long) authentication.getPrincipal();
         List<InterviewResponse> interviews = interviewService.listByUser(userId);
         for (InterviewResponse interview : interviews) {
-            auditService.log(userId, AuditAction.READ, "INTERVIEW", interview.getId(), userId,
+            auditService.log(userId, AuditAction.READ, RESOURCE_INTERVIEW, interview.getId(), userId,
                     getClientIp(httpRequest), "WEB");
         }
         return ResponseEntity.ok(interviews);
@@ -83,7 +85,7 @@ public class InterviewController {
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
-        auditService.log(userId, AuditAction.READ, "INTERVIEW", id, userId,
+        auditService.log(userId, AuditAction.READ, RESOURCE_INTERVIEW, id, userId,
                 getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
@@ -101,7 +103,7 @@ public class InterviewController {
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
-        auditService.log(userId, AuditAction.WRITE, "INTERVIEW", id, userId,
+        auditService.log(userId, AuditAction.WRITE, RESOURCE_INTERVIEW, id, userId,
                 getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
@@ -117,7 +119,7 @@ public class InterviewController {
         if (!deleted) {
             return ResponseEntity.notFound().build();
         }
-        auditService.log(userId, AuditAction.DELETE, "INTERVIEW", id, userId,
+        auditService.log(userId, AuditAction.DELETE, RESOURCE_INTERVIEW, id, userId,
                 getClientIp(httpRequest), "WEB");
         return ResponseEntity.noContent().build();
     }
@@ -132,7 +134,7 @@ public class InterviewController {
                                                             HttpServletRequest httpRequest) {
         Long userId = (Long) authentication.getPrincipal();
         AudioUploadResponse response = audioService.uploadAudio(id, userId, file);
-        auditService.log(userId, AuditAction.WRITE, "INTERVIEW", id, userId,
+        auditService.log(userId, AuditAction.WRITE, RESOURCE_INTERVIEW, id, userId,
                 getClientIp(httpRequest), "WEB");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -149,7 +151,7 @@ public class InterviewController {
         if (response == null) {
             return ResponseEntity.notFound().build();
         }
-        auditService.log(userId, AuditAction.READ, "INTERVIEW", id, userId,
+        auditService.log(userId, AuditAction.READ, RESOURCE_INTERVIEW, id, userId,
                 getClientIp(httpRequest), "WEB");
         return ResponseEntity.ok(response);
     }
@@ -165,7 +167,7 @@ public class InterviewController {
         if (!deleted) {
             return ResponseEntity.notFound().build();
         }
-        auditService.log(userId, AuditAction.DELETE, "INTERVIEW", id, userId,
+        auditService.log(userId, AuditAction.DELETE, RESOURCE_INTERVIEW, id, userId,
                 getClientIp(httpRequest), "WEB");
         return ResponseEntity.noContent().build();
     }

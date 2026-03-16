@@ -18,6 +18,7 @@ public class ActivityLogResponse {
     private LocalDateTime createdAt;
 
     public ActivityLogResponse() {
+        // Required by Jackson for response serialization/deserialization.
     }
 
     public Long getId() {

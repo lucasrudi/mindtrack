@@ -16,6 +16,7 @@ public class DashboardSummaryResponse {
     private long pendingValidationGoals;
 
     public DashboardSummaryResponse() {
+        // Required by Jackson for response serialization/deserialization.
     }
 
     public long getTotalJournalEntries() {

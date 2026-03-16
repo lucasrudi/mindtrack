@@ -46,7 +46,7 @@ public class KmsEncryptionService {
         if (isEnabled()) {
             this.kmsClient = KmsClient.create();
         }
-        instance = this;
+        setInstance(this);
     }
 
     /**
@@ -56,6 +56,10 @@ public class KmsEncryptionService {
      */
     public static KmsEncryptionService getInstance() {
         return instance;
+    }
+
+    private static void setInstance(KmsEncryptionService service) {
+        instance = service;
     }
 
     /** Returns {@code true} when a KMS key ARN is configured. */

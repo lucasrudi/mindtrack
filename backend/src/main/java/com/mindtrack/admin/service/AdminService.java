@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AdminService.class);
+    private static final String USER_NOT_FOUND_PREFIX = "User not found: ";
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -57,7 +58,7 @@ public class AdminService {
      */
     public UserResponse getUser(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND_PREFIX + userId));
         return mapper.toUserResponse(user);
     }
 
@@ -67,7 +68,7 @@ public class AdminService {
     @Transactional
     public UserResponse changeUserRole(Long userId, String roleName) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND_PREFIX + userId));
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
 
@@ -85,7 +86,7 @@ public class AdminService {
     @Transactional
     public UserResponse setUserEnabled(Long userId, boolean enabled) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND_PREFIX + userId));
 
         user.setEnabled(enabled);
         if (!enabled) {
