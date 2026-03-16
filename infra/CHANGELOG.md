@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.4.0](https://github.com/lucasrudi/mindtrack/compare/infra-v0.3.0...infra-v0.4.0) (2026-03-16)
+
+
+### Features
+
+* **privacy:** GDPR/CCPA right-to-erasure and data retention ([#166](https://github.com/lucasrudi/mindtrack/issues/166)) ([#174](https://github.com/lucasrudi/mindtrack/issues/174)) ([ffb52ba](https://github.com/lucasrudi/mindtrack/commit/ffb52bacd002de02ff75dbe77edbc35e4f7595ba))
+* **security:** encrypt Telegram chat ID and WhatsApp number via AWS KMS ([#165](https://github.com/lucasrudi/mindtrack/issues/165)) ([#168](https://github.com/lucasrudi/mindtrack/issues/168)) ([05ae190](https://github.com/lucasrudi/mindtrack/commit/05ae19018126ce283b734241105ab76200af007b))
+
+
+### Bug Fixes
+
+* **ci:** remove no-op --delete-branch and switch squash to PR_BODY ([#78](https://github.com/lucasrudi/mindtrack/issues/78)) ([0577fac](https://github.com/lucasrudi/mindtrack/commit/0577fac233d9eb29e712db4fe4b772df569678c4)), closes [#76](https://github.com/lucasrudi/mindtrack/issues/76)
+* complete Sentry configuration ([#134](https://github.com/lucasrudi/mindtrack/issues/134)) ([#135](https://github.com/lucasrudi/mindtrack/issues/135)) ([7e5b730](https://github.com/lucasrudi/mindtrack/commit/7e5b730d72319b60c6c47b11407d03002a7535e1))
+* remediate SonarCloud security hotspots ([#138](https://github.com/lucasrudi/mindtrack/issues/138)) ([#139](https://github.com/lucasrudi/mindtrack/issues/139)) ([bf39ca6](https://github.com/lucasrudi/mindtrack/commit/bf39ca6f383f913938bd6dc544adc3805327d381))
+* repair GitHub config sync authentication ([#129](https://github.com/lucasrudi/mindtrack/issues/129)) ([abec45f](https://github.com/lucasrudi/mindtrack/commit/abec45f345ba64864cbf27729fffcfac508b39b7)), closes [#128](https://github.com/lucasrudi/mindtrack/issues/128)
+* resolve remaining SonarCloud hotspots ([#140](https://github.com/lucasrudi/mindtrack/issues/140)) ([#141](https://github.com/lucasrudi/mindtrack/issues/141)) ([6cb0b8f](https://github.com/lucasrudi/mindtrack/commit/6cb0b8f653495f9da8a2bf9e77accd8927a3ee85))
+
+
+### Miscellaneous
+
+* **infra:** update hashicorp/aws requirement from ~&gt; 5.0 to ~&gt; 6.34 ([2bf42c4](https://github.com/lucasrudi/mindtrack/commit/2bf42c4def9b96f4b6168b8b8591550da8e94029))
+* **infra:** update hashicorp/aws requirement from ~&gt; 5.0 to ~&gt; 6.34 in /infra in the infra-dependencies group ([#46](https://github.com/lucasrudi/mindtrack/issues/46)) ([2bf42c4](https://github.com/lucasrudi/mindtrack/commit/2bf42c4def9b96f4b6168b8b8591550da8e94029))
+
+
+### CI/CD
+
+* **security:** pin GitHub Actions to SHAs and switch to OIDC (H-1, H-10, H-11, H-12) ([#106](https://github.com/lucasrudi/mindtrack/issues/106)) ([a1ad93a](https://github.com/lucasrudi/mindtrack/commit/a1ad93a0eba74758812e227f0e313cefda21007a))
+* **security:** remove tfsec soft_fail and ESLint/SonarCloud continue-on-error (M-7, M-8) ([#105](https://github.com/lucasrudi/mindtrack/issues/105)) ([45e1622](https://github.com/lucasrudi/mindtrack/commit/45e162298d3e08ba0679e87806e1db6908300b77))
+
+
+### Infrastructure
+
+* document private vulnerability reporting and default CodeQL setup ([#70](https://github.com/lucasrudi/mindtrack/issues/70)) ([503a32f](https://github.com/lucasrudi/mindtrack/commit/503a32f0460db0e857c52e0d3e83f3abe38de265)), closes [#68](https://github.com/lucasrudi/mindtrack/issues/68)
+* **iam:** restrict OIDC trust to main branch and production environment (H-13) ([#108](https://github.com/lucasrudi/mindtrack/issues/108)) ([b9f2ee4](https://github.com/lucasrudi/mindtrack/commit/b9f2ee43f4091ac936d1c3fd8ea4069e6d76a17e))
+* **iam:** scope Transcribe IAM resource to mindtrack-* prefix ([#98](https://github.com/lucasrudi/mindtrack/issues/98)) ([3a185fd](https://github.com/lucasrudi/mindtrack/commit/3a185fd8dd6b58127ae7112349784894774bcde2))
+* **security:** add CloudWatch security alarms for 401/403 spikes (M-9) ([#148](https://github.com/lucasrudi/mindtrack/issues/148)) ([bf1f6f1](https://github.com/lucasrudi/mindtrack/commit/bf1f6f1b5a67316570d4eb1ef8d7e07702f6643d))
+* **security:** add S3 versioning, access logging, and CloudWatch retention (M-14, M-15, M-16) ([#100](https://github.com/lucasrudi/mindtrack/issues/100)) ([404dc76](https://github.com/lucasrudi/mindtrack/commit/404dc7603b4ed5568b2ebbd81e5af056024ebcae))
+* **security:** fix critical infrastructure findings (C-3, C-4, C-6, H-7) ([#99](https://github.com/lucasrudi/mindtrack/issues/99)) ([6fbb347](https://github.com/lucasrudi/mindtrack/commit/6fbb3471def2f9944f866a0b64991a76bd7d03a7))
+* **security:** migrate Aurora and Lambda to dedicated private VPC (H-4) ([#159](https://github.com/lucasrudi/mindtrack/issues/159)) ([9030b63](https://github.com/lucasrudi/mindtrack/commit/9030b63b39e8692ab0fd755fe61af78b46d78d21))
+
 ## [0.3.0](https://github.com/lucasrudi/mindtrack/compare/infra-v0.2.0...infra-v0.3.0) (2026-02-28)
 
 

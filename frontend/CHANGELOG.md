@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.4.0](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.3.0...frontend-v0.4.0) (2026-03-16)
+
+
+### Features
+
+* Apple Health-style survey with depression, stress, eating habits ([#18](https://github.com/lucasrudi/mindtrack/issues/18)) ([#23](https://github.com/lucasrudi/mindtrack/issues/23)) ([487f116](https://github.com/lucasrudi/mindtrack/commit/487f116cddceb4808bbc17047821e20ab109da19))
+* **observability:** add Sentry error tracking and Google Analytics 4 ([#72](https://github.com/lucasrudi/mindtrack/issues/72)) ([ff8aab0](https://github.com/lucasrudi/mindtrack/commit/ff8aab05e96fd6f096039310ac1c849fba65fc37))
+* **privacy:** GDPR/CCPA right-to-erasure and data retention ([#166](https://github.com/lucasrudi/mindtrack/issues/166)) ([#174](https://github.com/lucasrudi/mindtrack/issues/174)) ([ffb52ba](https://github.com/lucasrudi/mindtrack/commit/ffb52bacd002de02ff75dbe77edbc35e4f7595ba))
+* support dual patient+therapist roles per user ([#17](https://github.com/lucasrudi/mindtrack/issues/17)) ([#24](https://github.com/lucasrudi/mindtrack/issues/24)) ([dca9005](https://github.com/lucasrudi/mindtrack/commit/dca9005a450ee3ef88078e59863e216436f5b972))
+
+
+### Bug Fixes
+
+* complete Sentry configuration ([#134](https://github.com/lucasrudi/mindtrack/issues/134)) ([#135](https://github.com/lucasrudi/mindtrack/issues/135)) ([7e5b730](https://github.com/lucasrudi/mindtrack/commit/7e5b730d72319b60c6c47b11407d03002a7535e1))
+* **deps:** update dependency @vueuse/core to v14 ([#156](https://github.com/lucasrudi/mindtrack/issues/156)) ([d596a2f](https://github.com/lucasrudi/mindtrack/commit/d596a2fcf1c699a2b50369514794a02d29ac3a94))
+* **frontend:** pin yauzl to 3.2.1 ([#158](https://github.com/lucasrudi/mindtrack/issues/158)) ([69f7b58](https://github.com/lucasrudi/mindtrack/commit/69f7b58421f12c589d75fd6645d2771fea9526e4)), closes [#157](https://github.com/lucasrudi/mindtrack/issues/157)
+* **security:** remove localStorage token storage (M-13) ([#104](https://github.com/lucasrudi/mindtrack/issues/104)) ([ca930e1](https://github.com/lucasrudi/mindtrack/commit/ca930e1ffdf7e6bc68242c1cbbabf1513e794ed4))
+* **security:** resolve all 61 SonarQube issues ([#118](https://github.com/lucasrudi/mindtrack/issues/118)) ([e5e92f4](https://github.com/lucasrudi/mindtrack/commit/e5e92f40e21069626e8849a1023bd8cb76215446))
+* **security:** resolve remaining 8 SonarCloud issues ([#119](https://github.com/lucasrudi/mindtrack/issues/119)) ([9cacb73](https://github.com/lucasrudi/mindtrack/commit/9cacb7355dad67e5116d16f365a803447ed9154d)), closes [#85](https://github.com/lucasrudi/mindtrack/issues/85)
+
+
+### Miscellaneous
+
+* **deps:** update dependency @sentry/vue to v10.43.0 ([#146](https://github.com/lucasrudi/mindtrack/issues/146)) ([4465113](https://github.com/lucasrudi/mindtrack/commit/4465113df95d3ca0d6711bfdd7db1daff98d5a2f))
+* **deps:** update vitest monorepo to v4.1.0 ([#151](https://github.com/lucasrudi/mindtrack/issues/151)) ([c01c3e7](https://github.com/lucasrudi/mindtrack/commit/c01c3e75c7bf406623cd64caff8a3f363f8f2d1f))
+* **frontend:** bump esbuild, @vitest/coverage-v8 and vitest ([3180d18](https://github.com/lucasrudi/mindtrack/commit/3180d188e796f7abf87e2e48ce41e6d4543e0b66))
+* **frontend:** bump esbuild, @vitest/coverage-v8 and vitest in /frontend ([#53](https://github.com/lucasrudi/mindtrack/issues/53)) ([3180d18](https://github.com/lucasrudi/mindtrack/commit/3180d188e796f7abf87e2e48ce41e6d4543e0b66))
+* **frontend:** bump minimatch and editorconfig in /frontend ([#65](https://github.com/lucasrudi/mindtrack/issues/65)) ([b9ebb6b](https://github.com/lucasrudi/mindtrack/commit/b9ebb6b09eb35a21d9db532089decce9d8c906ce))
+* **frontend:** bump minimatch from 3.1.2 to 3.1.5 in /frontend ([#51](https://github.com/lucasrudi/mindtrack/issues/51)) ([da52eaf](https://github.com/lucasrudi/mindtrack/commit/da52eaf46f2bea67d42a56dd15309b6c15158688))
+* **frontend:** bump rollup from 4.57.1 to 4.59.0 in /frontend ([#52](https://github.com/lucasrudi/mindtrack/issues/52)) ([da22359](https://github.com/lucasrudi/mindtrack/commit/da223594d4ce81e88d4f284c95e14b8b4f37f2db))
+* **frontend:** bump the frontend-dependencies group ([1b70ed7](https://github.com/lucasrudi/mindtrack/commit/1b70ed75f1d8aab493fa407d89ad3f391f000249))
+* **frontend:** bump the frontend-dependencies group in /frontend with 3 updates ([#112](https://github.com/lucasrudi/mindtrack/issues/112)) ([964a8a9](https://github.com/lucasrudi/mindtrack/commit/964a8a9a26c27c11ec9427d3096168fafc604640))
+* **frontend:** bump the frontend-dependencies group in /frontend with 6 updates ([#48](https://github.com/lucasrudi/mindtrack/issues/48)) ([1b70ed7](https://github.com/lucasrudi/mindtrack/commit/1b70ed75f1d8aab493fa407d89ad3f391f000249))
+
 ## [0.3.0](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.2.0...frontend-v0.3.0) (2026-02-28)
 
 
