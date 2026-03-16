@@ -82,14 +82,15 @@ flowchart TD
 **Trigger:** Push to `feature/**`, `bugfix/**`, `chore/**`, or `renovate/**`; also on pull_request to `main`
 **Purpose:** Validate every code change before it can be merged.
 
-Runs backend build & test, frontend lint/test/build, and Terraform validation in parallel. The `sonar` job runs after either backend or frontend succeeds (OR condition — more lenient than `verify.yml`). Path filters skip jobs when their directory has no changes (on push; always runs on PR).
+Starts with a lightweight change-detection job. On feature-branch pushes, backend and frontend run together when application code or Sonar config changes so the Sonar job always has Java classes plus both coverage reports; infra runs only when infrastructure files change. On PRs and manual runs, all validation paths are enabled. The `sonar` job runs only after both backend and frontend succeed and fails immediately if coverage artifacts or the scan are missing.
 
 | Job | Steps |
 |-----|-------|
-| `backend` | Checkout → Java 21 → `mvn verify -B` → upload JaCoCo coverage |
+| `changes` | Checkout → diff pushed files → output `app_changed` / `infra_changed` flags |
+| `backend` | Checkout → Java 21 → `mvn verify -B` → upload JaCoCo coverage + classes |
 | `frontend` | Checkout → Node 20 → `npm ci` → lint → unit tests + coverage → build |
 | `infra` | Checkout → Terraform fmt/init/validate → tflint → tfsec (soft-fail) |
-| `sonar` | Download coverage artifacts → SonarCloud scan (continue-on-error) |
+| `sonar` | Download coverage artifacts → verify JaCoCo/LCOV inputs → SonarCloud scan |
 
 ---
 
@@ -98,14 +99,14 @@ Runs backend build & test, frontend lint/test/build, and Terraform validation in
 **Trigger:** Push to `main`
 **Purpose:** Full verification after every merge to main — no path filtering, all jobs always run.
 
-Identical steps to `feature.yml` but stricter: the `sonar` job requires **both** `backend-verify` AND `frontend-verify` to succeed (AND condition).
+Identical validation goals to `feature.yml`, but without change filtering: backend, frontend, and infra always run on `main`, and the `sonar` job requires both verify jobs to succeed. Coverage artifact downloads are strict and the job fails before scanning if JaCoCo XML, frontend LCOV, or backend classes are missing.
 
 | Job | Steps |
 |-----|-------|
-| `backend-verify` | Checkout → Java 21 → `mvn verify -B` → upload coverage |
+| `backend-verify` | Checkout → Java 21 → `mvn verify -B` → upload coverage + classes |
 | `frontend-verify` | Checkout → Node 20 → `npm ci` → lint → unit tests → build |
 | `infra-verify` | Checkout → Terraform fmt/init/validate → tflint → tfsec |
-| `sonar` | Download coverage → SonarCloud scan (requires both verify jobs to pass) |
+| `sonar` | Download coverage → verify JaCoCo/LCOV inputs → SonarCloud scan |
 
 ---
 

@@ -137,51 +137,30 @@ jobs:
 
       - name: Download frontend coverage
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.3.0
-        continue-on-error: true
         with:
           name: frontend-coverage
           path: frontend/coverage/
 
       - name: Download backend coverage
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.3.0
-        continue-on-error: true
         with:
           name: backend-coverage
           path: backend/target/site/jacoco/
 
       - name: Download backend classes
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.3.0
-        continue-on-error: true
         with:
           name: backend-classes
           path: backend/target/classes/
 
+      - name: Verify Sonar inputs
+        run: |
+          test -f backend/target/site/jacoco/jacoco.xml
+          test -d backend/target/classes
+          test -f frontend/coverage/lcov.info
+
       - name: SonarCloud Scan
-        id: sonar
-        continue-on-error: true
         uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Check SonarCloud Quality Gate
-        if: always()
-        run: |
-          if [ "${{ steps.sonar.outcome }}" = "success" ]; then
-            echo "CI scan completed. Quality gate enforced by scanner."
-            exit 0
-          fi
-          STATUS=$(curl -s \
-            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=lucasrudi_mindtrack" \
-            | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('projectStatus',{}).get('status','UNKNOWN'))" 2>/dev/null || echo "UNKNOWN")
-          echo "SonarCloud quality gate: $STATUS"
-          if [ "$STATUS" = "ERROR" ]; then
-            echo "::error::SonarCloud quality gate FAILED"
-            exit 1
-          elif [ "$STATUS" = "OK" ] || [ "$STATUS" = "NONE" ]; then
-            echo "::notice::CI scan skipped (Automatic Analysis conflict). Quality gate OK."
-            exit 0
-          else
-            echo "::error::Quality gate status unknown: $STATUS"
-            exit 1
-          fi

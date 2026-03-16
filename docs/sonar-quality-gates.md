@@ -4,6 +4,8 @@
 
 MindTrack uses [SonarCloud](https://sonarcloud.io/) for continuous code quality and security analysis. The quality gate is enforced in CI via `sonar.qualitygate.wait=true` in `sonar-project.properties` — any PR or push to `main` that fails the gate will fail the CI pipeline.
 
+Automatic Analysis must remain disabled for this project. MindTrack imports external JaCoCo and LCOV coverage reports from GitHub Actions, and the CI workflows are the only supported analysis path for coverage ingestion.
+
 ## Quality Gate Thresholds
 
 Configure these in the SonarCloud UI under **Quality Gates** for the `mindtrack` project:
