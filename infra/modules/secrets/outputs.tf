@@ -13,3 +13,8 @@ output "app_encryption_key_arn" {
   description = "ARN of the KMS key used for application-level PII column encryption"
   value       = aws_kms_key.app_encryption.arn
 }
+
+output "secrets_encryption_key_arn" {
+  description = "ARN of the KMS key used for Secrets Manager encryption"
+  value       = aws_kms_key.secrets.arn
+}

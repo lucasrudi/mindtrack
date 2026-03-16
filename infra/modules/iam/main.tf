@@ -186,29 +186,58 @@ data "aws_iam_policy_document" "github_actions_permissions" {
   }
 
   # CloudWatch Logs — log groups and metric filters (scoped to account + resource type)
-  # DescribeLogGroups is account-scoped and requires "*" for Terraform reads.
+  # Log delivery APIs and DescribeLogGroups are account-scoped; AWS does not expose narrower resource ARNs.
+  #tfsec:ignore:aws-iam-no-policy-wildcards
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogDelivery",
+      "logs:DeleteLogDelivery",
+      "logs:DescribeLogGroups",
+      "logs:GetLogDelivery",
+      "logs:ListLogDeliveries",
+      "logs:UpdateLogDelivery",
+    ]
+    resources = ["*"]
+  }
+
   statement {
     effect = "Allow"
     actions = [
       "logs:AssociateKmsKey",
-      "logs:CreateLogDelivery",
       "logs:CreateLogGroup",
-      "logs:DeleteLogDelivery",
+    ]
+    resources = [
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name_prefix}-*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name_prefix}-*:*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/${var.name_prefix}",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/${var.name_prefix}:*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/vpc/${var.name_prefix}/*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/vpc/${var.name_prefix}/*:*",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
       "logs:DeleteLogGroup",
       "logs:DeleteMetricFilter",
       "logs:DeleteRetentionPolicy",
-      "logs:DescribeLogGroups",
       "logs:DescribeMetricFilters",
-      "logs:GetLogDelivery",
-      "logs:ListLogDeliveries",
       "logs:ListTagsForResource",
       "logs:PutMetricFilter",
       "logs:PutRetentionPolicy",
       "logs:TagResource",
       "logs:UntagResource",
-      "logs:UpdateLogDelivery",
     ]
-    resources = ["*"]
+    resources = [
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name_prefix}-*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.name_prefix}-*:*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/${var.name_prefix}",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/${var.name_prefix}:*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/vpc/${var.name_prefix}/*",
+      "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/vpc/${var.name_prefix}/*:*",
+    ]
   }
 
   # CloudWatch — alarms. DescribeAlarms is account-scoped and requires "*".
@@ -222,7 +251,9 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "cloudwatch:TagResource",
       "cloudwatch:UntagResource",
     ]
-    resources = ["*"]
+    resources = [
+      "arn:aws:cloudwatch:*:${data.aws_caller_identity.current.account_id}:alarm:${var.name_prefix}-*",
+    ]
   }
 
   # CloudWatch — dashboards (scoped by name prefix; no region in dashboard ARNs)
@@ -263,14 +294,21 @@ data "aws_iam_policy_document" "github_actions_permissions" {
   statement {
     effect = "Allow"
     actions = [
-      "iam:GetOpenIDConnectProvider",
       "iam:GetRole",
       "iam:GetRolePolicy",
       "iam:ListAttachedRolePolicies",
       "iam:ListRolePolicies",
       "iam:ListRoleTags",
     ]
-    resources = ["*"]
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.name_prefix}-*",
+    ]
+  }
+
+  statement {
+    effect    = "Allow"
+    actions   = ["iam:GetOpenIDConnectProvider"]
+    resources = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com"]
   }
 
   # IAM — role and OIDC provider management for Terraform
@@ -328,7 +366,7 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "kms:GetKeyRotationStatus",
       "kms:ListResourceTags",
     ]
-    resources = ["*"]
+    resources = var.managed_kms_key_arns
   }
 
   # KMS — operations on existing keys (key IDs are UUIDs; scope to account + key resource type)

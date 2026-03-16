@@ -22,3 +22,8 @@ output "security_group_id" {
   description = "RDS security group ID"
   value       = aws_security_group.rds.id
 }
+
+output "encryption_key_arn" {
+  description = "ARN of the KMS key used for RDS encryption"
+  value       = aws_kms_key.rds.arn
+}

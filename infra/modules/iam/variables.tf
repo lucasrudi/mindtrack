@@ -38,3 +38,8 @@ variable "app_encryption_key_arn" {
   description = "ARN of the KMS key used for application-level PII column encryption"
   type        = string
 }
+
+variable "managed_kms_key_arns" {
+  description = "KMS key ARNs managed by this stack that Terraform needs to inspect"
+  type        = list(string)
+}
