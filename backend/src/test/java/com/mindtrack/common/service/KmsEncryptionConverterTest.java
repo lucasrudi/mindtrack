@@ -1,13 +1,13 @@
 package com.mindtrack.common.service;
 
+import java.lang.reflect.Field;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.lang.reflect.Field;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
@@ -124,9 +124,12 @@ class KmsEncryptionConverterTest {
 
     // --- helpers ---
 
+    @SuppressWarnings("unchecked")
     private static void setStaticInstance(KmsEncryptionService value) throws Exception {
-        Field field = KmsEncryptionService.class.getDeclaredField("instance");
+        Field field = KmsEncryptionService.class.getDeclaredField("INSTANCE");
         field.setAccessible(true);
-        field.set(null, value);
+        AtomicReference<KmsEncryptionService> reference =
+                (AtomicReference<KmsEncryptionService>) field.get(null);
+        reference.set(value);
     }
 }
