@@ -27,13 +27,13 @@ jobs:
         run: mvn clean verify -B
 
       - name: Upload coverage
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v7.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.6.2
         with:
           name: backend-coverage
           path: backend/target/site/jacoco/
 
       - name: Upload backend classes for Sonar
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v7.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.6.2
         with:
           name: backend-classes
           path: backend/target/classes/
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Node 20
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v6.1.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.1.0
         with:
           node-version: '20'
           cache: 'npm'
@@ -70,7 +70,7 @@ jobs:
         run: npm run build
 
       - name: Upload coverage
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v7.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.6.2
         with:
           name: frontend-coverage
           path: frontend/coverage/
@@ -105,7 +105,7 @@ jobs:
         run: terraform validate
 
       - name: Setup tflint
-        uses: terraform-linters/setup-tflint@115085cc23c5f5eeebad58ba418ec14e88c7a431 # v6.0.0
+        uses: terraform-linters/setup-tflint@b480b8fcdaa6f2c577f8e4fa799e89e756bb7c93 # v6.2.2
 
       - name: Init tflint
         working-directory: infra
@@ -136,21 +136,21 @@ jobs:
           fetch-depth: 0
 
       - name: Download frontend coverage
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v8.3.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.3.0
         continue-on-error: true
         with:
           name: frontend-coverage
           path: frontend/coverage/
 
       - name: Download backend coverage
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v8.3.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.3.0
         continue-on-error: true
         with:
           name: backend-coverage
           path: backend/target/site/jacoco/
 
       - name: Download backend classes
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v8.3.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.3.0
         continue-on-error: true
         with:
           name: backend-classes
