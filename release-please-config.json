@@ -17,8 +17,7 @@
       "extra-files": []
     }
   },
-  "separate-pull-requests": false,
-  "group-pull-request-title-pattern": "chore: release ${version}",
+  "separate-pull-requests": true,
   "changelog-sections": [
     { "type": "feat", "section": "Features" },
     { "type": "fix", "section": "Bug Fixes" },

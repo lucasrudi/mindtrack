@@ -1,8 +1,8 @@
-# CLAUDE.md — MindTrack
+# AGENTS.md — MindTrack
 
 ## Project Overview
 
-MindTrack is a personal mental health tracking application. It tracks psychiatrist interviews (structured notes + audio transcription), activities (homework, habits, custom), journal entries, goals with milestones, and provides AI coaching via Claude API. Messaging integration with Telegram and WhatsApp for spontaneous check-ins.
+MindTrack is a personal mental health tracking application. It tracks psychiatrist interviews (structured notes + audio transcription), activities (homework, habits, custom), journal entries, goals with milestones, and provides AI coaching via Codex API. Messaging integration with Telegram and WhatsApp for spontaneous check-ins.
 
 ## Tech Stack
 
@@ -108,7 +108,7 @@ Commit/PR title format: `type(scope): description` — standard Conventional Com
 | Feature CI | `feature.yml` | Push to non-main branches; PR to `main` | Build, test, lint, tflint, tfsec, SonarCloud; path-filtered on push |
 | Verify | `verify.yml` | Push to `main` | Same as Feature CI but always runs all jobs; stricter sonar gate (AND) |
 | Branch Name Check | `branch-check.yml` | PR to `main` | Enforces `{type}/{issue-id}-{description}` — required gate |
-| Code Review | `code-review.yml` | PR to `main` | Claude posts a structured review comment — required gate |
+| Code Review | `code-review.yml` | PR to `main` | Codex posts a structured review comment — required gate |
 | Auto Approve | `auto-approve.yml` | After Code Review completes successfully | Approves PR automatically via `workflow_run` event |
 | Auto Merge | `auto-merge.yml` | PR opened to `main` | Enables squash auto-merge automatically |
 | Release | `release.yml` | Push to `main` | release-please creates/updates release PRs (backend/frontend/infra independent) |
