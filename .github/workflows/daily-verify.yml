@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Node 20
-        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v6.1.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.1.0
         with:
           node-version: '20'
 
@@ -84,7 +84,7 @@ jobs:
         run: terraform validate
 
       - name: Setup tflint
-        uses: terraform-linters/setup-tflint@115085cc23c5f5eeebad58ba418ec14e88c7a431 # v6.0.0
+        uses: terraform-linters/setup-tflint@b480b8fcdaa6f2c577f8e4fa799e89e756bb7c93 # v6.2.2
 
       - name: Init tflint
         working-directory: infra
