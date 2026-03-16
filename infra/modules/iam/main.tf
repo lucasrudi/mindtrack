@@ -31,6 +31,7 @@ data "aws_iam_policy_document" "github_actions_trust" {
       variable = "token.actions.githubusercontent.com:sub"
       values = [
         "repo:${var.github_org}/${var.github_repo}:ref:refs/heads/main",
+        "repo:${var.github_org}/${var.github_repo}:environment:github-config",
         "repo:${var.github_org}/${var.github_repo}:environment:production",
       ]
     }
