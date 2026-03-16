@@ -59,12 +59,12 @@ resource "aws_cloudwatch_dashboard" "main" {
         width  = 6
         height = 6
         properties = {
-          title  = "RDS Aurora — CPU & Connections"
+          title  = "RDS MySQL — CPU & Connections"
           region = var.aws_region
           metrics = [
-            ["AWS/RDS", "CPUUtilization", "DBClusterIdentifier", var.rds_cluster_identifier,
+            ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", var.rds_instance_identifier,
             { stat = "Average", color = "#1f77b4", label = "CPU %" }],
-            ["AWS/RDS", "DatabaseConnections", "DBClusterIdentifier", var.rds_cluster_identifier,
+            ["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", var.rds_instance_identifier,
             { stat = "Maximum", color = "#2ca02c", label = "Connections", yAxis = "right" }]
           ]
           view    = "timeSeries"
@@ -157,13 +157,13 @@ resource "aws_cloudwatch_dashboard" "main" {
         width  = 8
         height = 6
         properties = {
-          title  = "RDS Aurora — ACU & Storage"
+          title  = "RDS MySQL — Free Storage & Memory"
           region = var.aws_region
           metrics = [
-            ["AWS/RDS", "ServerlessDatabaseCapacity", "DBClusterIdentifier", var.rds_cluster_identifier,
-            { stat = "Average", color = "#1f77b4", label = "ACU" }],
-            ["AWS/RDS", "VolumeBytesUsed", "DBClusterIdentifier", var.rds_cluster_identifier,
-            { stat = "Average", color = "#2ca02c", label = "Storage (bytes)", yAxis = "right" }]
+            ["AWS/RDS", "FreeStorageSpace", "DBInstanceIdentifier", var.rds_instance_identifier,
+            { stat = "Minimum", color = "#2ca02c", label = "Free Storage (bytes)" }],
+            ["AWS/RDS", "FreeableMemory", "DBInstanceIdentifier", var.rds_instance_identifier,
+            { stat = "Average", color = "#1f77b4", label = "Freeable Memory (bytes)", yAxis = "right" }]
           ]
           view    = "timeSeries"
           stacked = false
@@ -188,7 +188,7 @@ resource "aws_cloudwatch_dashboard" "main" {
             aws_cloudwatch_metric_alarm.api_latency.arn,
             aws_cloudwatch_metric_alarm.rds_cpu.arn,
             aws_cloudwatch_metric_alarm.rds_connections.arn,
-            aws_cloudwatch_metric_alarm.rds_acu_utilization.arn,
+            aws_cloudwatch_metric_alarm.rds_free_storage.arn,
           ]
         }
       },
