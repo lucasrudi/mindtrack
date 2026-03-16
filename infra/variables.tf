@@ -9,18 +9,6 @@ variable "environment" {
   type        = string
 }
 
-variable "db_min_capacity" {
-  description = "Aurora Serverless v2 minimum ACU"
-  type        = number
-  default     = 0.5
-}
-
-variable "db_max_capacity" {
-  description = "Aurora Serverless v2 maximum ACU"
-  type        = number
-  default     = 2
-}
-
 variable "lambda_memory_size" {
   description = "Lambda function memory in MB"
   type        = number

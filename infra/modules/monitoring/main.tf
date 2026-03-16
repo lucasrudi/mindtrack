@@ -168,12 +168,12 @@ resource "aws_cloudwatch_metric_alarm" "api_latency" {
 }
 
 # =============================================================================
-# CloudWatch Alarms — RDS Aurora
+# CloudWatch Alarms — RDS MySQL
 # =============================================================================
 
 resource "aws_cloudwatch_metric_alarm" "rds_cpu" {
   alarm_name          = "${var.name_prefix}-rds-cpu"
-  alarm_description   = "RDS Aurora CPU utilization exceeds threshold"
+  alarm_description   = "RDS MySQL CPU utilization exceeds threshold"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 3
   metric_name         = "CPUUtilization"
@@ -187,7 +187,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_cpu" {
   ok_actions          = local.alarm_actions
 
   dimensions = {
-    DBClusterIdentifier = var.rds_cluster_identifier
+    DBInstanceIdentifier = var.rds_instance_identifier
   }
 
   tags = {
@@ -211,7 +211,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_connections" {
   ok_actions          = local.alarm_actions
 
   dimensions = {
-    DBClusterIdentifier = var.rds_cluster_identifier
+    DBInstanceIdentifier = var.rds_instance_identifier
   }
 
   tags = {
@@ -219,27 +219,27 @@ resource "aws_cloudwatch_metric_alarm" "rds_connections" {
   }
 }
 
-resource "aws_cloudwatch_metric_alarm" "rds_acu_utilization" {
-  alarm_name          = "${var.name_prefix}-rds-acu"
-  alarm_description   = "RDS Aurora ACU utilization exceeds threshold"
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = 3
-  metric_name         = "ServerlessDatabaseCapacity"
+resource "aws_cloudwatch_metric_alarm" "rds_free_storage" {
+  alarm_name          = "${var.name_prefix}-rds-free-storage"
+  alarm_description   = "RDS free storage space is critically low"
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "FreeStorageSpace"
   namespace           = "AWS/RDS"
   period              = 300
-  statistic           = "Maximum"
-  threshold           = var.rds_acu_threshold
+  statistic           = "Minimum"
+  threshold           = var.rds_free_storage_threshold_bytes
   treat_missing_data  = "notBreaching"
   actions_enabled     = var.alarm_actions_enabled
   alarm_actions       = local.alarm_actions
   ok_actions          = local.alarm_actions
 
   dimensions = {
-    DBClusterIdentifier = var.rds_cluster_identifier
+    DBInstanceIdentifier = var.rds_instance_identifier
   }
 
   tags = {
-    Name = "${var.name_prefix}-rds-acu"
+    Name = "${var.name_prefix}-rds-free-storage"
   }
 }
 
