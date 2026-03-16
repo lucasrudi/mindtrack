@@ -31,14 +31,9 @@ variable "api_gateway_stage" {
   default     = "$default"
 }
 
-# RDS Aurora
-variable "rds_cluster_identifier" {
-  description = "RDS Aurora cluster identifier"
-  type        = string
-}
-
+# RDS
 variable "rds_instance_identifier" {
-  description = "RDS Aurora instance identifier"
+  description = "RDS instance identifier"
   type        = string
 }
 
@@ -115,10 +110,10 @@ variable "rds_connections_threshold" {
   default     = 50
 }
 
-variable "rds_acu_threshold" {
-  description = "RDS ACU utilization threshold"
+variable "rds_free_storage_threshold_bytes" {
+  description = "RDS free storage space threshold in bytes (alarm when below)"
   type        = number
-  default     = 1.5
+  default     = 2147483648 # 2 GB
 }
 
 variable "api_gateway_log_group_name" {
