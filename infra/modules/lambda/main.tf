@@ -61,6 +61,14 @@ resource "aws_lambda_function" "api" {
   tags = {
     Name = "${var.name_prefix}-api"
   }
+
+  lifecycle {
+    # SENTRY_DSN is injected by the release workflow after reading from Secrets Manager.
+    # Terraform should not try to remove that deploy-managed variable during infra applies.
+    ignore_changes = [
+      environment[0].variables["SENTRY_DSN"],
+    ]
+  }
 }
 
 # Create a placeholder zip for initial deployment
