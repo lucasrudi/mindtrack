@@ -59,9 +59,19 @@ resource "aws_db_instance" "main" {
   storage_encrypted       = true
   kms_key_id              = aws_kms_key.rds.arn
 
-  performance_insights_enabled          = var.enable_performance_insights
-  performance_insights_kms_key_id       = var.enable_performance_insights ? aws_kms_key.rds.arn : null
-  performance_insights_retention_period = var.enable_performance_insights ? 7 : null
+  performance_insights_enabled          = true
+  performance_insights_kms_key_id       = aws_kms_key.rds.arn
+  performance_insights_retention_period = 7 # free tier
+
+  lifecycle {
+    # The current prod DB uses a legacy instance class that cannot accept Performance Insights updates in place.
+    # Keep the secure desired state in code, but defer enforcement until the instance class is upgraded.
+    ignore_changes = [
+      performance_insights_enabled,
+      performance_insights_kms_key_id,
+      performance_insights_retention_period,
+    ]
+  }
 
   tags = {
     Name = "${var.name_prefix}-mysql"

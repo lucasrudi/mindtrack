@@ -17,9 +17,3 @@ variable "subnet_ids" {
   description = "Private subnet IDs for the DB subnet group"
   type        = list(string)
 }
-
-variable "enable_performance_insights" {
-  description = "Whether to enable RDS Performance Insights for the instance"
-  type        = bool
-  default     = false
-}

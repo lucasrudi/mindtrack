@@ -7,5 +7,3 @@ github_org  = "lucasrudi"
 github_repo = "mindtrack"
 # The account-wide GitHub OIDC provider already exists in prod and is referenced by ARN in the role trust policy.
 create_oidc_provider = false
-# db.t3.micro does not support RDS Performance Insights.
-enable_rds_performance_insights = false

@@ -38,11 +38,10 @@ module "s3" {
 module "rds" {
   source = "./modules/rds"
 
-  name_prefix                 = local.name_prefix
-  lambda_sg_id                = module.lambda.security_group_id
-  vpc_id                      = module.vpc.vpc_id
-  subnet_ids                  = module.vpc.private_subnet_ids
-  enable_performance_insights = var.enable_rds_performance_insights
+  name_prefix  = local.name_prefix
+  lambda_sg_id = module.lambda.security_group_id
+  vpc_id       = module.vpc.vpc_id
+  subnet_ids   = module.vpc.private_subnet_ids
 }
 
 module "lambda" {

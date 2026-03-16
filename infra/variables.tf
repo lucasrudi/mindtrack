@@ -15,12 +15,6 @@ variable "lambda_memory_size" {
   default     = 1024
 }
 
-variable "enable_rds_performance_insights" {
-  description = "Whether to enable RDS Performance Insights for the environment"
-  type        = bool
-  default     = false
-}
-
 variable "domain_name" {
   description = "Custom domain name for the application (optional)"
   type        = string
