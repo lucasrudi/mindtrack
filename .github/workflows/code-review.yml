@@ -15,22 +15,11 @@ jobs:
     name: Code Review
     runs-on: ubuntu-latest
     steps:
-      - name: Skip review for release PR
-        if: github.head_ref == 'release-please--branches--main'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --repo ${{ github.repository }} \
-            --body "**Release PR** — auto-generated changelog and version bumps. No code review required. ✅"
-
       - uses: actions/checkout@v4
-        if: github.head_ref != 'release-please--branches--main'
         with:
           fetch-depth: 0
 
       - name: Run Claude Code Review
-        if: github.head_ref != 'release-please--branches--main'
         # This action validates that code-review.yml matches the default branch before
         # exchanging its app token, so update this file in a dedicated workflow-only PR.
         uses: anthropics/claude-code-action@5d0cc745cd0cce4c0e9e0b3511de26c3bc285eb5 # v1
