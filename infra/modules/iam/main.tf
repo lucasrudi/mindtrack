@@ -113,6 +113,286 @@ data "aws_iam_policy_document" "github_actions_permissions" {
       "arn:aws:dynamodb:*:${data.aws_caller_identity.current.account_id}:table/mindtrack-terraform-locks"
     ]
   }
+
+  # EC2 / VPC — Terraform needs full VPC resource management
+  #tfsec:ignore:aws-iam-no-policy-wildcards
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2:AllocateAddress",
+      "ec2:AssociateAddress",
+      "ec2:AssociateRouteTable",
+      "ec2:AttachInternetGateway",
+      "ec2:AuthorizeSecurityGroupEgress",
+      "ec2:AuthorizeSecurityGroupIngress",
+      "ec2:CreateFlowLogs",
+      "ec2:CreateInternetGateway",
+      "ec2:CreateNatGateway",
+      "ec2:CreateRoute",
+      "ec2:CreateRouteTable",
+      "ec2:CreateSecurityGroup",
+      "ec2:CreateSubnet",
+      "ec2:CreateTags",
+      "ec2:CreateVpc",
+      "ec2:DeleteFlowLogs",
+      "ec2:DeleteInternetGateway",
+      "ec2:DeleteNatGateway",
+      "ec2:DeleteRoute",
+      "ec2:DeleteRouteTable",
+      "ec2:DeleteSecurityGroup",
+      "ec2:DeleteSubnet",
+      "ec2:DeleteTags",
+      "ec2:DeleteVpc",
+      "ec2:DescribeAddresses",
+      "ec2:DescribeAddressesAttribute",
+      "ec2:DescribeAvailabilityZones",
+      "ec2:DescribeFlowLogs",
+      "ec2:DescribeInternetGateways",
+      "ec2:DescribeNatGateways",
+      "ec2:DescribeNetworkAcls",
+      "ec2:DescribeNetworkInterfaces",
+      "ec2:DescribePrefixLists",
+      "ec2:DescribeRouteTables",
+      "ec2:DescribeSecurityGroupRules",
+      "ec2:DescribeSecurityGroups",
+      "ec2:DescribeSubnets",
+      "ec2:DescribeTags",
+      "ec2:DescribeVpcAttribute",
+      "ec2:DescribeVpcClassicLink",
+      "ec2:DescribeVpcClassicLinkDnsSupport",
+      "ec2:DescribeVpcs",
+      "ec2:DetachInternetGateway",
+      "ec2:DisassociateAddress",
+      "ec2:DisassociateRouteTable",
+      "ec2:ModifyAddressAttribute",
+      "ec2:ModifySubnetAttribute",
+      "ec2:ModifyVpcAttribute",
+      "ec2:ReleaseAddress",
+      "ec2:RevokeSecurityGroupEgress",
+      "ec2:RevokeSecurityGroupIngress",
+      "ec2:UpdateSecurityGroupRuleDescriptionsEgress",
+      "ec2:UpdateSecurityGroupRuleDescriptionsIngress",
+    ]
+    resources = ["*"]
+  }
+
+  # CloudWatch Logs — log groups, metric filters, and log delivery
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:AssociateKmsKey",
+      "logs:CreateLogDelivery",
+      "logs:CreateLogGroup",
+      "logs:DeleteLogDelivery",
+      "logs:DeleteLogGroup",
+      "logs:DeleteMetricFilter",
+      "logs:DeleteRetentionPolicy",
+      "logs:DescribeLogGroups",
+      "logs:DescribeMetricFilters",
+      "logs:GetLogDelivery",
+      "logs:ListLogDeliveries",
+      "logs:ListTagsForResource",
+      "logs:PutMetricFilter",
+      "logs:PutRetentionPolicy",
+      "logs:TagResource",
+      "logs:UntagResource",
+      "logs:UpdateLogDelivery",
+    ]
+    resources = ["*"]
+  }
+
+  # CloudWatch — alarms and dashboards
+  statement {
+    effect = "Allow"
+    actions = [
+      "cloudwatch:DeleteAlarms",
+      "cloudwatch:DeleteDashboards",
+      "cloudwatch:DescribeAlarms",
+      "cloudwatch:GetDashboard",
+      "cloudwatch:ListDashboards",
+      "cloudwatch:ListTagsForResource",
+      "cloudwatch:PutDashboard",
+      "cloudwatch:PutMetricAlarm",
+      "cloudwatch:TagResource",
+      "cloudwatch:UntagResource",
+    ]
+    resources = ["*"]
+  }
+
+  # SNS — alarm notification topics
+  statement {
+    effect = "Allow"
+    actions = [
+      "sns:CreateTopic",
+      "sns:DeleteTopic",
+      "sns:GetTopicAttributes",
+      "sns:ListSubscriptionsByTopic",
+      "sns:ListTagsForResource",
+      "sns:SetTopicAttributes",
+      "sns:Subscribe",
+      "sns:TagResource",
+      "sns:Unsubscribe",
+      "sns:UntagResource",
+    ]
+    resources = [
+      "arn:aws:sns:*:${data.aws_caller_identity.current.account_id}:${var.name_prefix}-*"
+    ]
+  }
+
+  # IAM — role and OIDC provider management for Terraform
+  statement {
+    effect = "Allow"
+    actions = [
+      "iam:AttachRolePolicy",
+      "iam:CreateOpenIDConnectProvider",
+      "iam:CreateRole",
+      "iam:DeleteOpenIDConnectProvider",
+      "iam:DeleteRole",
+      "iam:DeleteRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:GetOpenIDConnectProvider",
+      "iam:GetRole",
+      "iam:GetRolePolicy",
+      "iam:ListAttachedRolePolicies",
+      "iam:ListRolePolicies",
+      "iam:ListRoleTags",
+      "iam:PassRole",
+      "iam:PutRolePolicy",
+      "iam:TagRole",
+      "iam:UntagRole",
+      "iam:UpdateAssumeRolePolicy",
+      "iam:UpdateOpenIDConnectProviderThumbprint",
+    ]
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.name_prefix}-*",
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com",
+    ]
+  }
+
+  # RDS — DB instance and subnet group management
+  statement {
+    effect = "Allow"
+    actions = [
+      "rds:AddTagsToResource",
+      "rds:CreateDBInstance",
+      "rds:CreateDBSubnetGroup",
+      "rds:DeleteDBInstance",
+      "rds:DeleteDBSubnetGroup",
+      "rds:DescribeDBInstances",
+      "rds:DescribeDBSubnetGroups",
+      "rds:ListTagsForResource",
+      "rds:ModifyDBInstance",
+      "rds:ModifyDBSubnetGroup",
+      "rds:RemoveTagsFromResource",
+    ]
+    resources = ["*"]
+  }
+
+  # KMS — encryption key management for RDS, S3, and Lambda
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:CancelKeyDeletion",
+      "kms:CreateKey",
+      "kms:DescribeKey",
+      "kms:EnableKey",
+      "kms:EnableKeyRotation",
+      "kms:GetKeyPolicy",
+      "kms:GetKeyRotationStatus",
+      "kms:ListResourceTags",
+      "kms:PutKeyPolicy",
+      "kms:ScheduleKeyDeletion",
+      "kms:TagResource",
+      "kms:UntagResource",
+    ]
+    resources = ["*"]
+  }
+
+  # Lambda — additional operations needed by Terraform
+  statement {
+    effect = "Allow"
+    actions = [
+      "lambda:AddPermission",
+      "lambda:CreateAlias",
+      "lambda:CreateFunction",
+      "lambda:DeleteAlias",
+      "lambda:DeleteFunction",
+      "lambda:DeleteFunctionConcurrency",
+      "lambda:DeleteFunctionEventInvokeConfig",
+      "lambda:GetAlias",
+      "lambda:GetFunction",
+      "lambda:GetFunctionCodeSigningConfig",
+      "lambda:GetFunctionEventInvokeConfig",
+      "lambda:GetPolicy",
+      "lambda:ListAliases",
+      "lambda:ListTags",
+      "lambda:ListVersionsByFunction",
+      "lambda:PublishVersion",
+      "lambda:PutFunctionConcurrency",
+      "lambda:PutFunctionEventInvokeConfig",
+      "lambda:RemovePermission",
+      "lambda:TagResource",
+      "lambda:UntagResource",
+      "lambda:UpdateAlias",
+    ]
+    resources = [
+      "arn:aws:lambda:*:${data.aws_caller_identity.current.account_id}:function:${var.name_prefix}-*"
+    ]
+  }
+
+  # CloudFront — distribution and OAC management
+  statement {
+    effect = "Allow"
+    actions = [
+      "cloudfront:CreateCachePolicy",
+      "cloudfront:CreateDistribution",
+      "cloudfront:CreateOriginAccessControl",
+      "cloudfront:DeleteCachePolicy",
+      "cloudfront:DeleteDistribution",
+      "cloudfront:DeleteOriginAccessControl",
+      "cloudfront:GetCachePolicy",
+      "cloudfront:GetDistribution",
+      "cloudfront:GetDistributionConfig",
+      "cloudfront:GetOriginAccessControl",
+      "cloudfront:ListCachePolicies",
+      "cloudfront:ListDistributions",
+      "cloudfront:ListOriginAccessControls",
+      "cloudfront:ListTagsForResource",
+      "cloudfront:TagResource",
+      "cloudfront:UntagResource",
+      "cloudfront:UpdateCachePolicy",
+      "cloudfront:UpdateDistribution",
+      "cloudfront:UpdateOriginAccessControl",
+    ]
+    resources = ["*"]
+  }
+
+  # API Gateway v2 — HTTP API management
+  #tfsec:ignore:aws-iam-no-policy-wildcards
+  statement {
+    effect    = "Allow"
+    actions   = ["apigateway:*"]
+    resources = ["arn:aws:apigateway:*::*"]
+  }
+
+  # Secrets Manager — additional Terraform management operations
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:CreateSecret",
+      "secretsmanager:DeleteSecret",
+      "secretsmanager:GetResourcePolicy",
+      "secretsmanager:ListSecretVersionIds",
+      "secretsmanager:PutResourcePolicy",
+      "secretsmanager:PutSecretValue",
+      "secretsmanager:TagResource",
+      "secretsmanager:UntagResource",
+      "secretsmanager:UpdateSecret",
+    ]
+    resources = [
+      "arn:aws:secretsmanager:*:${data.aws_caller_identity.current.account_id}:secret:${var.name_prefix}*"
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "github_actions" {
