@@ -8,6 +8,8 @@ Automatic Analysis must remain disabled for this project. MindTrack imports exte
 
 
 If the SonarCloud project is private and CI waits for the quality gate result, the token in GitHub Actions must belong to a user who can both submit analysis and browse the project. A Scoped Organization Token is not sufficient for this flow because it only grants Execute Analysis. In practice, `SONAR_TOKEN` should be a Personal Access Token from a SonarCloud user with both **Execute Analysis** and **Browse** access to `lucasrudi_mindtrack`.
+
+After rotating `SONAR_TOKEN`, trigger a fresh PR analysis by opening a new pull request or pushing a new commit to an existing PR branch. That forces SonarCloud to rebuild the PR issue review state with the updated token permissions.
 ## Quality Gate Thresholds
 
 Configure these in the SonarCloud UI under **Quality Gates** for the `mindtrack` project:
