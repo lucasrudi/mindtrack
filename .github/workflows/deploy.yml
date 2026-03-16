@@ -3,6 +3,13 @@ name: Deploy
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      component:
+        description: 'Component to deploy (backend, frontend, infra)'
+        required: true
+        type: choice
+        options: [backend, frontend, infra]
 
 jobs:
   detect-component:
@@ -13,18 +20,22 @@ jobs:
     outputs:
       component: ${{ steps.detect.outputs.component }}
     steps:
-      - name: Detect component from release tag
+      - name: Detect component from release tag or manual input
         id: detect
         run: |
-          TAG="${{ github.event.release.tag_name }}"
-          if [[ "$TAG" == backend-* ]]; then
-            echo "component=backend" >> "$GITHUB_OUTPUT"
-          elif [[ "$TAG" == frontend-* ]]; then
-            echo "component=frontend" >> "$GITHUB_OUTPUT"
-          elif [[ "$TAG" == infra-* ]]; then
-            echo "component=infra" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "component=${{ inputs.component }}" >> "$GITHUB_OUTPUT"
           else
-            echo "component=unknown" >> "$GITHUB_OUTPUT"
+            TAG="${{ github.event.release.tag_name }}"
+            if [[ "$TAG" == backend-* ]]; then
+              echo "component=backend" >> "$GITHUB_OUTPUT"
+            elif [[ "$TAG" == frontend-* ]]; then
+              echo "component=frontend" >> "$GITHUB_OUTPUT"
+            elif [[ "$TAG" == infra-* ]]; then
+              echo "component=infra" >> "$GITHUB_OUTPUT"
+            else
+              echo "component=unknown" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
   deploy-backend:
