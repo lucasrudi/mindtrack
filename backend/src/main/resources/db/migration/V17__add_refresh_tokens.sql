@@ -3,6 +3,7 @@ CREATE TABLE refresh_tokens (
     token_hash  VARCHAR(64) NOT NULL UNIQUE,
     user_id     BIGINT NOT NULL,
     expires_at  TIMESTAMP NOT NULL,
+    used        BOOLEAN NOT NULL DEFAULT FALSE,
     used_at     TIMESTAMP,
     created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_token_hash (token_hash),
