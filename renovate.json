@@ -6,6 +6,7 @@
   "groupName": "all dependencies",
   "automerge": true,
   "platformAutomerge": true,
+  "prCreation": "immediate",
   "packageRules": [
     {
       "matchManagers": ["maven"],
