@@ -11,6 +11,8 @@ services:
       - ../.env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - DB_USERNAME=${MYSQL_USER:-mindtrack}
+      - DB_PASSWORD=${MYSQL_PASSWORD:-mindtrack}
     depends_on:
       mysql:
         condition: service_healthy
