@@ -216,4 +216,66 @@ describe('useProfileStore', () => {
       expect(store.saving).toBe(false)
     })
   })
+
+  describe('survey flow', () => {
+    it('submits survey and marks onboarding complete', async () => {
+      api.post.mockResolvedValueOnce({})
+      const store = useProfileStore()
+      store.profile = { ...mockProfile, surveyCompleted: false, onboardingCompleted: false }
+
+      await store.submitSurvey({
+        moodBaseline: 6,
+        anxietyLevel: 4,
+        sleepQuality: 7,
+        lifeAreas: ['work'],
+      })
+
+      expect(api.post).toHaveBeenCalledWith('/onboarding/survey', {
+        moodBaseline: 6,
+        anxietyLevel: 4,
+        sleepQuality: 7,
+        lifeAreas: ['work'],
+      })
+      expect(store.profile?.surveyCompleted).toBe(true)
+      expect(store.profile?.onboardingCompleted).toBe(true)
+    })
+
+    it('skips survey and marks onboarding complete', async () => {
+      api.post.mockResolvedValueOnce({})
+      const store = useProfileStore()
+      store.profile = { ...mockProfile, onboardingCompleted: false }
+
+      await store.skipSurvey()
+
+      expect(api.post).toHaveBeenCalledWith('/onboarding/skip')
+      expect(store.profile?.onboardingCompleted).toBe(true)
+    })
+
+    it('sets an error when survey submission fails', async () => {
+      api.post.mockRejectedValueOnce(new Error('Survey error'))
+      const store = useProfileStore()
+
+      await expect(
+        store.submitSurvey({
+          moodBaseline: 6,
+          anxietyLevel: 4,
+          sleepQuality: 7,
+          lifeAreas: ['work'],
+        }),
+      ).rejects.toThrow()
+
+      expect(store.error).toBe('Failed to submit survey')
+      expect(store.saving).toBe(false)
+    })
+
+    it('sets an error when skipping survey fails', async () => {
+      api.post.mockRejectedValueOnce(new Error('Skip error'))
+      const store = useProfileStore()
+
+      await expect(store.skipSurvey()).rejects.toThrow()
+
+      expect(store.error).toBe('Failed to skip survey')
+      expect(store.saving).toBe(false)
+    })
+  })
 })

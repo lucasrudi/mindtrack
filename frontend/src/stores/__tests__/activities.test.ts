@@ -119,6 +119,24 @@ describe('useActivitiesStore', () => {
     expect(store.activities[0].active).toBe(false)
   })
 
+  it('updates an existing activity', async () => {
+    api.get.mockResolvedValue({ data: mockActivities })
+    api.put.mockResolvedValue({ data: { ...mockActivities[0], name: 'Updated jog' } })
+    const store = useActivitiesStore()
+    await store.fetchActivities()
+
+    await store.updateActivity(1, {
+      type: 'EXERCISE',
+      name: 'Updated jog',
+      description: 'Updated',
+      frequency: 'Daily',
+      linkedInterviewId: null,
+    })
+
+    expect(api.put).toHaveBeenCalledWith('/activities/1', expect.any(Object))
+    expect(store.activities[0].name).toBe('Updated jog')
+  })
+
   it('deletes activity', async () => {
     api.get.mockResolvedValue({ data: mockActivities })
     api.delete.mockResolvedValue({})
@@ -194,6 +212,40 @@ describe('useActivitiesStore', () => {
     await expect(store.fetchActivities()).rejects.toThrow('Network error')
 
     expect(store.error).toBe('Failed to load activities')
+  })
+
+  it('sets error on checklist failure', async () => {
+    api.get.mockRejectedValue(new Error('Checklist error'))
+    const store = useActivitiesStore()
+
+    await expect(store.fetchChecklist('2025-01-15')).rejects.toThrow('Checklist error')
+    expect(store.error).toBe('Failed to load checklist')
+  })
+
+  it('sets error on activity logging failure', async () => {
+    api.post.mockRejectedValue(new Error('Log error'))
+    const store = useActivitiesStore()
+
+    await expect(
+      store.logActivity(1, {
+        logDate: '2025-01-15',
+        completed: true,
+        notes: '',
+        moodRating: null,
+      }),
+    ).rejects.toThrow('Log error')
+
+    expect(store.error).toBe('Failed to log activity')
+  })
+
+  it('sets error when deleting an activity fails', async () => {
+    api.delete.mockRejectedValue(new Error('Delete error'))
+    const store = useActivitiesStore()
+
+    await expect(store.deleteActivity(1)).rejects.toThrow('Delete error')
+
+    expect(store.error).toBe('Failed to delete activity')
+    expect(store.loading).toBe(false)
   })
 
   it('clears error', () => {

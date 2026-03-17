@@ -4,18 +4,23 @@ import { createPinia, setActivePinia } from 'pinia'
 import JournalFormView from '../JournalFormView.vue'
 
 const mockPush = vi.fn()
+const routeState = vi.hoisted(() => ({ name: 'journal-new', params: {} as Record<string, string> }))
 vi.mock('vue-router', () => ({
-  useRoute: () => ({ name: 'journal-new', params: {} }),
+  useRoute: () => routeState,
   useRouter: () => ({ push: mockPush }),
 }))
 
+const mockGet = vi.fn().mockResolvedValue({ data: [] })
+const mockPost = vi.fn()
+const mockPut = vi.fn()
+const mockDelete = vi.fn()
 vi.mock('@/services/api', () => ({
   default: {
-    get: vi.fn().mockResolvedValue({ data: [] }),
-    post: vi.fn(),
-    put: vi.fn(),
+    get: (...args: unknown[]) => mockGet(...args),
+    post: (...args: unknown[]) => mockPost(...args),
+    put: (...args: unknown[]) => mockPut(...args),
     patch: vi.fn(),
-    delete: vi.fn(),
+    delete: (...args: unknown[]) => mockDelete(...args),
   },
 }))
 
@@ -23,6 +28,12 @@ describe('JournalFormView', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     mockPush.mockClear()
+    routeState.name = 'journal-new'
+    routeState.params = {}
+    mockGet.mockReset().mockResolvedValue({ data: [] })
+    mockPost.mockReset()
+    mockPut.mockReset()
+    mockDelete.mockReset()
   })
 
   it('renders new entry form', () => {
@@ -60,9 +71,7 @@ describe('JournalFormView', () => {
   })
 
   it('submits form and navigates to journal list', async () => {
-    const { default: api } = await import('@/services/api')
-    const mockApi = api as unknown as { post: ReturnType<typeof vi.fn> }
-    mockApi.post.mockResolvedValue({
+    mockPost.mockResolvedValue({
       data: { id: 1, entryDate: '2025-01-15', title: 'Test', tags: [] },
     })
 
@@ -71,7 +80,7 @@ describe('JournalFormView', () => {
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(mockApi.post).toHaveBeenCalledWith('/journal', expect.any(Object))
+    expect(mockPost).toHaveBeenCalledWith('/journal', expect.any(Object))
     expect(mockPush).toHaveBeenCalledWith({ name: 'journal' })
   })
 
@@ -79,5 +88,64 @@ describe('JournalFormView', () => {
     const wrapper = mount(JournalFormView)
     expect(wrapper.find('.checkbox').exists()).toBe(true)
     expect(wrapper.text()).toContain('Share with therapist')
+  })
+
+  it('adds and removes tags from the form', async () => {
+    const wrapper = mount(JournalFormView)
+
+    await wrapper.find('#tag-input').setValue('gratitude')
+    await wrapper.find('#tag-input').trigger('keydown.enter')
+    expect(wrapper.text()).toContain('gratitude')
+
+    await wrapper.find('.tag-remove').trigger('click')
+    expect(wrapper.text()).not.toContain('gratitude')
+  })
+
+  it('loads an existing entry for editing and updates it', async () => {
+    routeState.name = 'journal-edit'
+    routeState.params = { id: '7' }
+    mockGet.mockResolvedValueOnce({
+      data: [
+        {
+          id: 7,
+          entryDate: '2025-01-12',
+          title: 'Existing title',
+          content: 'Existing content',
+          mood: 8,
+          tags: ['sleep'],
+          sharedWithTherapist: true,
+        },
+      ],
+    })
+    mockPut.mockResolvedValueOnce({
+      data: { id: 7, entryDate: '2025-01-12', title: 'Updated', tags: ['sleep'] },
+    })
+
+    const wrapper = mount(JournalFormView)
+    await flushPromises()
+
+    expect((wrapper.find('#entry-title').element as HTMLInputElement).value).toBe('Existing title')
+    expect(wrapper.find('h1').text()).toBe('Edit Entry')
+
+    await wrapper.find('#entry-title').setValue('Updated')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(mockPut).toHaveBeenCalledWith('/journal/7', expect.any(Object))
+    expect(mockPush).toHaveBeenCalledWith({ name: 'journal' })
+  })
+
+  it('shows and dismisses submission errors', async () => {
+    mockPost.mockRejectedValueOnce(new Error('boom'))
+
+    const wrapper = mount(JournalFormView)
+    await wrapper.find('#entry-title').setValue('Test entry')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.find('.error-banner').exists()).toBe(true)
+    await wrapper.find('.error-dismiss').trigger('click')
+    expect(wrapper.find('.error-banner').exists()).toBe(false)
+    expect(mockPush).not.toHaveBeenCalled()
   })
 })

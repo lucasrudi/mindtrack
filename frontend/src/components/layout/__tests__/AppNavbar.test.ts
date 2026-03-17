@@ -30,6 +30,8 @@ const router = createRouter({
     { path: '/interviews', component: { template: '<div>Interviews</div>' } },
     { path: '/chat', component: { template: '<div>Chat</div>' } },
     { path: '/profile', component: { template: '<div>Profile</div>' } },
+    { path: '/admin', component: { template: '<div>Admin</div>' } },
+    { path: '/therapist', component: { template: '<div>Therapist</div>' } },
     { path: '/', component: { template: '<div>Home</div>' } },
   ],
 })
@@ -109,5 +111,23 @@ describe('AppNavbar', () => {
 
     await wrapper.find('.btn-logout').trigger('click')
     expect(auth.isAuthenticated).toBe(false)
+  })
+
+  it('shows admin and therapist links for elevated users', () => {
+    const auth = useAuthStore()
+    auth.setUser({
+      id: '1',
+      email: 'admin@test.com',
+      name: 'Admin Therapist',
+      role: 'ADMIN',
+      isPatient: true,
+      isTherapist: true,
+    })
+
+    const wrapper = mountNavbar()
+    const linkTexts = wrapper.findAll('.nav-link').map((link) => link.text())
+
+    expect(linkTexts).toContain('Admin')
+    expect(linkTexts).toContain('Patients')
   })
 })

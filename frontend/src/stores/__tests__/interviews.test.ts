@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useInterviewsStore } from '../interviews'
+import { useInterviewsStore, type Interview } from '../interviews'
 
-const mockInterviews = [
+const mockInterviews: Interview[] = [
   {
     id: 1,
     interviewDate: '2025-01-15',
@@ -13,6 +13,8 @@ const mockInterviews = [
     recommendations: 'Try meditation',
     notes: 'Good session',
     hasAudio: false,
+    transcriptionText: null,
+    audioExpiresAt: null,
     createdAt: '2025-01-15T10:00:00',
     updatedAt: '2025-01-15T10:00:00',
   },
@@ -26,6 +28,8 @@ const mockInterviews = [
     recommendations: null,
     notes: null,
     hasAudio: true,
+    transcriptionText: 'Existing transcript',
+    audioExpiresAt: '2025-02-21T10:00:00',
     createdAt: '2025-02-20T10:00:00',
     updatedAt: '2025-02-20T10:00:00',
   },
@@ -168,5 +172,81 @@ describe('useInterviewsStore', () => {
     store.clearError()
 
     expect(store.error).toBeNull()
+  })
+
+  it('uploads audio and updates the current interview', async () => {
+    api.post.mockResolvedValue({
+      data: {
+        audioUrl: 'https://example.com/audio.mp3',
+        transcriptionText: 'Transcript',
+        audioExpiresAt: '2025-02-22T10:00:00',
+      },
+    })
+    const store = useInterviewsStore()
+    store.currentInterview = {
+      ...mockInterviews[1],
+      id: 2,
+      hasAudio: false,
+      transcriptionText: null,
+    }
+
+    await store.uploadAudio(2, new File(['audio'], 'clip.mp3', { type: 'audio/mpeg' }))
+
+    expect(api.post).toHaveBeenCalledWith(
+      '/interviews/2/audio',
+      expect.any(FormData),
+      expect.objectContaining({
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }),
+    )
+    expect(store.currentInterview?.hasAudio).toBe(true)
+    expect(store.currentInterview?.transcriptionText).toBe('Transcript')
+  })
+
+  it('returns audio metadata', async () => {
+    api.get.mockResolvedValueOnce({
+      data: {
+        audioUrl: 'https://example.com/audio.mp3',
+        transcriptionText: null,
+        audioExpiresAt: '2025-02-22T10:00:00',
+      },
+    })
+    const store = useInterviewsStore()
+
+    await expect(store.getAudioUrl(2)).resolves.toEqual({
+      audioUrl: 'https://example.com/audio.mp3',
+      transcriptionText: null,
+      audioExpiresAt: '2025-02-22T10:00:00',
+    })
+  })
+
+  it('deletes audio and clears interview flags', async () => {
+    api.delete.mockResolvedValue({})
+    const store = useInterviewsStore()
+    store.currentInterview = {
+      ...mockInterviews[1],
+      id: 2,
+      hasAudio: true,
+      transcriptionText: 'Transcript',
+      audioExpiresAt: '2025-02-22T10:00:00',
+    }
+
+    await store.deleteAudio(2)
+
+    expect(api.delete).toHaveBeenCalledWith('/interviews/2/audio')
+    expect(store.currentInterview?.hasAudio).toBe(false)
+    expect(store.currentInterview?.transcriptionText).toBeNull()
+    expect(store.currentInterview?.audioExpiresAt).toBeNull()
+  })
+
+  it('sets errors for single interview and audio failures', async () => {
+    const store = useInterviewsStore()
+    api.get.mockRejectedValueOnce(new Error('Interview error'))
+    await expect(store.fetchInterview(9)).rejects.toThrow('Interview error')
+    expect(store.error).toBe('Failed to load interview')
+
+    api.get.mockRejectedValueOnce(new Error('Audio error'))
+    await expect(store.getAudioUrl(9)).rejects.toThrow('Audio error')
+    expect(store.error).toBe('Failed to load audio')
   })
 })

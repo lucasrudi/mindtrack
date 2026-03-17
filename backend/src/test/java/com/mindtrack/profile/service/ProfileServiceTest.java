@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -125,6 +126,82 @@ class ProfileServiceTest {
         profileService.updateProfile(1L, request);
 
         verify(profileMapper).applyRequest(request, profile);
+    }
+
+    @Test
+    void shouldCompleteOnboardingForExistingProfile() {
+        UserProfile profile = createProfile();
+        when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+
+        profileService.completeOnboarding(1L);
+
+        assertTrue(profile.isOnboardingCompleted());
+        verify(profileRepository).save(profile);
+    }
+
+    @Test
+    void shouldCompleteSurveyForNewProfile() {
+        UserProfile createdProfile = new UserProfile();
+        createdProfile.setUserId(2L);
+
+        when(profileRepository.findByUserId(2L)).thenReturn(Optional.empty());
+        when(profileRepository.save(any(UserProfile.class))).thenReturn(createdProfile);
+
+        profileService.completeSurvey(2L);
+
+        ArgumentCaptor<UserProfile> captor = ArgumentCaptor.forClass(UserProfile.class);
+        verify(profileRepository, times(2)).save(captor.capture());
+        UserProfile savedProfile = captor.getAllValues().get(1);
+        assertTrue(savedProfile.isOnboardingCompleted());
+        assertTrue(savedProfile.isSurveyCompleted());
+    }
+
+    @Test
+    void shouldSkipOnboardingForExistingProfile() {
+        UserProfile profile = createProfile();
+        when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+
+        profileService.skipOnboarding(1L);
+
+        assertTrue(profile.isOnboardingCompleted());
+        verify(profileRepository).save(profile);
+    }
+
+    @Test
+    void shouldUpdateRolesForNewProfile() {
+        UserProfile createdProfile = new UserProfile();
+        createdProfile.setUserId(3L);
+
+        when(profileRepository.findByUserId(3L)).thenReturn(Optional.empty());
+        when(profileRepository.save(any(UserProfile.class))).thenReturn(createdProfile);
+
+        UserProfile updated = profileService.updateRoles(3L, true, false);
+
+        assertTrue(updated.isPatient());
+        assertEquals(false, updated.isTherapist());
+        verify(profileRepository, times(2)).save(any(UserProfile.class));
+    }
+
+    @Test
+    void shouldRecordAiConsent() {
+        UserProfile profile = createProfile();
+        when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+
+        profileService.giveAiConsent(1L);
+
+        assertTrue(profile.isAiConsentGiven());
+        verify(profileRepository).save(profile);
+    }
+
+    @Test
+    void shouldReturnExistingProfileFromGetOrCreateProfile() {
+        UserProfile profile = createProfile();
+        when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+
+        UserProfile result = profileService.getOrCreateProfile(1L);
+
+        assertEquals(profile, result);
+        verify(profileRepository).findByUserId(1L);
     }
 
     private UserProfile createProfile() {
