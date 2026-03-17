@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useInterviewsStore } from '../interviews'
+import { useInterviewsStore, type Interview } from '../interviews'
 
-const mockInterviews = [
+const mockInterviews: Interview[] = [
   {
     id: 1,
     interviewDate: '2025-01-15',
@@ -13,6 +13,8 @@ const mockInterviews = [
     recommendations: 'Try meditation',
     notes: 'Good session',
     hasAudio: false,
+    transcriptionText: null,
+    audioExpiresAt: null,
     createdAt: '2025-01-15T10:00:00',
     updatedAt: '2025-01-15T10:00:00',
   },
@@ -26,6 +28,8 @@ const mockInterviews = [
     recommendations: null,
     notes: null,
     hasAudio: true,
+    transcriptionText: 'Existing transcript',
+    audioExpiresAt: '2025-02-21T10:00:00',
     createdAt: '2025-02-20T10:00:00',
     updatedAt: '2025-02-20T10:00:00',
   },

@@ -244,7 +244,9 @@ describe('AdminView', () => {
     await flushPromises()
 
     expect(mockPatch).toHaveBeenCalledWith('/admin/users/2/role', { role: 'THERAPIST' })
-    expect(wrapper.findAll('.role-select')[1].element.value).toBe('THERAPIST')
+    expect((wrapper.findAll('.role-select')[1].element as HTMLSelectElement).value).toBe(
+      'THERAPIST',
+    )
   })
 
   it('toggles a user enabled state', async () => {
