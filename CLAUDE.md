@@ -89,12 +89,30 @@ Both VSCode (`.vscode/`) and IntelliJ (`.idea/codeStyles/`) are configured with 
 ## Branch Strategy
 
 - `main` — production branch, deploys automatically
-- `feature/{issue-id}-{description}` — feature development (e.g., `feature/42-add-user-auth`)
-- `bugfix/{issue-id}-{description}` — bug fixes (e.g., `bugfix/17-fix-login`)
-- Other types: `chore/`, `docs/`, `test/`, `refactor/`, `ci/`, `infra/`, etc.
 - Every branch requires a real GitHub issue — always create one before starting work.
 
 Branch name format: `{type}/{issue-id}-{description}` — enforced by the "Branch Name Check" CI gate.
+
+**Valid branch types (exact list — anything else fails CI):**
+
+| Type | Use for |
+|------|---------|
+| `feature` | New functionality |
+| `bugfix` | Bug fixes (use this, not `fix`) |
+| `chore` | Maintenance, dependency updates, config |
+| `docs` | Documentation only |
+| `test` | Tests only |
+| `refactor` | Refactoring without behaviour change |
+| `ci` | CI/CD workflow changes |
+| `infra` | Terraform / infrastructure |
+| `security` | Security fixes |
+| `style` | Formatting, linting |
+| `perf` | Performance improvements |
+| `build` | Build system changes |
+
+Examples: `feature/42-add-user-auth`, `bugfix/17-fix-login`, `chore/99-update-deps`
+
+> **Note:** `fix` is NOT a valid branch type — use `bugfix`. (`fix` is valid in commit/PR titles via Conventional Commits, but not in branch names.)
 
 Commit/PR title format: `type(scope): description` — standard Conventional Commits, no issue prefix.
 - Valid types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `ci`, `infra`, `style`, `perf`, `build`
