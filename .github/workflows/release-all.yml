@@ -1,0 +1,43 @@
+name: Release All
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release-all:
+    name: Create Release PRs and Enable Auto-Merge
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run release-please for all components
+        uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4
+        id: release
+        with:
+          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge on pending release PRs
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          ENABLED=0
+          while IFS= read -r pr; do
+            [ -z "$pr" ] && continue
+            echo "Enabling auto-merge on PR #$pr"
+            gh pr merge "$pr" --auto --squash \
+              && echo "  Done" \
+              || echo "  Already enabled or not eligible"
+            ENABLED=$((ENABLED + 1))
+          done < <(gh pr list \
+            --label "autorelease: pending" \
+            --json number \
+            --jq '.[].number')
+
+          if [ "$ENABLED" -eq 0 ]; then
+            echo "No pending release PRs — all components may be up-to-date."
+          else
+            echo "Auto-merge enabled on $ENABLED release PR(s). CI will drive the rest."
+          fi
