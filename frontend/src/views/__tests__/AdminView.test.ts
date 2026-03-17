@@ -231,4 +231,114 @@ describe('AdminView', () => {
     expect(wrapper.find('.no-permissions').exists()).toBe(true)
     expect(wrapper.find('.no-permissions').text()).toContain('No permissions assigned')
   })
+
+  it('changes a user role from the table', async () => {
+    mockGet.mockResolvedValueOnce({ data: sampleUsers })
+    mockPatch.mockResolvedValueOnce({
+      data: { ...sampleUsers.content[1], role: 'THERAPIST' },
+    })
+    const wrapper = mount(AdminView)
+    await flushPromises()
+
+    await wrapper.findAll('.role-select')[1].setValue('THERAPIST')
+    await flushPromises()
+
+    expect(mockPatch).toHaveBeenCalledWith('/admin/users/2/role', { role: 'THERAPIST' })
+    expect(wrapper.findAll('.role-select')[1].element.value).toBe('THERAPIST')
+  })
+
+  it('toggles a user enabled state', async () => {
+    mockGet.mockResolvedValueOnce({ data: sampleUsers })
+    mockPatch.mockResolvedValueOnce({
+      data: { ...sampleUsers.content[0], enabled: false },
+    })
+    const wrapper = mount(AdminView)
+    await flushPromises()
+
+    await wrapper.findAll('.users-table tbody .btn')[0].trigger('click')
+    await flushPromises()
+
+    expect(mockPatch).toHaveBeenCalledWith('/admin/users/1/enabled', { enabled: false })
+    expect(wrapper.findAll('.status-badge')[0].text()).toBe('Disabled')
+  })
+
+  it('dismisses the store error message', async () => {
+    mockGet.mockRejectedValueOnce(new Error('Network error'))
+    const wrapper = mount(AdminView)
+    await flushPromises()
+
+    await wrapper.find('.error-message .btn').trigger('click')
+
+    expect(wrapper.find('.error-message').exists()).toBe(false)
+  })
+
+  it('edits and saves role permissions', async () => {
+    mockGet.mockResolvedValueOnce({ data: sampleUsers })
+    mockGet.mockResolvedValueOnce({ data: sampleRoles })
+    mockGet.mockResolvedValueOnce({ data: samplePermissions })
+    mockPut.mockResolvedValueOnce({
+      data: {
+        ...sampleRoles[0],
+        permissions: samplePermissions,
+      },
+    })
+
+    const wrapper = mount(AdminView)
+    await flushPromises()
+    await wrapper.findAll('.tab')[1].trigger('click')
+    await flushPromises()
+
+    await wrapper.find('.role-card .btn-secondary').trigger('click')
+    const checkboxes = wrapper.findAll('.permission-checkbox input')
+    await checkboxes[1].setValue(true)
+    await wrapper.find('.edit-actions .btn-primary').trigger('click')
+    await flushPromises()
+
+    expect(mockPut).toHaveBeenCalledWith('/admin/roles/1/permissions', { permissionIds: [1, 2] })
+    expect(wrapper.text()).toContain('2 permissions')
+  })
+
+  it('cancels role permission editing', async () => {
+    mockGet.mockResolvedValueOnce({ data: sampleUsers })
+    mockGet.mockResolvedValueOnce({ data: sampleRoles })
+    mockGet.mockResolvedValueOnce({ data: samplePermissions })
+    const wrapper = mount(AdminView)
+    await flushPromises()
+    await wrapper.findAll('.tab')[1].trigger('click')
+    await flushPromises()
+
+    await wrapper.find('.role-card .btn-secondary').trigger('click')
+    expect(wrapper.find('.permissions-edit').exists()).toBe(true)
+
+    await wrapper.find('.edit-actions .btn-secondary').trigger('click')
+    expect(wrapper.find('.permissions-edit').exists()).toBe(false)
+  })
+
+  it('loads another page of users from pagination', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        ...sampleUsers,
+        totalPages: 2,
+        size: 1,
+      },
+    })
+    mockGet.mockResolvedValueOnce({
+      data: {
+        ...sampleUsers,
+        content: [sampleUsers.content[1]],
+        number: 1,
+        totalPages: 2,
+        size: 1,
+      },
+    })
+
+    const wrapper = mount(AdminView)
+    await flushPromises()
+
+    await wrapper.findAll('.pagination .btn')[1].trigger('click')
+    await flushPromises()
+
+    expect(mockGet).toHaveBeenLastCalledWith('/admin/users?page=1&size=20')
+    expect(wrapper.text()).toContain('Page 2 of 2')
+  })
 })

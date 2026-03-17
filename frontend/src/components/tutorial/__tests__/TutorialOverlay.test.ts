@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import TutorialOverlay from '../TutorialOverlay.vue'
 import { useTutorial } from '@/composables/useTutorial'
@@ -90,5 +90,29 @@ describe('TutorialOverlay', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.find('[data-testid="tutorial-next"]').text()).toBe('Get Started')
+  })
+
+  it('skips the tutorial when the backdrop is clicked', async () => {
+    const { start, isActive } = useTutorial()
+    start()
+    const wrapper = mountOverlay()
+
+    await wrapper.find('.tutorial-backdrop').trigger('click')
+    await flushPromises()
+
+    expect(isActive.value).toBe(false)
+  })
+
+  it('centers the tooltip when the target element is missing', async () => {
+    const { start } = useTutorial()
+    start()
+    const wrapper = mountOverlay()
+    await flushPromises()
+    await wrapper.find('[data-testid="tutorial-next"]').trigger('click')
+    await flushPromises()
+
+    const element = wrapper.find('[data-testid="tutorial-tooltip"]').element as HTMLElement
+    expect(element.style.top).toBe('50%')
+    expect(element.style.left).toBe('50%')
   })
 })
