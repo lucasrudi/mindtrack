@@ -34,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: Setup Snyk
-        uses: snyk/actions/setup@b98d498629f1c5e15ab6ce7f21f88b348b91d2f3 # master@2025-01
+        uses: snyk/actions/setup@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
 
       - name: Snyk test backend
         working-directory: backend
