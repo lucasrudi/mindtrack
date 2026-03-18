@@ -57,10 +57,19 @@ public class MessagingProperties {
      * WhatsApp Cloud API configuration.
      */
     public static class Whatsapp {
+        private boolean enabled = false;
         private String apiToken = "";
         private String verifyToken = "";
         private String phoneNumberId = "";
         private String appSecret = "";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
 
         public String getApiToken() {
             return apiToken;

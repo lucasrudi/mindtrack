@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Requires a non-blank {@code appSecret} to activate signature verification.
  */
 @SpringBootTest(properties = {
+    "mindtrack.messaging.whatsapp.enabled=true",
     "mindtrack.messaging.whatsapp.verify-token=test-verify-token",
     "mindtrack.messaging.whatsapp.app-secret=test-app-secret"
 })

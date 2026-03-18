@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(properties = {
     "mindtrack.messaging.telegram.webhook-secret=my-secret",
+    "mindtrack.messaging.whatsapp.enabled=true",
     "mindtrack.messaging.whatsapp.verify-token=test-verify-token"
 })
 @AutoConfigureMockMvc

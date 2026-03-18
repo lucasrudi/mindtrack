@@ -71,9 +71,11 @@ mindtrack:
     local-storage-path: ${java.io.tmpdir}/mindtrack-audio
   messaging:
     telegram:
-      bot-token: ''
+      bot-token: ${TELEGRAM_BOT_TOKEN:}
+      chat-id: ${TELEGRAM_CHAT_ID:mindtrack_lucasrudi_dev_Bot}
       webhook-secret: 'local-dev-test-webhook-secret'
     whatsapp:
-      api-token: ''
-      verify-token: local-verify-token
-      phone-number-id: ''
+      enabled: false
+      api-token: ${WHATSAPP_API_TOKEN:}
+      verify-token: ${WHATSAPP_VERIFY_TOKEN:local-verify-token}
+      phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
