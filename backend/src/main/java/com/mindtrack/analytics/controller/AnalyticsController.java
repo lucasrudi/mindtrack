@@ -1,12 +1,18 @@
 package com.mindtrack.analytics.controller;
 
 import com.mindtrack.analytics.dto.ActivityStatsResponse;
+import com.mindtrack.analytics.dto.ContentItemResponse;
 import com.mindtrack.analytics.dto.DashboardSummaryResponse;
 import com.mindtrack.analytics.dto.GoalProgressResponse;
 import com.mindtrack.analytics.dto.MoodTrendResponse;
 import com.mindtrack.analytics.service.AnalyticsService;
+import com.mindtrack.analytics.service.ContentRegistry;
+import com.mindtrack.goals.model.GoalStatus;
+import com.mindtrack.goals.repository.GoalRepository;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,11 +29,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class AnalyticsController {
 
     private static final int DEFAULT_DAYS = 30;
+    private static final int CONTENT_MAX_ITEMS = 10;
 
     private final AnalyticsService analyticsService;
+    private final ContentRegistry contentRegistry;
+    private final GoalRepository goalRepository;
 
-    public AnalyticsController(AnalyticsService analyticsService) {
+    public AnalyticsController(AnalyticsService analyticsService,
+                               ContentRegistry contentRegistry,
+                               GoalRepository goalRepository) {
         this.analyticsService = analyticsService;
+        this.contentRegistry = contentRegistry;
+        this.goalRepository = goalRepository;
     }
 
     /**
@@ -86,6 +99,21 @@ public class AnalyticsController {
             Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(analyticsService.getGoalProgress(userId));
+    }
+
+    /**
+     * Returns personalised content items based on the user's active goal categories.
+     */
+    @GetMapping("/content")
+    public ResponseEntity<List<ContentItemResponse>> getContent(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        Set<String> categories = goalRepository
+                .findByUserIdAndStatusOrderByCreatedAtDesc(userId, GoalStatus.IN_PROGRESS)
+                .stream()
+                .map(g -> g.getCategory())
+                .filter(c -> c != null && !c.isBlank())
+                .collect(Collectors.toSet());
+        return ResponseEntity.ok(contentRegistry.getContent(categories, CONTENT_MAX_ITEMS));
     }
 
     /**
