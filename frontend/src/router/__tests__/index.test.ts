@@ -1,9 +1,50 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest'
 import { createApp } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 import { useProfileStore } from '@/stores/profile'
 import router from '../index'
+
+// Mock the API service to prevent the axios interceptor in api.ts from
+// registering a response handler that calls auth.logout() + router.push('/')
+// on 401 errors. Without this mock, the unawaited auth.logout() in the
+// unauthenticated test races against subsequent tests and leaves pending
+// async operations that can corrupt auth/router state.
+vi.mock('@/services/api', () => ({
+  default: {
+    post: vi.fn().mockResolvedValue({ data: {} }),
+    get: vi.fn().mockResolvedValue({ data: {} }),
+    delete: vi.fn().mockResolvedValue({ data: {} }),
+    interceptors: { response: { use: vi.fn() } },
+  },
+}))
+
+// Mock all view components — the router test only verifies guard logic and
+// navigation behaviour, not component rendering. Without these mocks the
+// lazy-loaded SFCs fail to resolve in the jsdom environment (sub-component
+// imports inside LandingView, etc. return undefined), causing navigation
+// errors that cascade and corrupt the shared router state for later tests.
+const stub = { template: '<div />' }
+vi.mock('@/views/LandingView.vue', () => ({ default: stub }))
+vi.mock('@/views/LoginView.vue', () => ({ default: stub }))
+vi.mock('@/views/DashboardView.vue', () => ({ default: stub }))
+vi.mock('@/views/InterviewsView.vue', () => ({ default: stub }))
+vi.mock('@/views/InterviewFormView.vue', () => ({ default: stub }))
+vi.mock('@/views/InterviewDetailView.vue', () => ({ default: stub }))
+vi.mock('@/views/ActivitiesView.vue', () => ({ default: stub }))
+vi.mock('@/views/ActivityFormView.vue', () => ({ default: stub }))
+vi.mock('@/views/JournalView.vue', () => ({ default: stub }))
+vi.mock('@/views/JournalFormView.vue', () => ({ default: stub }))
+vi.mock('@/views/JournalDetailView.vue', () => ({ default: stub }))
+vi.mock('@/views/GoalsView.vue', () => ({ default: stub }))
+vi.mock('@/views/GoalFormView.vue', () => ({ default: stub }))
+vi.mock('@/views/GoalDetailView.vue', () => ({ default: stub }))
+vi.mock('@/views/ChatView.vue', () => ({ default: stub }))
+vi.mock('@/views/ProfileView.vue', () => ({ default: stub }))
+vi.mock('@/views/AdminView.vue', () => ({ default: stub }))
+vi.mock('@/views/TherapistView.vue', () => ({ default: stub }))
+vi.mock('@/views/OnboardingView.vue', () => ({ default: stub }))
+vi.mock('@/views/InviteView.vue', () => ({ default: stub }))
 
 // Ensure localStorage is available in test environment
 const localStorageMock = {
@@ -21,13 +62,24 @@ Object.defineProperty(globalThis, 'localStorage', {
 })
 
 describe('Router', () => {
-  beforeEach(async () => {
-    // Create a Vue app with pinia and router so they share context
+  // Set up the app once — installing the router on multiple apps in beforeEach
+  // breaks the singleton router: each new app.use(pinia) sets a new active
+  // pinia, but the router's guard still executes against whichever pinia is
+  // current, causing auth state set in a test to be invisible to the guard.
+  beforeAll(() => {
     const pinia = createPinia()
     const app = createApp({ template: '<div />' })
     app.use(pinia)
     app.use(router)
     setActivePinia(pinia)
+  })
+
+  beforeEach(async () => {
+    // Reset store state instead of recreating pinia each time
+    const auth = useAuthStore()
+    const profileStore = useProfileStore()
+    auth.user = null
+    profileStore.profile = null
     localStorageMock.getItem.mockReturnValue(null)
 
     // Reset router to a known state
