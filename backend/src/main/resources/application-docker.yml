@@ -52,6 +52,12 @@ mindtrack:
   ai:
     whisper-api-url: https://api.openai.com/v1/audio/transcriptions
     whisper-api-key: ${OPENAI_API_KEY:dummy-key-for-local}
+  messaging:
+    telegram:
+      bot-token: ${TELEGRAM_BOT_TOKEN:}
+      webhook-secret: ${TELEGRAM_WEBHOOK_SECRET:local-dev-docker-webhook-secret}
+    whatsapp:
+      enabled: false
 
 logging:
   level:
