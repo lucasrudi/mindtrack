@@ -13,6 +13,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -65,10 +66,17 @@ public class ClaudeApiClient {
                 messages
         );
 
-        ClaudeApiResponse apiResponse = restClient.post()
-                .body(request)
-                .retrieve()
-                .body(ClaudeApiResponse.class);
+        ClaudeApiResponse apiResponse;
+        try {
+            apiResponse = restClient.post()
+                    .body(request)
+                    .retrieve()
+                    .body(ClaudeApiResponse.class);
+        } catch (HttpClientErrorException ex) {
+            LOG.warn("Claude API returned error {}: {}", ex.getStatusCode(), ex.getMessage());
+            return new ChatResponse(null, null,
+                    "The AI assistant is currently unavailable. Please try again later.", false, 0);
+        }
 
         if (apiResponse == null || apiResponse.content() == null || apiResponse.content().isEmpty()) {
             LOG.error("Empty response from Claude API");

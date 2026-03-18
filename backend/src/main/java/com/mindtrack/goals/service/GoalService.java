@@ -58,6 +58,7 @@ public class GoalService {
     /**
      * Lists goals for the given user, optionally filtered by status.
      */
+    @Transactional(readOnly = true)
     public List<GoalResponse> listByUser(Long userId, GoalStatus status) {
         List<Goal> goals;
         if (status != null) {
@@ -71,6 +72,7 @@ public class GoalService {
     /**
      * Gets a single goal by ID, only if it belongs to the given user.
      */
+    @Transactional(readOnly = true)
     public GoalResponse getByIdAndUser(Long goalId, Long userId) {
         return goalRepository.findByIdAndUserId(goalId, userId)
                 .map(goalMapper::toGoalResponse)
