@@ -33,7 +33,7 @@ services:
       - mindtrack
 
   mysql:
-    image: mysql:8.0
+    image: mysql:8.4
     ports:
       - '3306:3306'
     environment:
