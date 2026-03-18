@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -28,6 +29,7 @@ public class MessagingService {
     private final UserProfileRepository userProfileRepository;
     private final ConversationService conversationService;
     private final TelegramService telegramService;
+    @Nullable
     private final WhatsAppService whatsAppService;
 
     /**
@@ -36,16 +38,16 @@ public class MessagingService {
      * @param userProfileRepository user profile repo for resolving linked accounts
      * @param conversationService AI conversation pipeline
      * @param telegramService Telegram Bot API client
-     * @param whatsAppService WhatsApp Cloud API client
+     * @param whatsAppService WhatsApp Cloud API client (absent when WhatsApp is disabled)
      */
     public MessagingService(UserProfileRepository userProfileRepository,
                             ConversationService conversationService,
                             TelegramService telegramService,
-                            WhatsAppService whatsAppService) {
+                            Optional<WhatsAppService> whatsAppService) {
         this.userProfileRepository = userProfileRepository;
         this.conversationService = conversationService;
         this.telegramService = telegramService;
-        this.whatsAppService = whatsAppService;
+        this.whatsAppService = whatsAppService.orElse(null);
     }
 
     /**
@@ -109,6 +111,11 @@ public class MessagingService {
      * @param webhook the WhatsApp webhook payload
      */
     public void handleWhatsAppMessage(WhatsAppWebhook webhook) {
+        if (whatsAppService == null) {
+            LOG.warn("WhatsApp message received but WhatsApp integration is disabled");
+            return;
+        }
+
         if (webhook.getEntry() == null) {
             return;
         }
@@ -141,6 +148,10 @@ public class MessagingService {
     }
 
     private void processWhatsAppMessage(WhatsAppWebhook.Message message) {
+        WhatsAppService service = whatsAppService;
+        if (service == null) {
+            return;
+        }
         String phoneNumber = message.getFrom();
         String text = message.getText().getBody();
 
@@ -152,7 +163,7 @@ public class MessagingService {
                 .filter(profile -> phoneNumber.equals(profile.getWhatsappNumber()))
                 .findFirst();
         if (profileOpt.isEmpty()) {
-            whatsAppService.sendMessage(phoneNumber,
+            service.sendMessage(phoneNumber,
                     "Your WhatsApp number is not linked to MindTrack. "
                             + "Please add your number in your profile settings.");
             return;
@@ -165,10 +176,10 @@ public class MessagingService {
             ChatResponse response = conversationService.chatWithChannel(
                     userId, chatRequest, Channel.WHATSAPP);
 
-            whatsAppService.sendMessage(phoneNumber, response.content());
+            service.sendMessage(phoneNumber, response.content());
         } catch (Exception e) {
             LOG.error("Error processing WhatsApp message from phone={}", phoneNumber, e);
-            whatsAppService.sendMessage(phoneNumber,
+            service.sendMessage(phoneNumber,
                     "Sorry, I encountered an error processing your message. Please try again later.");
         }
     }

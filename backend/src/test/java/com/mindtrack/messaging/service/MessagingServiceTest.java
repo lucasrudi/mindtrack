@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,7 +43,7 @@ class MessagingServiceTest {
     @BeforeEach
     void setUp() {
         messagingService = new MessagingService(
-                userProfileRepository, conversationService, telegramService, whatsAppService);
+                userProfileRepository, conversationService, telegramService, Optional.of(whatsAppService));
     }
 
     // --- Telegram tests ---
@@ -176,6 +177,18 @@ class MessagingServiceTest {
 
         messagingService.handleWhatsAppMessage(webhook);
 
+        verify(whatsAppService, never()).sendMessage(any(), any());
+    }
+
+    @Test
+    void shouldDoNothingWhenWhatsAppIsDisabled() {
+        MessagingService disabledService = new MessagingService(
+                userProfileRepository, conversationService, telegramService, Optional.empty());
+        WhatsAppWebhook webhook = createWhatsAppWebhook("+1234567890", "Hello");
+
+        disabledService.handleWhatsAppMessage(webhook);
+
+        verify(userProfileRepository, never()).findAllByWhatsappNumberNotNull();
         verify(whatsAppService, never()).sendMessage(any(), any());
     }
 

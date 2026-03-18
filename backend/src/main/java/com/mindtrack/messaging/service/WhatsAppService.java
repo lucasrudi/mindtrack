@@ -8,12 +8,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 /**
  * HTTP client for the WhatsApp Cloud API. Sends text messages to WhatsApp numbers.
  */
 @Service
+@ConditionalOnProperty(prefix = "mindtrack.messaging.whatsapp", name = "enabled", havingValue = "true")
 public class WhatsAppService {
 
     private static final Logger LOG = LoggerFactory.getLogger(WhatsAppService.class);
