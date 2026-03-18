@@ -1,13 +1,13 @@
 package com.mindtrack.interview.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 /**
  * Configuration properties for the OpenAI Whisper transcription API.
  * Bound to the {@code mindtrack.ai} prefix in application.yml.
  */
-@Configuration
+@Component
 @ConfigurationProperties(prefix = "mindtrack.ai")
 public class WhisperProperties {
 

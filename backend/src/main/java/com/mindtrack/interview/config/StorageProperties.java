@@ -2,12 +2,12 @@ package com.mindtrack.interview.config;
 
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 /**
  * Configuration properties for audio file storage.
  */
-@Configuration
+@Component
 @ConfigurationProperties(prefix = "mindtrack.storage")
 public class StorageProperties {
 
