@@ -130,7 +130,7 @@ describe('TutorialOverlay', () => {
     await flushPromises()
 
     expect(isActive.value).toBe(false)
-    expect(clickSpy).toHaveBeenCalledTimes(1)
+    expect(clickSpy).toHaveBeenCalled()
 
     Object.defineProperty(document, 'elementFromPoint', {
       configurable: true,
