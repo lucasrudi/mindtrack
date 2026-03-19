@@ -63,8 +63,9 @@ describe('ActiveGoalsWidget', () => {
       global: { plugins: [router] },
     })
     expect(wrapper.text()).toContain('0%')
-    const fill = wrapper.find('.progress-bar__fill')
-    expect(fill.attributes('style')).toContain('width: 0%')
+    const progress = wrapper.find('progress')
+    expect(progress.attributes('value')).toBe('0')
+    expect(progress.attributes('max')).toBe('100')
   })
 
   it('shows 100% progress when all milestones are complete', () => {
@@ -74,8 +75,8 @@ describe('ActiveGoalsWidget', () => {
       global: { plugins: [router] },
     })
     expect(wrapper.text()).toContain('100%')
-    const fill = wrapper.find('.progress-bar__fill')
-    expect(fill.attributes('style')).toContain('width: 100%')
+    const progress = wrapper.find('progress')
+    expect(progress.attributes('value')).toBe('100')
   })
 
   it('renders goal cards as router-links to goal-detail', () => {

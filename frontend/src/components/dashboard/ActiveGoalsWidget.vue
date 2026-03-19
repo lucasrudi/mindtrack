@@ -46,15 +46,14 @@ function formatDate(date: string | null): string {
         <h3 class="goal-title">{{ goal.title }}</h3>
 
         <div class="progress-section">
-          <div
+          <progress
             class="progress-bar"
-            role="progressbar"
-            :aria-valuenow="getProgress(goal)"
-            aria-valuemin="0"
-            aria-valuemax="100"
+            :value="getProgress(goal)"
+            max="100"
+            :aria-label="`Progress for ${goal.title}`"
           >
-            <div class="progress-bar__fill" :style="{ width: getProgress(goal) + '%' }"></div>
-          </div>
+            {{ getProgress(goal) }}%
+          </progress>
           <span class="progress-label">
             {{ goal.completedMilestones }}/{{ goal.totalMilestones }} milestones ({{
               getProgress(goal)
@@ -141,17 +140,29 @@ function formatDate(date: string | null): string {
 }
 
 .progress-bar {
+  appearance: none;
+  -webkit-appearance: none;
   height: 6px;
+  width: 100%;
+  border: none;
   background: var(--color-gray-200);
   border-radius: 999px;
   overflow: hidden;
 }
 
-.progress-bar__fill {
-  height: 100%;
+.progress-bar::-webkit-progress-bar {
+  background: var(--color-gray-200);
+  border-radius: 999px;
+}
+
+.progress-bar::-webkit-progress-value {
   background: var(--color-primary);
   border-radius: 999px;
-  transition: width 0.3s ease;
+}
+
+.progress-bar::-moz-progress-bar {
+  background: var(--color-primary);
+  border-radius: 999px;
 }
 
 .progress-label {
