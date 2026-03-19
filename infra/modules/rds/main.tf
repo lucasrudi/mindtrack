@@ -35,8 +35,8 @@ resource "aws_security_group" "rds" {
 resource "aws_db_instance" "main" {
   identifier        = "${var.name_prefix}-mysql"
   engine            = "mysql"
-  engine_version    = "8.0"
-  instance_class    = "db.t3.micro"
+  engine_version    = "8.4"
+  instance_class    = "db.t4g.micro"
   allocated_storage = 20
   storage_type      = "gp2"
 
@@ -59,19 +59,11 @@ resource "aws_db_instance" "main" {
   storage_encrypted       = true
   kms_key_id              = aws_kms_key.rds.arn
 
+  allow_major_version_upgrade = true
+
   performance_insights_enabled          = true
   performance_insights_kms_key_id       = aws_kms_key.rds.arn
   performance_insights_retention_period = 7 # free tier
-
-  lifecycle {
-    # The current prod DB uses a legacy instance class that cannot accept Performance Insights updates in place.
-    # Keep the secure desired state in code, but defer enforcement until the instance class is upgraded.
-    ignore_changes = [
-      performance_insights_enabled,
-      performance_insights_kms_key_id,
-      performance_insights_retention_period,
-    ]
-  }
 
   tags = {
     Name = "${var.name_prefix}-mysql"
