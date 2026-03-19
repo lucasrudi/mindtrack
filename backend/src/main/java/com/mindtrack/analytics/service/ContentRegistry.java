@@ -1,12 +1,22 @@
 package com.mindtrack.analytics.service;
 
 import com.mindtrack.analytics.dto.ContentItemResponse;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,6 +24,13 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ContentRegistry {
+
+    private static final List<ContentCategory> CATEGORY_ORDER = List.of(
+            ContentCategory.MENTAL_HEALTH,
+            ContentCategory.WELLNESS,
+            ContentCategory.SLEEP,
+            ContentCategory.FITNESS
+    );
 
     private static final Map<ContentCategory, List<ContentItemResponse>> CATEGORY_CONTENT = Map.of(
             ContentCategory.MENTAL_HEALTH, List.of(
@@ -30,7 +47,7 @@ public class ContentRegistry {
                         + " What were you doing? Use this as a reference point.",
                     ContentCategory.MENTAL_HEALTH),
                 video("Why We All Need to Practice Emotional First Aid",
-                    "Guy Winch makes a compelling case for practising emotional hygiene — tending to"
+                    "Guy Winch makes a compelling case for practising emotional hygiene - tending to"
                         + " psychological wounds the way we treat physical ones.",
                     ContentCategory.MENTAL_HEALTH, "F2hc2FLOdhI"),
                 video("Understanding Anxiety",
@@ -44,7 +61,15 @@ public class ContentRegistry {
                 video("How to Stop Overthinking",
                     "Dr Daniel Amen shares evidence-based strategies for quieting an overactive mind"
                         + " and breaking the overthinking cycle.",
-                    ContentCategory.MENTAL_HEALTH, "H9UI5ON-kbM")
+                    ContentCategory.MENTAL_HEALTH, "H9UI5ON-kbM"),
+                video("How to Make Stress Your Friend",
+                    "Kelly McGonigal reframes stress as something that can strengthen resilience"
+                        + " and connection instead of something to fear.",
+                    ContentCategory.MENTAL_HEALTH, "RcGyVTAoXEU"),
+                video("The Power of Introverts",
+                    "Susan Cain explains why quieter minds matter and how solitude can support"
+                        + " creativity, energy, and wellbeing.",
+                    ContentCategory.MENTAL_HEALTH, "c0KYU2j0TM4")
             ),
             ContentCategory.WELLNESS, List.of(
                 tip("Start Your Day with Gratitude",
@@ -69,7 +94,19 @@ public class ContentRegistry {
                 video("The Power of Vulnerability",
                     "Brene Brown's iconic TED Talk on embracing vulnerability as the birthplace"
                         + " of connection, creativity, and belonging.",
-                    ContentCategory.WELLNESS, "lDGpFEo1oyg")
+                    ContentCategory.WELLNESS, "lDGpFEo1oyg"),
+                video("The Happy Secret to Better Work",
+                    "Shawn Achor shows how happiness can improve productivity, resilience,"
+                        + " and performance at work and beyond.",
+                    ContentCategory.WELLNESS, "fLJsdqxnZb0"),
+                video("The Surprising Science of Happiness",
+                    "Dan Gilbert explores why our brains adapt so quickly and how we can build"
+                        + " more lasting wellbeing.",
+                    ContentCategory.WELLNESS, "4q1dgn_C0AU"),
+                video("Your Body Language May Shape Who You Are",
+                    "Amy Cuddy shares how posture and body language can influence confidence"
+                        + " and stress in everyday life.",
+                    ContentCategory.WELLNESS, "Ks-_Mh1QhMc")
             ),
             ContentCategory.SLEEP, List.of(
                 tip("The 10-3-2-1-0 Sleep Rule",
@@ -85,7 +122,7 @@ public class ContentRegistry {
                         + " Start at your feet and work up to your face. Promotes deep physical relaxation.",
                     ContentCategory.SLEEP),
                 video("Why Do We Sleep?",
-                    "TED-Ed explores the science of sleep — what happens in your brain and body"
+                    "TED-Ed explores the science of sleep - what happens in your brain and body"
                         + " each night and why it matters so much for health.",
                     ContentCategory.SLEEP, "nm1TxQj9IsQ"),
                 video("How to Fall Asleep Faster",
@@ -95,7 +132,19 @@ public class ContentRegistry {
                 video("Sleep Is Your Superpower",
                     "Matthew Walker explains the life-saving importance of sleep in this"
                         + " powerful TEDx Talk packed with research insights.",
-                    ContentCategory.SLEEP, "5MuIMqhT8pM")
+                    ContentCategory.SLEEP, "5MuIMqhT8pM"),
+                video("All It Takes Is 10 Mindful Minutes",
+                    "Andy Puddicombe shows how a short daily mindfulness practice can improve"
+                        + " calm, clarity, and focus.",
+                    ContentCategory.SLEEP, "qzR62JJCMBQ"),
+                video("Meditation 101: A Beginner's Guide",
+                    "A gentle introduction to mindfulness meditation that makes the practice"
+                        + " feel approachable for anyone.",
+                    ContentCategory.SLEEP, "rqoxYKtEWEc"),
+                video("MindUP Program: Mindfulness Improves Academic Achievement",
+                    "A classroom mindfulness example showing how regular practice can support"
+                        + " attention, emotional regulation, and compassion.",
+                    ContentCategory.SLEEP, "10dBXGHwNCK")
             ),
             ContentCategory.FITNESS, List.of(
                 tip("The 2-Minute Rule for Exercise",
@@ -121,7 +170,15 @@ public class ContentRegistry {
                 video("10-Minute Morning Workout for Mental Health",
                     "A quick, accessible morning workout designed to lift mood and set"
                         + " a positive tone for the rest of your day.",
-                    ContentCategory.FITNESS, "YQLQoW6BUCA")
+                    ContentCategory.FITNESS, "YQLQoW6BUCA"),
+                video("Self-Compassion in Practice",
+                    "Kristin Neff's self-compassion message encourages treating yourself"
+                        + " with the same kindness you would offer a friend.",
+                    ContentCategory.FITNESS, "11U0h0DPu7k"),
+                video("Meditation in Public Schools",
+                    "A short documentary-style look at how school mindfulness programs can"
+                        + " improve mood, behavior, and attention.",
+                    ContentCategory.FITNESS, "8G-UnambdUMa")
             )
     );
 
@@ -143,7 +200,7 @@ public class ContentRegistry {
                     + " Even a few data points reveal meaningful trends.",
                 ContentCategory.GENERAL),
             video("Mental Health Basics",
-                "Mayo Clinic provides a clear, accessible overview of mental health — what it means,"
+                "Mayo Clinic provides a clear, accessible overview of mental health - what it means,"
                     + " common conditions, and when to seek professional support.",
                 ContentCategory.GENERAL, "hd-PCMKR0pY"),
             video("Self-Compassion Meditation",
@@ -157,17 +214,36 @@ public class ContentRegistry {
     );
 
     private static final List<ContentItemResponse> ALL_TIPS;
+    private static final List<ContentItemResponse> ALL_VIDEOS;
 
     static {
         ALL_TIPS = new ArrayList<>();
-        CATEGORY_CONTENT.values().forEach(items ->
-                items.stream()
-                        .filter(ContentRegistry::isTip)
-                        .forEach(ALL_TIPS::add)
-        );
+        ALL_VIDEOS = new ArrayList<>();
+        CATEGORY_ORDER.forEach(category -> {
+            List<ContentItemResponse> items = CATEGORY_CONTENT.get(category);
+            items.stream()
+                    .filter(ContentRegistry::isTip)
+                    .forEach(ALL_TIPS::add);
+            items.stream()
+                    .filter(ContentRegistry::isVideo)
+                    .forEach(ALL_VIDEOS::add);
+        });
         DEFAULT_CONTENT.stream()
                 .filter(ContentRegistry::isTip)
                 .forEach(ALL_TIPS::add);
+        DEFAULT_CONTENT.stream()
+                .filter(ContentRegistry::isVideo)
+                .forEach(ALL_VIDEOS::add);
+    }
+
+    private final VideoAvailabilityChecker videoAvailabilityChecker;
+
+    public ContentRegistry() {
+        this(new OEmbedVideoAvailabilityChecker());
+    }
+
+    ContentRegistry(VideoAvailabilityChecker videoAvailabilityChecker) {
+        this.videoAvailabilityChecker = videoAvailabilityChecker;
     }
 
     /**
@@ -186,22 +262,90 @@ public class ContentRegistry {
             result.add(ALL_TIPS.get(dayIndex));
         }
 
-        // Add category-specific content
-        for (String category : categories) {
-            List<ContentItemResponse> items = CATEGORY_CONTENT.get(ContentCategory.fromLabel(category));
-            if (items != null) {
-                items.stream()
+        // Add category-specific content in a fixed order for deterministic results.
+        for (ContentCategory category : CATEGORY_ORDER) {
+            if (categories.contains(category.label)) {
+                CATEGORY_CONTENT.get(category).stream()
                         .filter(ContentRegistry::isNotTip)
                         .forEach(result::add);
             }
         }
 
-        // Fill with defaults if needed
+        // Fill with defaults if needed.
         if (result.size() < 2) {
             DEFAULT_CONTENT.forEach(result::add);
         }
 
-        return result.stream().distinct().limit(maxItems).toList();
+        List<ContentItemResponse> uniqueItems = result.stream()
+                .distinct()
+                .collect(Collectors.toCollection(ArrayList::new));
+        replaceUnavailableVideos(uniqueItems);
+
+        return uniqueItems.stream().limit(maxItems).toList();
+    }
+
+    private void replaceUnavailableVideos(List<ContentItemResponse> items) {
+        Set<String> selectedVideoIds = items.stream()
+                .filter(ContentRegistry::isVideo)
+                .map(ContentItemResponse::getUrl)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        for (int index = 0; index < items.size(); index++) {
+            ContentItemResponse item = items.get(index);
+            if (!isVideo(item) || isPlayable(item.getUrl())) {
+                continue;
+            }
+
+            ContentItemResponse replacement = findPlayableReplacement(
+                    ContentCategory.fromLabel(item.getCategory()), selectedVideoIds);
+            if (replacement != null) {
+                items.set(index, replacement);
+                selectedVideoIds.add(replacement.getUrl());
+            }
+        }
+    }
+
+    private ContentItemResponse findPlayableReplacement(ContentCategory preferredCategory,
+                                                        Set<String> selectedVideoIds) {
+        for (ContentItemResponse candidate : fallbackCandidates(preferredCategory)) {
+            if (selectedVideoIds.contains(candidate.getUrl())) {
+                continue;
+            }
+            if (isPlayable(candidate.getUrl())) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    private List<ContentItemResponse> fallbackCandidates(ContentCategory preferredCategory) {
+        List<ContentItemResponse> candidates = new ArrayList<>();
+        if (preferredCategory != null) {
+            candidates.addAll(videosForCategory(preferredCategory));
+        }
+        DEFAULT_CONTENT.stream()
+                .filter(ContentRegistry::isVideo)
+                .forEach(candidates::add);
+        ALL_VIDEOS.stream()
+                .filter(candidate -> !ContentCategory.GENERAL.label.equals(candidate.getCategory()))
+                .filter(candidate -> preferredCategory == null
+                        || !preferredCategory.label.equals(candidate.getCategory()))
+                .forEach(candidates::add);
+        return candidates;
+    }
+
+    private List<ContentItemResponse> videosForCategory(ContentCategory category) {
+        List<ContentItemResponse> items = CATEGORY_CONTENT.get(category);
+        if (items == null) {
+            return List.of();
+        }
+        return items.stream()
+                .filter(ContentRegistry::isVideo)
+                .toList();
+    }
+
+    private boolean isPlayable(String videoId) {
+        return videoId != null && videoAvailabilityChecker.isPlayable(videoId);
     }
 
     private static ContentItemResponse tip(String title, String body, ContentCategory category) {
@@ -245,8 +389,54 @@ public class ContentRegistry {
         return ContentType.TIP.value.equals(item.getType());
     }
 
+    private static boolean isVideo(ContentItemResponse item) {
+        return ContentType.VIDEO.value.equals(item.getType());
+    }
+
     private static boolean isNotTip(ContentItemResponse item) {
         return !isTip(item);
+    }
+
+    @FunctionalInterface
+    interface VideoAvailabilityChecker {
+        boolean isPlayable(String videoId);
+    }
+
+    private static final class OEmbedVideoAvailabilityChecker implements VideoAvailabilityChecker {
+
+        private static final String OEMBED_BASE_URL =
+                "https://www.youtube.com/oembed?url=%s&format=json";
+
+        private final HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(2))
+                .build();
+
+        @Override
+        public boolean isPlayable(String videoId) {
+            if (videoId == null || videoId.isBlank()) {
+                return false;
+            }
+
+            String videoUrl = "https://www.youtube.com/watch?v=" + videoId;
+            String oembedUrl = String.format(OEMBED_BASE_URL,
+                    URLEncoder.encode(videoUrl, StandardCharsets.UTF_8));
+
+            HttpRequest request = HttpRequest.newBuilder(URI.create(oembedUrl))
+                    .timeout(Duration.ofSeconds(3))
+                    .GET()
+                    .build();
+
+            try {
+                HttpResponse<Void> response = httpClient.send(
+                        request, HttpResponse.BodyHandlers.discarding());
+                return response.statusCode() == 200;
+            } catch (IOException ex) {
+                return false;
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
     }
 
     private enum ContentType {
@@ -271,7 +461,7 @@ public class ContentRegistry {
         GENERAL("General");
 
         private static final Map<String, ContentCategory> BY_LABEL = Arrays.stream(values())
-                .collect(java.util.stream.Collectors.toUnmodifiableMap(
+                .collect(Collectors.toUnmodifiableMap(
                         category -> category.label,
                         category -> category));
 
