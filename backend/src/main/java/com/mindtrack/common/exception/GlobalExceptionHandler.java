@@ -29,6 +29,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class GlobalExceptionHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final String BAD_REQUEST = HttpStatus.BAD_REQUEST.getReasonPhrase();
+    private static final String FORBIDDEN = HttpStatus.FORBIDDEN.getReasonPhrase();
+    private static final String NOT_FOUND = HttpStatus.NOT_FOUND.getReasonPhrase();
+    private static final String METHOD_NOT_ALLOWED = HttpStatus.METHOD_NOT_ALLOWED.getReasonPhrase();
+    private static final String CONFLICT = HttpStatus.CONFLICT.getReasonPhrase();
+    private static final String INTERNAL_SERVER_ERROR = HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase();
 
     private ErrorResponse buildError(String error, String message, HttpServletRequest request) {
         return new ErrorResponse(
@@ -47,7 +53,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalArgument(
             IllegalArgumentException ex, HttpServletRequest request) {
         return ResponseEntity.badRequest()
-                .body(buildError("Bad Request", ex.getMessage(), request));
+                .body(buildError(BAD_REQUEST, ex.getMessage(), request));
     }
 
     /**
@@ -70,7 +76,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDenied(
             AccessDeniedException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(buildError("Forbidden", "Access denied", request));
+                .body(buildError(FORBIDDEN, "Access denied", request));
     }
 
     /**
@@ -91,7 +97,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNotFound(
             NoSuchElementException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(buildError("Not Found", ex.getMessage(), request));
+                .body(buildError(NOT_FOUND, ex.getMessage(), request));
     }
 
     /**
@@ -101,7 +107,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNotReadable(
             HttpMessageNotReadableException ex, HttpServletRequest request) {
         return ResponseEntity.badRequest()
-                .body(buildError("Bad Request", "Malformed request body", request));
+                .body(buildError(BAD_REQUEST, "Malformed request body", request));
     }
 
     /**
@@ -111,7 +117,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleTypeMismatch(
             MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         return ResponseEntity.badRequest()
-                .body(buildError("Bad Request", "Invalid parameter: " + ex.getName(), request));
+                .body(buildError(BAD_REQUEST, "Invalid parameter: " + ex.getName(), request));
     }
 
     /**
@@ -121,7 +127,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMethodNotSupported(
             HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body(buildError("Method Not Allowed", ex.getMessage(), request));
+                .body(buildError(METHOD_NOT_ALLOWED, ex.getMessage(), request));
     }
 
     /**
@@ -131,7 +137,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleConstraintViolation(
             ConstraintViolationException ex, HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(buildError("Conflict", ex.getMessage(), request));
+                .body(buildError(CONFLICT, ex.getMessage(), request));
     }
 
     /**
@@ -143,6 +149,6 @@ public class GlobalExceptionHandler {
             Exception ex, HttpServletRequest request) {
         LOG.error("Unhandled exception at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(buildError("Internal Server Error", "An unexpected error occurred", request));
+                .body(buildError(INTERNAL_SERVER_ERROR, "An unexpected error occurred", request));
     }
 }
