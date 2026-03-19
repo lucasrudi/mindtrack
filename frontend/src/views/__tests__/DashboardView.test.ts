@@ -228,6 +228,57 @@ describe('DashboardView', () => {
     expect(wrapper.text()).toContain('2 active')
   })
 
+  it('renders dashboard sections in the target flow order', async () => {
+    setupSuccessfulMocks()
+    const profileStore = useProfileStore()
+    profileStore.fetchProfile = vi.fn().mockResolvedValue(undefined) as never
+    profileStore.profile = {
+      id: 1,
+      userId: 1,
+      displayName: 'Test User',
+      avatarUrl: null,
+      timezone: null,
+      notificationPrefs: null,
+      telegramChatId: null,
+      whatsappNumber: null,
+      tutorialCompleted: true,
+      onboardingCompleted: true,
+      surveyCompleted: false,
+      isPatient: true,
+      isTherapist: false,
+      aiConsentGiven: false,
+    }
+
+    const wrapper = mount(DashboardView)
+    await flushPromises()
+
+    const order = [
+      'survey-prompt',
+      'daily-tip-section',
+      'resources-widget',
+      'video-widget',
+      'wellbeing-widget',
+      'mood-entry-section',
+      'pending-activities-section',
+      'active-goals-section',
+      'summary-cards',
+      'validation-cards',
+      'charts-section',
+    ]
+
+    const nodes = order.map((testId) => wrapper.get(`[data-testid="${testId}"]`).element)
+
+    order.forEach((testId) => {
+      expect(wrapper.find(`[data-testid="${testId}"]`).exists()).toBe(true)
+    })
+
+    for (let index = 0; index < nodes.length - 1; index += 1) {
+      const isFollowing =
+        nodes[index].compareDocumentPosition(nodes[index + 1]) & Node.DOCUMENT_POSITION_FOLLOWING
+      expect(isFollowing).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    }
+  })
+
   describe('survey prompt card', () => {
     beforeEach(() => sessionStorageMock.clear())
 
