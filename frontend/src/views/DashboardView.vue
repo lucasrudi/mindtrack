@@ -153,8 +153,49 @@ watch(
     </div>
 
     <template v-else-if="store.summary">
+      <section
+        class="dashboard-section dashboard-section--daily-tip"
+        data-testid="daily-tip-section"
+      >
+        <DailyTipWidget :tip="dailyTip" />
+      </section>
+
+      <section
+        class="dashboard-section dashboard-section--content-row"
+        data-testid="content-row-section"
+      >
+        <div class="content-widgets">
+          <div data-testid="resources-widget">
+            <ResourcesWidget :items="resourceItems" />
+          </div>
+          <div data-testid="video-widget">
+            <VideoWidget :items="videoItems" />
+          </div>
+          <div data-testid="wellbeing-widget">
+            <WellbeingWidget :items="wellbeingItems" />
+          </div>
+        </div>
+      </section>
+
+      <section class="dashboard-section" data-testid="mood-entry-section">
+        <MoodEntryWidget />
+      </section>
+
+      <section class="dashboard-section" data-testid="pending-activities-section">
+        <PendingActivitiesWidget />
+      </section>
+
+      <section class="dashboard-section" data-testid="active-goals-section">
+        <div v-if="goalsStore.loading" class="goals-loading">Loading goals...</div>
+        <div v-else-if="goalsStore.error" class="goals-error">
+          <p>{{ goalsStore.error }}</p>
+          <button class="btn btn-sm btn-secondary" @click="goalsStore.fetchGoals()">Retry</button>
+        </div>
+        <ActiveGoalsWidget v-else :goals="goalsStore.activeGoals" />
+      </section>
+
       <!-- Summary Cards -->
-      <div class="summary-cards">
+      <div class="summary-cards" data-testid="summary-cards">
         <div class="summary-card">
           <span class="card-label">Average Mood</span>
           <span class="card-value card-value--mood">
@@ -186,7 +227,7 @@ watch(
       </div>
 
       <!-- Goal Validation Cards -->
-      <div class="validation-cards">
+      <div class="validation-cards" data-testid="validation-cards">
         <div class="validation-card">
           <span class="vcard-icon">✅</span>
           <span class="vcard-count">{{ store.summary.validatedGoals }}</span>
@@ -199,21 +240,8 @@ watch(
         </div>
       </div>
 
-      <!-- Pending Activities -->
-      <PendingActivitiesWidget />
-      <!-- Mood Entry -->
-      <MoodEntryWidget />
-
-      <!-- Active Goals -->
-      <div v-if="goalsStore.loading" class="goals-loading">Loading goals...</div>
-      <div v-else-if="goalsStore.error" class="goals-error">
-        <p>{{ goalsStore.error }}</p>
-        <button class="btn btn-sm btn-secondary" @click="goalsStore.fetchGoals()">Retry</button>
-      </div>
-      <ActiveGoalsWidget v-else :goals="goalsStore.activeGoals" />
-
       <!-- Charts -->
-      <div class="charts-section">
+      <div class="charts-section" data-testid="charts-section">
         <div class="chart-card chart-card--full">
           <h2 class="chart-title">Mood Trends</h2>
           <MoodTrendChart :data="store.moodTrends" />
@@ -228,14 +256,6 @@ watch(
             <GoalProgressChart :data="store.goalProgress" />
           </div>
         </div>
-      </div>
-
-      <!-- Content Widgets -->
-      <div class="content-widgets">
-        <DailyTipWidget :tip="dailyTip" />
-        <ResourcesWidget :items="resourceItems" />
-        <WellbeingWidget :items="wellbeingItems" />
-        <VideoWidget :items="videoItems" />
       </div>
     </template>
 
@@ -313,6 +333,11 @@ watch(
   text-align: center;
   padding: var(--space-12);
   color: var(--color-gray-500);
+}
+
+.dashboard-section--daily-tip,
+.dashboard-section--content-row {
+  margin-bottom: var(--space-6);
 }
 
 /* Summary Cards */
@@ -532,9 +557,8 @@ watch(
 /* Content Widgets */
 .content-widgets {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-6);
-  margin-top: var(--space-6);
 }
 
 /* Responsive */
