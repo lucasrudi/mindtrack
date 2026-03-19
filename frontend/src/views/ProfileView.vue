@@ -334,6 +334,10 @@ async function handleDeleteAccount() {
                   max="10"
                   class="metric-slider"
                 />
+                <div class="scale-labels">
+                  <span>None / minimal</span>
+                  <span>Severe / overwhelming</span>
+                </div>
               </div>
               <div class="health-metric">
                 <div class="metric-header">
@@ -349,6 +353,10 @@ async function handleDeleteAccount() {
                   max="10"
                   class="metric-slider"
                 />
+                <div class="scale-labels">
+                  <span>None / minimal</span>
+                  <span>Severe / debilitating</span>
+                </div>
               </div>
               <div class="health-metric">
                 <div class="metric-header">
@@ -364,6 +372,10 @@ async function handleDeleteAccount() {
                   max="10"
                   class="metric-slider"
                 />
+                <div class="scale-labels">
+                  <span>Relaxed / calm</span>
+                  <span>Extreme / burnout</span>
+                </div>
               </div>
             </div>
 
@@ -384,6 +396,10 @@ async function handleDeleteAccount() {
                   max="10"
                   class="metric-slider"
                 />
+                <div class="scale-labels">
+                  <span>Very poor / restless</span>
+                  <span>Excellent / refreshing</span>
+                </div>
               </div>
             </div>
 
@@ -404,6 +420,10 @@ async function handleDeleteAccount() {
                   max="10"
                   class="metric-slider"
                 />
+                <div class="scale-labels">
+                  <span>Very irregular / unhealthy</span>
+                  <span>Balanced / consistent</span>
+                </div>
               </div>
             </div>
 
@@ -424,6 +444,10 @@ async function handleDeleteAccount() {
                   max="10"
                   class="metric-slider"
                 />
+                <div class="scale-labels">
+                  <span>Very low / distressed</span>
+                  <span>Excellent / thriving</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1002,6 +1026,14 @@ async function handleDeleteAccount() {
 
 .metric-slider {
   width: 100%;
+}
+
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--color-gray-400);
+  margin-top: 2px;
 }
 
 .danger-zone {
