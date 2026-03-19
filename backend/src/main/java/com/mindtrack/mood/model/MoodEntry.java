@@ -35,6 +35,7 @@ public class MoodEntry {
      * Required by JPA for entity materialization.
      */
     public MoodEntry() {
+        // Intentionally empty: JPA requires a no-args constructor for entity instantiation.
     }
 
     /**

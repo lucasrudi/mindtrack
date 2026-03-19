@@ -8,7 +8,6 @@ import com.mindtrack.activity.model.Activity;
 import com.mindtrack.activity.model.ActivityLog;
 import com.mindtrack.goals.model.Goal;
 import java.time.LocalDate;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,7 +31,7 @@ public class ActivityMapper {
         response.setCreatedAt(activity.getCreatedAt());
         response.setGoalIds(activity.getLinkedGoals().stream()
                 .map(Goal::getId)
-                .collect(Collectors.toList()));
+                .toList());
         return response;
     }
 

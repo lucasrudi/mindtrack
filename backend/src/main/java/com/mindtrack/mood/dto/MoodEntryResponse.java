@@ -16,6 +16,7 @@ public class MoodEntryResponse {
      * Required by Jackson for response serialization/deserialization.
      */
     public MoodEntryResponse() {
+        // Intentionally empty: Jackson uses the default constructor before setting fields.
     }
 
     /**
