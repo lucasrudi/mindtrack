@@ -9,7 +9,7 @@ const routeState = vi.hoisted(() => ({
 const authState = vi.hoisted(() => ({
   isAuthenticated: false,
   user: null as null | Record<string, unknown>,
-  fetchCurrentUser: vi.fn(),
+  bootstrap: vi.fn(),
 }))
 
 vi.mock('vue-router', () => ({
@@ -30,7 +30,7 @@ describe('App', () => {
     routeState.meta = { requiresAuth: false }
     authState.isAuthenticated = false
     authState.user = null
-    authState.fetchCurrentUser.mockReset().mockResolvedValue(undefined)
+    authState.bootstrap.mockReset().mockResolvedValue(undefined)
   })
 
   it('hides the navbar on public routes', () => {
@@ -48,7 +48,7 @@ describe('App', () => {
     expect(wrapper.find('main').classes()).toContain('has-navbar')
   })
 
-  it('fetches the current user on mount when auth exists without a user object', async () => {
+  it('bootstraps auth on mount', async () => {
     routeState.meta = { requiresAuth: true }
     authState.isAuthenticated = true
     authState.user = null
@@ -56,16 +56,6 @@ describe('App', () => {
     mount(App)
     await flushPromises()
 
-    expect(authState.fetchCurrentUser).toHaveBeenCalled()
-  })
-
-  it('does not refetch the user when already loaded', async () => {
-    authState.isAuthenticated = true
-    authState.user = { id: '1' }
-
-    mount(App)
-    await flushPromises()
-
-    expect(authState.fetchCurrentUser).not.toHaveBeenCalled()
+    expect(authState.bootstrap).toHaveBeenCalled()
   })
 })

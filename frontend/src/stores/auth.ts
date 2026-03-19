@@ -12,6 +12,8 @@ export interface User {
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
+  const hasBootstrapped = ref(false)
+  let bootstrapPromise: Promise<void> | null = null
 
   const isAuthenticated = computed(() => !!user.value)
   const isAdmin = computed(() => user.value?.role === 'ADMIN')
@@ -24,6 +26,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout() {
     user.value = null
+    hasBootstrapped.value = true
     try {
       const { default: api } = await import('@/services/api')
       await api.post('/auth/logout')
@@ -42,14 +45,32 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function bootstrap() {
+    if (hasBootstrapped.value || user.value) {
+      hasBootstrapped.value = true
+      return
+    }
+
+    if (!bootstrapPromise) {
+      bootstrapPromise = fetchCurrentUser().finally(() => {
+        hasBootstrapped.value = true
+        bootstrapPromise = null
+      })
+    }
+
+    await bootstrapPromise
+  }
+
   async function deleteAccount() {
     const { default: api } = await import('@/services/api')
     await api.delete('/auth/account')
     user.value = null
+    hasBootstrapped.value = true
   }
 
   return {
     user,
+    hasBootstrapped,
     isAuthenticated,
     isAdmin,
     isTherapist,
@@ -57,6 +78,7 @@ export const useAuthStore = defineStore('auth', () => {
     setUser,
     logout,
     fetchCurrentUser,
+    bootstrap,
     deleteAccount,
   }
 })

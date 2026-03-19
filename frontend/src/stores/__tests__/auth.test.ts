@@ -237,4 +237,71 @@ describe('useAuthStore', () => {
       expect(store.user).toBeNull()
     })
   })
+
+  describe('bootstrap', () => {
+    it('fetches the current user once when auth has not been initialized', async () => {
+      const store = useAuthStore()
+
+      const module = await import('@/services/api')
+      const api = module.default as unknown as {
+        get: ReturnType<typeof vi.fn>
+        post: ReturnType<typeof vi.fn>
+      }
+      const userData = {
+        id: '1',
+        email: 'test@test.com',
+        name: 'Test',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: false,
+      }
+      api.get.mockResolvedValueOnce({ data: userData })
+
+      await store.bootstrap()
+      await store.bootstrap()
+
+      expect(store.user).toEqual(userData)
+      expect(api.get).toHaveBeenCalledTimes(1)
+      expect(store.hasBootstrapped).toBe(true)
+    })
+
+    it('skips re-fetching when a user is already loaded', async () => {
+      const store = useAuthStore()
+      store.setUser({
+        id: '1',
+        email: 'test@test.com',
+        name: 'Test',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: false,
+      })
+
+      const module = await import('@/services/api')
+      const api = module.default as unknown as {
+        get: ReturnType<typeof vi.fn>
+        post: ReturnType<typeof vi.fn>
+      }
+
+      await store.bootstrap()
+
+      expect(api.get).not.toHaveBeenCalled()
+      expect(store.hasBootstrapped).toBe(true)
+    })
+
+    it('marks bootstrap complete after an unauthenticated fetch failure', async () => {
+      const store = useAuthStore()
+
+      const module = await import('@/services/api')
+      const api = module.default as unknown as {
+        get: ReturnType<typeof vi.fn>
+        post: ReturnType<typeof vi.fn>
+      }
+      api.get.mockRejectedValueOnce(new Error('Unauthorized'))
+
+      await store.bootstrap()
+
+      expect(store.user).toBeNull()
+      expect(store.hasBootstrapped).toBe(true)
+    })
+  })
 })
