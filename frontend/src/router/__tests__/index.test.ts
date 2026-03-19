@@ -125,7 +125,9 @@ describe('Router', () => {
       delete: ReturnType<typeof vi.fn>
     }
 
-    let resolveFetch: ((value: { data: unknown }) => void) | null = null
+    let resolveFetch: (value: { data: unknown }) => void = () => {
+      throw new Error('Expected pending auth fetch resolver')
+    }
     api.get.mockImplementationOnce(
       () =>
         new Promise<{ data: unknown }>((resolve) => {
@@ -136,10 +138,9 @@ describe('Router', () => {
     const navigation = router.push('/dashboard')
     await new Promise((resolve) => setTimeout(resolve, 0))
 
-    expect(resolveFetch).not.toBeNull()
     expect(router.currentRoute.value.name).toBe('login')
 
-    resolveFetch?.({
+    resolveFetch({
       data: {
         id: '1',
         email: 'test@test.com',
