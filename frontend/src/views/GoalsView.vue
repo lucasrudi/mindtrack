@@ -55,7 +55,7 @@ function formatDate(dateStr: string | null): string {
 
 function validationLabel(status: GoalValidationStatus): string {
   const labels: Record<GoalValidationStatus, string> = {
-    PENDING_VALIDATION: '⬜ Awaiting review',
+    PENDING_VALIDATION: '⏳ Awaiting review',
     VALIDATED: '✅ Validated',
     OVERRIDDEN: '✏️ Modified',
     REJECTED: '❌ Not approved',
