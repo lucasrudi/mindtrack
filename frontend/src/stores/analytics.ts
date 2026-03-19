@@ -32,6 +32,16 @@ export interface GoalProgress {
   count: number
 }
 
+export interface ContentItem {
+  type: string
+  title: string
+  body: string
+  category: string
+  url: string | null
+  sourceType: string | null
+  sourceLabel: string | null
+}
+
 export interface DateRange {
   from: string
   to: string
@@ -52,6 +62,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
   const moodTrends = ref<MoodTrend[]>([])
   const activityStats = ref<ActivityStat[]>([])
   const goalProgress = ref<GoalProgress[]>([])
+  const contentItems = ref<ContentItem[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
   const dateRange = ref<DateRange>(defaultDateRange())
@@ -100,6 +111,16 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     }
   }
 
+  async function fetchContent() {
+    try {
+      const response = await api.get<ContentItem[]>('/analytics/content')
+      contentItems.value = response.data
+    } catch (err) {
+      error.value = 'Failed to load content'
+      throw err
+    }
+  }
+
   async function fetchAll() {
     loading.value = true
     error.value = null
@@ -109,6 +130,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
         fetchMoodTrends(),
         fetchActivityStats(),
         fetchGoalProgress(),
+        fetchContent(),
       ])
     } catch {
       // Individual errors already set
@@ -130,6 +152,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     moodTrends,
     activityStats,
     goalProgress,
+    contentItems,
     loading,
     error,
     dateRange,
@@ -137,6 +160,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     fetchMoodTrends,
     fetchActivityStats,
     fetchGoalProgress,
+    fetchContent,
     fetchAll,
     setDateRange,
     clearError,

@@ -119,12 +119,43 @@ describe('useAnalyticsStore', () => {
     })
   })
 
+  describe('fetchContent', () => {
+    it('fetches content items', async () => {
+      const mockContent = [
+        {
+          type: 'TIP',
+          title: 'Daily Tip',
+          body: 'Body text',
+          category: 'General',
+          url: null,
+          sourceType: null,
+          sourceLabel: null,
+        },
+      ]
+      api.get.mockResolvedValueOnce({ data: mockContent })
+      const store = useAnalyticsStore()
+
+      await store.fetchContent()
+
+      expect(store.contentItems).toEqual(mockContent)
+    })
+
+    it('sets error on failure', async () => {
+      api.get.mockRejectedValueOnce(new Error('Error'))
+      const store = useAnalyticsStore()
+
+      await expect(store.fetchContent()).rejects.toThrow()
+      expect(store.error).toBe('Failed to load content')
+    })
+  })
+
   describe('fetchAll', () => {
     it('fetches all data and sets loading state', async () => {
       api.get.mockResolvedValueOnce({ data: mockSummary })
       api.get.mockResolvedValueOnce({ data: mockMoodTrends })
       api.get.mockResolvedValueOnce({ data: mockActivityStats })
       api.get.mockResolvedValueOnce({ data: mockGoalProgress })
+      api.get.mockResolvedValueOnce({ data: [] })
       const store = useAnalyticsStore()
 
       await store.fetchAll()
@@ -141,6 +172,7 @@ describe('useAnalyticsStore', () => {
       api.get.mockResolvedValueOnce({ data: mockMoodTrends })
       api.get.mockResolvedValueOnce({ data: mockActivityStats })
       api.get.mockResolvedValueOnce({ data: mockGoalProgress })
+      api.get.mockResolvedValueOnce({ data: [] })
       const store = useAnalyticsStore()
 
       await store.fetchAll()
