@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useAnalyticsStore } from '@/stores/analytics'
 import { useProfileStore } from '@/stores/profile'
 import { useGoalsStore } from '@/stores/goals'
@@ -9,6 +9,9 @@ import ActivityCompletionChart from '@/components/charts/ActivityCompletionChart
 import GoalProgressChart from '@/components/charts/GoalProgressChart.vue'
 import TutorialOverlay from '@/components/tutorial/TutorialOverlay.vue'
 import ActiveGoalsWidget from '@/components/dashboard/ActiveGoalsWidget.vue'
+import DailyTipWidget from '@/components/dashboard/DailyTipWidget.vue'
+import ResourcesWidget from '@/components/dashboard/ResourcesWidget.vue'
+import WellbeingWidget from '@/components/dashboard/WellbeingWidget.vue'
 
 const store = useAnalyticsStore()
 const profileStore = useProfileStore()
@@ -53,6 +56,14 @@ function formatMood(mood: number | null): string {
   if (mood === null || mood === undefined || mood === 0) return '--'
   return mood.toFixed(1)
 }
+
+const dailyTip = computed(() => store.contentItems.find((i) => i.type === 'TIP') ?? null)
+const resourceItems = computed(() =>
+  store.contentItems.filter((i) => i.type === 'RESOURCE' || i.type === 'THERAPIST_TIP'),
+)
+const wellbeingItems = computed(() =>
+  store.contentItems.filter((i) => i.type === 'WELLBEING_INDICATOR'),
+)
 
 onMounted(async () => {
   try {
@@ -203,6 +214,13 @@ watch(
             <GoalProgressChart :data="store.goalProgress" />
           </div>
         </div>
+      </div>
+
+      <!-- Content Widgets -->
+      <div class="content-widgets">
+        <DailyTipWidget :tip="dailyTip" />
+        <ResourcesWidget :items="resourceItems" />
+        <WellbeingWidget :items="wellbeingItems" />
       </div>
     </template>
 
@@ -496,6 +514,14 @@ watch(
   color: var(--color-gray-700);
 }
 
+/* Content Widgets */
+.content-widgets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .page-header {
@@ -508,6 +534,10 @@ watch(
   }
 
   .charts-row {
+    grid-template-columns: 1fr;
+  }
+
+  .content-widgets {
     grid-template-columns: 1fr;
   }
 }

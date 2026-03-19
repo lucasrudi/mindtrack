@@ -2,10 +2,12 @@
 import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGoalsStore, type GoalStatus, type MilestoneForm } from '@/stores/goals'
+import { useGoalIcon } from '@/composables/useGoalIcon'
 
 const route = useRoute()
 const router = useRouter()
 const store = useGoalsStore()
+const { getGoalIcon } = useGoalIcon()
 
 const goalId = Number(route.params.id)
 const showDeleteModal = ref(false)
@@ -120,6 +122,7 @@ const availableStatuses: GoalStatus[] = [
             <h1 class="goal-title">{{ store.currentGoal.title }}</h1>
             <div class="goal-meta">
               <span v-if="store.currentGoal.category" class="goal-category">
+                <span>{{ getGoalIcon(store.currentGoal.category).emoji }}</span>
                 {{ store.currentGoal.category }}
               </span>
               <span v-if="store.currentGoal.targetDate" class="goal-date">

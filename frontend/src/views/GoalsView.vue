@@ -2,9 +2,11 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGoalsStore, type GoalStatus, type GoalValidationStatus } from '@/stores/goals'
+import { useGoalIcon } from '@/composables/useGoalIcon'
 
 const router = useRouter()
 const store = useGoalsStore()
+const { getGoalIcon } = useGoalIcon()
 
 onMounted(() => {
   store.fetchGoals()
@@ -98,7 +100,12 @@ function validationLabel(status: GoalValidationStatus): string {
             @click="navigateToDetail(goal.id)"
           >
             <div class="goal-header">
-              <h3 class="goal-title">{{ goal.title }}</h3>
+              <h3 class="goal-title">
+                <span class="goal-icon" :aria-label="getGoalIcon(goal.category).label">{{
+                  getGoalIcon(goal.category).emoji
+                }}</span
+                >{{ goal.title }}
+              </h3>
               <div class="goal-badges">
                 <span :class="['status-badge', statusClass(goal.status)]">
                   {{ statusLabel(goal.status) }}
@@ -146,7 +153,12 @@ function validationLabel(status: GoalValidationStatus): string {
             @click="navigateToDetail(goal.id)"
           >
             <div class="goal-header">
-              <h3 class="goal-title">{{ goal.title }}</h3>
+              <h3 class="goal-title">
+                <span class="goal-icon" :aria-label="getGoalIcon(goal.category).label">{{
+                  getGoalIcon(goal.category).emoji
+                }}</span
+                >{{ goal.title }}
+              </h3>
               <span :class="['status-badge', statusClass(goal.status)]">
                 {{ statusLabel(goal.status) }}
               </span>
@@ -290,6 +302,10 @@ function validationLabel(status: GoalValidationStatus): string {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-gray-900);
+}
+
+.goal-icon {
+  margin-right: var(--space-2);
 }
 
 .status-badge {
