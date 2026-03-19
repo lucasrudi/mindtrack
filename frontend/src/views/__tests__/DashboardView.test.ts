@@ -30,7 +30,7 @@ vi.mock('vue-router', () => ({
   },
 }))
 
-const mockGet = vi.fn().mockResolvedValue({ data: {} })
+const mockGet = vi.fn().mockResolvedValue({ data: [] })
 vi.mock('@/services/api', () => ({
   default: {
     get: (...args: unknown[]) => mockGet(...args),
@@ -59,6 +59,46 @@ vi.mock('@/components/charts/GoalProgressChart.vue', () => ({
     name: 'GoalProgressChart',
     props: ['data'],
     template: '<div class="mock-goal-chart">{{ data.length }} statuses</div>',
+  },
+}))
+
+vi.mock('@/components/dashboard/ActiveGoalsWidget.vue', () => ({
+  default: {
+    name: 'ActiveGoalsWidget',
+    props: ['goals'],
+    template: '<div class="mock-active-goals-widget"></div>',
+  },
+}))
+
+vi.mock('@/stores/goals', () => ({
+  useGoalsStore: () => ({
+    activeGoals: [],
+    fetchGoals: vi.fn().mockResolvedValue(undefined),
+  }),
+}))
+
+// Mock dashboard widget components
+vi.mock('@/components/dashboard/DailyTipWidget.vue', () => ({
+  default: {
+    name: 'DailyTipWidget',
+    props: ['tip'],
+    template: '<div class="mock-daily-tip"></div>',
+  },
+}))
+
+vi.mock('@/components/dashboard/ResourcesWidget.vue', () => ({
+  default: {
+    name: 'ResourcesWidget',
+    props: ['items'],
+    template: '<div class="mock-resources"></div>',
+  },
+}))
+
+vi.mock('@/components/dashboard/WellbeingWidget.vue', () => ({
+  default: {
+    name: 'WellbeingWidget',
+    props: ['items'],
+    template: '<div class="mock-wellbeing"></div>',
   },
 }))
 
@@ -92,14 +132,14 @@ function setupSuccessfulMocks() {
     .mockResolvedValueOnce({ data: mockMoodTrends })
     .mockResolvedValueOnce({ data: mockActivityStats })
     .mockResolvedValueOnce({ data: mockGoalProgress })
+    .mockResolvedValueOnce({ data: [] })
 }
 
 describe('DashboardView', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    mockGet.mockReset().mockResolvedValue({ data: {} })
     vi.clearAllMocks()
-    mockGet.mockResolvedValue({ data: {} })
+    mockGet.mockResolvedValue({ data: [] })
   })
 
   it('renders page header', () => {

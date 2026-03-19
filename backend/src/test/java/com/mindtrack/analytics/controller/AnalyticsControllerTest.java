@@ -1,10 +1,14 @@
 package com.mindtrack.analytics.controller;
 
 import com.mindtrack.analytics.dto.ActivityStatsResponse;
+import com.mindtrack.analytics.dto.ContentItemResponse;
 import com.mindtrack.analytics.dto.DashboardSummaryResponse;
 import com.mindtrack.analytics.dto.GoalProgressResponse;
 import com.mindtrack.analytics.dto.MoodTrendResponse;
 import com.mindtrack.analytics.service.AnalyticsService;
+import com.mindtrack.goals.model.Goal;
+import com.mindtrack.goals.model.GoalStatus;
+import com.mindtrack.goals.repository.GoalRepository;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -36,6 +40,9 @@ class AnalyticsControllerTest {
 
     @MockitoBean
     private AnalyticsService analyticsService;
+
+    @MockitoBean
+    private GoalRepository goalRepository;
 
     private static UsernamePasswordAuthenticationToken mockAuth() {
         return new UsernamePasswordAuthenticationToken(
@@ -136,6 +143,23 @@ class AnalyticsControllerTest {
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].status").value("IN_PROGRESS"))
                 .andExpect(jsonPath("$[0].count").value(2));
+    }
+
+    @Test
+    void shouldReturnContent() throws Exception {
+        when(goalRepository.findByUserIdAndStatusOrderByCreatedAtDesc(eq(1L), eq(GoalStatus.IN_PROGRESS)))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/api/analytics/content")
+                        .with(authentication(mockAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void shouldReturn401ForContentWhenUnauthenticated() throws Exception {
+        mockMvc.perform(get("/api/analytics/content"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
