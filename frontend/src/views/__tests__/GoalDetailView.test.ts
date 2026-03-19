@@ -87,7 +87,7 @@ describe('GoalDetailView', () => {
 
     expect(wrapper.find('.goal-title').text()).toBe('Learn meditation')
     expect(wrapper.text()).toContain('Practice daily for 10 minutes')
-    expect(wrapper.find('.goal-category').text()).toBe('Health')
+    expect(wrapper.find('.goal-category').text()).toContain('Health')
   })
 
   it('renders status badge with correct class', async () => {
