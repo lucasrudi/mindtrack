@@ -30,6 +30,7 @@ const sampleGoal = {
       targetDate: '2025-03-01',
       completedAt: '2025-02-20T10:00:00',
       completed: true,
+      suggested: false,
       notes: 'Headspace basics',
       createdAt: '2025-01-01T10:00:00',
     },
@@ -40,6 +41,7 @@ const sampleGoal = {
       targetDate: '2025-04-01',
       completedAt: null,
       completed: false,
+      suggested: false,
       notes: null,
       createdAt: '2025-01-01T10:00:00',
     },
@@ -201,6 +203,7 @@ describe('useGoalsStore', () => {
       targetDate: '2025-05-01',
       completedAt: null,
       completed: false,
+      suggested: false,
       notes: '',
       createdAt: '2025-02-01T10:00:00',
     }

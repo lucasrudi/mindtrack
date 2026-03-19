@@ -4,10 +4,14 @@ import com.mindtrack.goals.dto.GoalResponse;
 import com.mindtrack.goals.model.Goal;
 import com.mindtrack.goals.model.GoalStatus;
 import com.mindtrack.goals.model.GoalValidationStatus;
+import com.mindtrack.goals.model.Milestone;
 import com.mindtrack.goals.repository.GoalRepository;
+import com.mindtrack.goals.repository.MilestoneRepository;
 import com.mindtrack.goals.service.GoalMapper;
+import com.mindtrack.goals.service.MilestoneTemplateRegistry;
 import com.mindtrack.onboarding.dto.SurveyRequest;
 import com.mindtrack.profile.service.ProfileService;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +29,18 @@ public class OnboardingService {
     private static final Logger LOG = LoggerFactory.getLogger(OnboardingService.class);
 
     private final GoalRepository goalRepository;
+    private final MilestoneRepository milestoneRepository;
     private final GoalMapper goalMapper;
+    private final MilestoneTemplateRegistry milestoneTemplateRegistry;
     private final ProfileService profileService;
 
-    public OnboardingService(GoalRepository goalRepository, GoalMapper goalMapper,
+    public OnboardingService(GoalRepository goalRepository, MilestoneRepository milestoneRepository,
+                             GoalMapper goalMapper, MilestoneTemplateRegistry milestoneTemplateRegistry,
                              ProfileService profileService) {
         this.goalRepository = goalRepository;
+        this.milestoneRepository = milestoneRepository;
         this.goalMapper = goalMapper;
+        this.milestoneTemplateRegistry = milestoneTemplateRegistry;
         this.profileService = profileService;
     }
 
@@ -80,7 +89,18 @@ public class OnboardingService {
         List<Goal> capped = proposed.subList(0, Math.min(proposed.size(), 5));
         List<GoalResponse> saved = new ArrayList<>();
         for (Goal goal : capped) {
-            saved.add(goalMapper.toGoalResponse(goalRepository.save(goal)));
+            Goal savedGoal = goalRepository.save(goal);
+            var templates = milestoneTemplateRegistry.getTemplates(savedGoal.getCategory());
+            for (var template : templates) {
+                var milestone = new Milestone();
+                milestone.setGoal(savedGoal);
+                milestone.setTitle(template.title());
+                milestone.setNotes(template.notes());
+                milestone.setTargetDate(LocalDate.now().plusDays(template.daysOffset()));
+                milestone.setSuggested(true);
+                milestoneRepository.save(milestone);
+            }
+            saved.add(goalMapper.toGoalResponse(goalRepository.save(savedGoal)));
         }
 
         profileService.completeSurvey(userId);

@@ -12,6 +12,7 @@ export interface Milestone {
   targetDate: string | null
   completedAt: string | null
   completed: boolean
+  suggested: boolean
   notes: string | null
   createdAt: string
 }

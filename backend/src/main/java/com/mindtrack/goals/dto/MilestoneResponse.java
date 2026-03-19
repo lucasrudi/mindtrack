@@ -14,6 +14,7 @@ public class MilestoneResponse {
     private LocalDate targetDate;
     private LocalDateTime completedAt;
     private boolean completed;
+    private boolean suggested;
     private String notes;
     private LocalDateTime createdAt;
 
@@ -67,6 +68,14 @@ public class MilestoneResponse {
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    public boolean isSuggested() {
+        return suggested;
+    }
+
+    public void setSuggested(boolean suggested) {
+        this.suggested = suggested;
     }
 
     public String getNotes() {

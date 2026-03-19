@@ -52,6 +52,7 @@ public class GoalMapper {
         response.setTargetDate(milestone.getTargetDate());
         response.setCompletedAt(milestone.getCompletedAt());
         response.setCompleted(milestone.getCompletedAt() != null);
+        response.setSuggested(milestone.isSuggested());
         response.setNotes(milestone.getNotes());
         response.setCreatedAt(milestone.getCreatedAt());
         return response;
