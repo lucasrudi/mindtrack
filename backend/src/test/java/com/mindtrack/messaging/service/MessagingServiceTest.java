@@ -135,13 +135,13 @@ class MessagingServiceTest {
     }
 
     @Test
-    void shouldReplyUnlinkedForUnknownWhatsAppNumber() {
+    void shouldIgnoreUnknownWhatsAppNumber() {
         WhatsAppWebhook webhook = createWhatsAppWebhook("+9999999999", "Hello");
         when(userProfileRepository.findAllByWhatsappNumberNotNull()).thenReturn(List.of());
 
         messagingService.handleWhatsAppMessage(webhook);
 
-        verify(whatsAppService).sendMessage(eq("+9999999999"), any(String.class));
+        verify(whatsAppService, never()).sendMessage(any(), any());
         verify(conversationService, never()).chatWithChannel(any(), any(), any());
     }
 

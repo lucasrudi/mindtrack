@@ -163,23 +163,22 @@ public class MessagingService {
                 .filter(profile -> phoneNumber.equals(profile.getWhatsappNumber()))
                 .findFirst();
         if (profileOpt.isEmpty()) {
-            service.sendMessage(phoneNumber,
-                    "Your WhatsApp number is not linked to MindTrack. "
-                            + "Please add your number in your profile settings.");
+            LOG.warn("Ignoring WhatsApp message from unlinked phone={}", phoneNumber);
             return;
         }
 
         Long userId = profileOpt.get().getUserId();
+        String linkedWhatsappNumber = profileOpt.get().getWhatsappNumber();
 
         try {
             ChatRequest chatRequest = new ChatRequest(null, text, ConversationType.QUICK_CHECKIN);
             ChatResponse response = conversationService.chatWithChannel(
                     userId, chatRequest, Channel.WHATSAPP);
 
-            service.sendMessage(phoneNumber, response.content());
+            service.sendMessage(linkedWhatsappNumber, response.content());
         } catch (Exception e) {
             LOG.error("Error processing WhatsApp message from phone={}", phoneNumber, e);
-            service.sendMessage(phoneNumber,
+            service.sendMessage(linkedWhatsappNumber,
                     "Sorry, I encountered an error processing your message. Please try again later.");
         }
     }
