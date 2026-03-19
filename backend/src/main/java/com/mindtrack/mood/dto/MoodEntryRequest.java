@@ -20,6 +20,7 @@ public class MoodEntryRequest {
      * Required by Jackson for request-body deserialization.
      */
     public MoodEntryRequest() {
+        // Intentionally empty: Jackson uses the default constructor before setting fields.
     }
 
     /**
