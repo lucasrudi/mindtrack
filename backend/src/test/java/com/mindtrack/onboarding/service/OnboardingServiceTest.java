@@ -12,13 +12,16 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -179,5 +182,26 @@ class OnboardingServiceTest {
         var goals = onboardingService.generateGoalsFromSurvey(1L, request);
 
         assertTrue(goals.size() >= 2);
+    }
+
+    @Test
+    void shouldSetCreatedAtOnSuggestedMilestones() {
+        SurveyRequest request = new SurveyRequest();
+        request.setMoodBaseline(5);
+
+        when(goalRepository.save(any())).thenAnswer(inv -> {
+            var g = inv.getArgument(0, com.mindtrack.goals.model.Goal.class);
+            g.setId(1L);
+            return g;
+        });
+
+        onboardingService.generateGoalsFromSurvey(1L, request);
+
+        ArgumentCaptor<Milestone> milestoneCaptor = ArgumentCaptor.forClass(Milestone.class);
+        verify(milestoneRepository, atLeastOnce()).save(milestoneCaptor.capture());
+        milestoneCaptor.getAllValues().forEach(milestone -> {
+            assertNotNull(milestone.getCreatedAt());
+            assertTrue(milestone.isSuggested());
+        });
     }
 }

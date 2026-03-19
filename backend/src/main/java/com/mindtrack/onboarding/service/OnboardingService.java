@@ -103,6 +103,7 @@ public class OnboardingService {
         for (var template : milestoneTemplateRegistry.getTemplates(goal.getCategory())) {
             var milestone = new Milestone();
             milestone.setGoal(goal);
+            milestone.setCreatedAt(LocalDateTime.now());
             milestone.setTitle(template.title());
             milestone.setNotes(template.notes());
             milestone.setTargetDate(LocalDate.now().plusDays(template.daysOffset()));
