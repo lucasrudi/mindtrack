@@ -7,6 +7,7 @@ import type { RouteLocationNormalizedGeneric } from 'vue-router'
 import App from './App.vue'
 import router from './router'
 import './assets/styles/global.css'
+import { useErrorHandler } from '@/composables/useErrorHandler'
 
 const app = createApp(App)
 
@@ -58,6 +59,13 @@ if (gaMeasurementId) {
       },
     }),
   )
+}
+
+app.config.errorHandler = (err, _instance, info) => {
+  console.error('Vue error:', err, info)
+  const { addError } = useErrorHandler()
+  const message = err instanceof Error ? err.message : 'An unexpected error occurred'
+  addError(message, 'error')
 }
 
 app.mount('#app')

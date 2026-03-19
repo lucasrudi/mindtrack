@@ -2,6 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import AppNavbar from '@/components/layout/AppNavbar.vue'
+import ErrorNotification from '@/components/ErrorNotification.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
@@ -20,6 +21,7 @@ onMounted(async () => {
 
 <template>
   <div id="mindtrack-app">
+    <ErrorNotification />
     <AppNavbar v-if="showNavbar" />
     <main :class="{ 'has-navbar': showNavbar }">
       <RouterView />
