@@ -16,11 +16,11 @@ const CATEGORY_ICON_MAP: Record<string, GoalIcon> = {
 
 const DEFAULT_ICON: GoalIcon = { emoji: '🎯', label: 'Goal' }
 
-export function useGoalIcon() {
-  function getGoalIcon(category: string | null | undefined): GoalIcon {
-    if (!category) return DEFAULT_ICON
-    return CATEGORY_ICON_MAP[category] ?? DEFAULT_ICON
-  }
+function getGoalIcon(category: string | null | undefined): GoalIcon {
+  if (!category) return DEFAULT_ICON
+  return CATEGORY_ICON_MAP[category] ?? DEFAULT_ICON
+}
 
+export function useGoalIcon() {
   return { getGoalIcon }
 }
