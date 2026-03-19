@@ -103,6 +103,42 @@ describe('TutorialOverlay', () => {
     expect(isActive.value).toBe(false)
   })
 
+  it('forwards first-click navigation to links under the backdrop', async () => {
+    const { start, isActive } = useTutorial()
+    start()
+    const wrapper = mountOverlay()
+
+    const link = document.createElement('a')
+    link.href = '/journal'
+    const clickSpy = vi.fn()
+    link.click = clickSpy
+
+    const originalElementFromPoint = document.elementFromPoint
+    const elementFromPointMock = vi.fn().mockReturnValue(link)
+    Object.defineProperty(document, 'elementFromPoint', {
+      configurable: true,
+      value: elementFromPointMock,
+    })
+    const rafSpy = vi
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((callback: FrameRequestCallback) => {
+        callback(0)
+        return 0
+      })
+
+    await wrapper.find('.tutorial-backdrop').trigger('click', { clientX: 10, clientY: 10 })
+    await flushPromises()
+
+    expect(isActive.value).toBe(false)
+    expect(clickSpy).toHaveBeenCalledTimes(1)
+
+    Object.defineProperty(document, 'elementFromPoint', {
+      configurable: true,
+      value: originalElementFromPoint,
+    })
+    rafSpy.mockRestore()
+  })
+
   it('centers the tooltip when the target element is missing', async () => {
     const { start } = useTutorial()
     start()

@@ -8,6 +8,31 @@ const { isActive, currentStep, currentStepIndex, totalSteps, isLastStep, next, p
 const tooltipStyle = ref<Record<string, string>>({})
 const spotlightStyle = ref<Record<string, string>>({})
 
+function findLinkAtPoint(x: number, y: number): HTMLAnchorElement | null {
+  if (typeof document.elementFromPoint !== 'function') {
+    return null
+  }
+
+  const target = document.elementFromPoint(x, y)
+  if (!(target instanceof Element)) {
+    return null
+  }
+
+  const link = target.closest('a[href]')
+  return link instanceof HTMLAnchorElement ? link : null
+}
+
+function handleBackdropClick(event: MouseEvent) {
+  const { clientX, clientY } = event
+  skip()
+
+  // Keep the intended first-click navigation when users click navbar links
+  // while the tutorial overlay is visible.
+  requestAnimationFrame(() => {
+    findLinkAtPoint(clientX, clientY)?.click()
+  })
+}
+
 function positionTooltip() {
   if (!currentStep.value) return
 
@@ -95,7 +120,7 @@ onUnmounted(() => {
   <Teleport to="body">
     <div v-if="isActive && currentStep" class="tutorial-overlay" data-testid="tutorial-overlay">
       <!-- Backdrop -->
-      <div class="tutorial-backdrop" @click="skip" />
+      <div class="tutorial-backdrop" @click="handleBackdropClick" />
 
       <!-- Spotlight -->
       <div class="tutorial-spotlight" :style="spotlightStyle" />
