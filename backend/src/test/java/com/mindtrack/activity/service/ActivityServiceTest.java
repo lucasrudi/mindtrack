@@ -10,6 +10,7 @@ import com.mindtrack.activity.model.ActivityLog;
 import com.mindtrack.activity.model.ActivityType;
 import com.mindtrack.activity.repository.ActivityLogRepository;
 import com.mindtrack.activity.repository.ActivityRepository;
+import com.mindtrack.goals.repository.GoalRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,13 +41,16 @@ class ActivityServiceTest {
     @Mock
     private ActivityLogRepository activityLogRepository;
 
+    @Mock
+    private GoalRepository goalRepository;
+
     private ActivityService activityService;
 
     @BeforeEach
     void setUp() {
         ActivityMapper mapper = new ActivityMapper();
         activityService = new ActivityService(
-                activityRepository, activityLogRepository, mapper);
+                activityRepository, activityLogRepository, mapper, goalRepository);
     }
 
     @Test

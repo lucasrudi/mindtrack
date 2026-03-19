@@ -21,6 +21,7 @@ export interface Activity {
   linkedInterviewId: number | null
   active: boolean
   createdAt: string
+  goalIds: number[]
 }
 
 export interface ActivityLog {
@@ -51,6 +52,7 @@ export interface ActivityForm {
   description: string
   frequency: string
   linkedInterviewId: number | null
+  goalIds?: number[]
 }
 
 export interface ActivityLogForm {

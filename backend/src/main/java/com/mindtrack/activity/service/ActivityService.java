@@ -9,10 +9,14 @@ import com.mindtrack.activity.model.Activity;
 import com.mindtrack.activity.model.ActivityLog;
 import com.mindtrack.activity.repository.ActivityLogRepository;
 import com.mindtrack.activity.repository.ActivityRepository;
+import com.mindtrack.goals.model.Goal;
+import com.mindtrack.goals.repository.GoalRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,13 +34,16 @@ public class ActivityService {
     private final ActivityRepository activityRepository;
     private final ActivityLogRepository activityLogRepository;
     private final ActivityMapper activityMapper;
+    private final GoalRepository goalRepository;
 
     public ActivityService(ActivityRepository activityRepository,
                            ActivityLogRepository activityLogRepository,
-                           ActivityMapper activityMapper) {
+                           ActivityMapper activityMapper,
+                           GoalRepository goalRepository) {
         this.activityRepository = activityRepository;
         this.activityLogRepository = activityLogRepository;
         this.activityMapper = activityMapper;
+        this.goalRepository = goalRepository;
     }
 
     /**
@@ -48,6 +55,7 @@ public class ActivityService {
         activity.setUserId(userId);
         activity.setCreatedAt(LocalDateTime.now());
         activityMapper.applyRequest(request, activity);
+        applyLinkedGoals(request, activity);
 
         Activity saved = activityRepository.save(activity);
         LOG.info("Created activity {} for user {}", saved.getId(), userId);
@@ -91,6 +99,7 @@ public class ActivityService {
         }
 
         activityMapper.applyRequest(request, activity);
+        applyLinkedGoals(request, activity);
         Activity saved = activityRepository.save(activity);
         LOG.info("Updated activity {} for user {}", saved.getId(), userId);
         return activityMapper.toActivityResponse(saved);
@@ -171,6 +180,21 @@ public class ActivityService {
         return activityLogRepository.findByActivityIdOrderByLogDateDesc(activityId).stream()
                 .map(activityMapper::toLogResponse)
                 .toList();
+    }
+
+    /**
+     * Resolves the goal IDs in the request and sets them on the activity entity.
+     * Goals not found in the repository are silently skipped.
+     */
+    private void applyLinkedGoals(ActivityRequest request, Activity activity) {
+        List<Long> goalIds = request.getGoalIds();
+        if (goalIds == null || goalIds.isEmpty()) {
+            activity.setLinkedGoals(new HashSet<>());
+            return;
+        }
+        List<Goal> goals = goalRepository.findAllById(goalIds);
+        Set<Goal> goalSet = new HashSet<>(goals);
+        activity.setLinkedGoals(goalSet);
     }
 
     /**

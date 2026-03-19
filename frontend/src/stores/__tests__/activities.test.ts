@@ -12,6 +12,7 @@ const mockActivities = [
     linkedInterviewId: null,
     active: true,
     createdAt: '2025-01-15T10:00:00',
+    goalIds: [],
   },
   {
     id: 2,
@@ -22,6 +23,7 @@ const mockActivities = [
     linkedInterviewId: null,
     active: false,
     createdAt: '2025-01-14T10:00:00',
+    goalIds: [],
   },
 ]
 
