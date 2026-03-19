@@ -3,6 +3,8 @@ package com.mindtrack.activity.dto;
 import com.mindtrack.activity.model.ActivityType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Request DTO for creating or updating an activity.
@@ -20,6 +22,8 @@ public class ActivityRequest {
     private String frequency;
 
     private Long linkedInterviewId;
+
+    private List<Long> goalIds = new ArrayList<>();
 
     public ActivityRequest() {
         // Required by Jackson for request-body deserialization.
@@ -63,5 +67,13 @@ public class ActivityRequest {
 
     public void setLinkedInterviewId(Long linkedInterviewId) {
         this.linkedInterviewId = linkedInterviewId;
+    }
+
+    public List<Long> getGoalIds() {
+        return goalIds;
+    }
+
+    public void setGoalIds(List<Long> goalIds) {
+        this.goalIds = goalIds;
     }
 }

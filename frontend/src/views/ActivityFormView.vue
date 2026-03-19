@@ -2,10 +2,12 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useActivitiesStore, type ActivityForm, type ActivityType } from '@/stores/activities'
+import { useGoalsStore } from '@/stores/goals'
 
 const route = useRoute()
 const router = useRouter()
 const store = useActivitiesStore()
+const goalsStore = useGoalsStore()
 
 const isEditing = computed(() => route.name === 'activity-edit')
 const activityId = computed(() => (isEditing.value ? Number(route.params.id) : null))
@@ -28,9 +30,11 @@ const form = reactive<ActivityForm>({
   description: '',
   frequency: '',
   linkedInterviewId: null,
+  goalIds: [],
 })
 
 onMounted(async () => {
+  await goalsStore.fetchGoals()
   if (isEditing.value && activityId.value) {
     await store.fetchActivities()
     const activity = store.activities.find((a) => a.id === activityId.value)
@@ -40,9 +44,26 @@ onMounted(async () => {
       form.description = activity.description ?? ''
       form.frequency = activity.frequency ?? ''
       form.linkedInterviewId = activity.linkedInterviewId
+      form.goalIds = activity.goalIds ? [...activity.goalIds] : []
     }
   }
 })
+
+function isGoalSelected(goalId: number): boolean {
+  return (form.goalIds ?? []).includes(goalId)
+}
+
+function toggleGoal(goalId: number) {
+  if (!form.goalIds) {
+    form.goalIds = []
+  }
+  const idx = form.goalIds.indexOf(goalId)
+  if (idx === -1) {
+    form.goalIds.push(goalId)
+  } else {
+    form.goalIds.splice(idx, 1)
+  }
+}
 
 async function handleSubmit() {
   submitting.value = true
@@ -119,6 +140,21 @@ function goBack() {
           class="form-input"
           placeholder="e.g., Daily, 3x per week"
         />
+      </div>
+
+      <div v-if="goalsStore.goals.length > 0" class="form-group">
+        <label>Linked Goals</label>
+        <div class="goal-checkboxes">
+          <label v-for="goal in goalsStore.goals" :key="goal.id" class="goal-checkbox-label">
+            <input
+              type="checkbox"
+              :value="goal.id"
+              :checked="isGoalSelected(goal.id)"
+              @change="toggleGoal(goal.id)"
+            />
+            {{ goal.title }}
+          </label>
+        </div>
       </div>
 
       <div class="form-actions">
@@ -269,5 +305,26 @@ function goBack() {
   gap: var(--space-3);
   padding-top: var(--space-4);
   border-top: 1px solid var(--color-gray-100);
+}
+
+.goal-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.goal-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+  cursor: pointer;
+}
+
+.goal-checkbox-label input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 </style>
