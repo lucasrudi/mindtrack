@@ -7,6 +7,7 @@ import com.mindtrack.analytics.dto.GoalProgressResponse;
 import com.mindtrack.analytics.dto.MoodTrendResponse;
 import com.mindtrack.analytics.service.AnalyticsService;
 import com.mindtrack.analytics.service.ContentRegistry;
+import com.mindtrack.goals.model.Goal;
 import com.mindtrack.goals.model.GoalStatus;
 import com.mindtrack.goals.repository.GoalRepository;
 import java.time.LocalDate;
@@ -110,7 +111,7 @@ public class AnalyticsController {
         Set<String> categories = goalRepository
                 .findByUserIdAndStatusOrderByCreatedAtDesc(userId, GoalStatus.IN_PROGRESS)
                 .stream()
-                .map(g -> g.getCategory())
+                .map(Goal::getCategory)
                 .filter(c -> c != null && !c.isBlank())
                 .collect(Collectors.toSet());
         return ResponseEntity.ok(contentRegistry.getContent(categories, CONTENT_MAX_ITEMS));
