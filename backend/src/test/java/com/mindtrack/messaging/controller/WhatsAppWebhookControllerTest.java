@@ -261,12 +261,29 @@ class WhatsAppWebhookControllerTest {
     }
 
     @Test
+    void shouldReturnBadRequestWhenMessageFromIsInvalid() throws Exception {
+        properties.getWhatsapp().setAppSecret("");
+        WhatsAppWebhook webhook = validWebhook();
+        webhook.getEntry().getFirst().getChanges().getFirst().getValue().getMessages().getFirst()
+                .setFrom("http://169.254.169.254/latest/meta-data");
+
+        mockMvc.perform(post("/api/webhooks/whatsapp")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(webhook)))
+                .andExpect(status().isBadRequest());
+
+        verify(messagingService, never()).handleWhatsAppMessage(any());
+    }
+
+    @Test
     void shouldSanitizeContactsAndEmojiBeforeDelegating() throws Exception {
         properties.getWhatsapp().setAppSecret("");
         WhatsAppWebhook webhook = validWebhook();
         WhatsAppWebhook.Contact contact = new WhatsAppWebhook.Contact();
         contact.setWaId("+34 (600) 123-456");
         webhook.getEntry().getFirst().getChanges().getFirst().getValue().setContacts(List.of(contact));
+        webhook.getEntry().getFirst().getChanges().getFirst().getValue().getMessages().getFirst()
+                .setFrom("+34 (600) 123-456");
         webhook.getEntry().getFirst().getChanges().getFirst().getValue().getMessages().getFirst().getText()
                 .setBody("Hello \uD83D\uDE0A 123");
 
@@ -280,6 +297,8 @@ class WhatsAppWebhookControllerTest {
         WhatsAppWebhook delegated = captor.getValue();
         assertEquals("34600123456", delegated.getEntry().getFirst().getChanges().getFirst().getValue()
                 .getContacts().getFirst().getWaId());
+        assertEquals("+34600123456", delegated.getEntry().getFirst().getChanges().getFirst().getValue()
+                .getMessages().getFirst().getFrom());
         assertEquals("Hello  123", delegated.getEntry().getFirst().getChanges().getFirst().getValue()
                 .getMessages().getFirst().getText().getBody());
     }

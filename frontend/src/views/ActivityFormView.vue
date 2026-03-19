@@ -143,18 +143,20 @@ function goBack() {
       </div>
 
       <div v-if="goalsStore.goals.length > 0" class="form-group">
-        <label>Linked Goals</label>
-        <div class="goal-checkboxes">
-          <label v-for="goal in goalsStore.goals" :key="goal.id" class="goal-checkbox-label">
-            <input
-              type="checkbox"
-              :value="goal.id"
-              :checked="isGoalSelected(goal.id)"
-              @change="toggleGoal(goal.id)"
-            />
-            {{ goal.title }}
-          </label>
-        </div>
+        <fieldset class="goal-fieldset">
+          <legend>Linked Goals</legend>
+          <div class="goal-checkboxes">
+            <label v-for="goal in goalsStore.goals" :key="goal.id" class="goal-checkbox-label">
+              <input
+                type="checkbox"
+                :value="goal.id"
+                :checked="isGoalSelected(goal.id)"
+                @change="toggleGoal(goal.id)"
+              />
+              {{ goal.title }}
+            </label>
+          </div>
+        </fieldset>
       </div>
 
       <div class="form-actions">
@@ -311,6 +313,20 @@ function goBack() {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
+.goal-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
+.goal-fieldset legend {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+  margin-bottom: var(--space-2);
 }
 
 .goal-checkbox-label {
