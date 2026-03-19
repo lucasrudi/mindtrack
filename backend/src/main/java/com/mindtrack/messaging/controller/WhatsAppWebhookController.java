@@ -7,6 +7,7 @@ import com.mindtrack.messaging.service.MessagingService;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.regex.Pattern;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
@@ -39,6 +40,8 @@ public class WhatsAppWebhookController {
     private static final Logger LOG = LoggerFactory.getLogger(WhatsAppWebhookController.class);
 
     private static final String HMAC_ALGORITHM = "HmacSHA256";
+    private static final Pattern ALLOWED_PHONE_NUMBER_INPUT = Pattern.compile("^[+()\\-\\s0-9]{8,25}$");
+    private static final Pattern CANONICAL_PHONE_NUMBER = Pattern.compile("^\\+?\\d{8,15}$");
 
     private final MessagingService messagingService;
     private final MessagingProperties properties;
@@ -178,8 +181,26 @@ public class WhatsAppWebhookController {
                 LOG.warn("Webhook validation failed: entry missing changes");
                 return false;
             }
+            if (!hasValidMessageSenders(entry)) {
+                return false;
+            }
         }
 
+        return true;
+    }
+
+    private boolean hasValidMessageSenders(WhatsAppWebhook.Entry entry) {
+        for (var change : entry.getChanges()) {
+            if (change.getValue() == null || change.getValue().getMessages() == null) {
+                continue;
+            }
+            for (var message : change.getValue().getMessages()) {
+                if (!isValidSenderPhoneNumber(message.getFrom())) {
+                    LOG.warn("Webhook validation failed: invalid message sender");
+                    return false;
+                }
+            }
+        }
         return true;
     }
 
@@ -248,6 +269,7 @@ public class WhatsAppWebhookController {
         }
 
         value.getMessages().forEach(message -> {
+            message.setFrom(canonicalizePhoneNumber(message.getFrom()));
             if (message.getText() != null && message.getText().getBody() != null) {
                 String body = message.getText().getBody();
                 // Only allow basic alphanumeric, spaces, and common punctuation.
@@ -255,6 +277,29 @@ public class WhatsAppWebhookController {
                 message.getText().setBody(sanitized);
             }
         });
+    }
+
+    private boolean isValidSenderPhoneNumber(String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.isBlank()) {
+            return false;
+        }
+        if (!ALLOWED_PHONE_NUMBER_INPUT.matcher(phoneNumber).matches()) {
+            return false;
+        }
+        String canonicalNumber = canonicalizePhoneNumber(phoneNumber);
+        return CANONICAL_PHONE_NUMBER.matcher(canonicalNumber).matches();
+    }
+
+    private String canonicalizePhoneNumber(String phoneNumber) {
+        if (phoneNumber == null) {
+            return "";
+        }
+        String trimmed = phoneNumber.trim();
+        String digitsOnly = trimmed.replaceAll("\\D", "");
+        if (trimmed.startsWith("+")) {
+            return "+" + digitsOnly;
+        }
+        return digitsOnly;
     }
 
     /**

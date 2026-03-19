@@ -153,107 +153,104 @@ watch(
     </div>
 
     <template v-else-if="store.summary">
-      <section
-        class="dashboard-section dashboard-section--daily-tip"
-        data-testid="daily-tip-section"
-      >
-        <DailyTipWidget :tip="dailyTip" />
-      </section>
+      <div class="dashboard-stack">
+        <section
+          class="dashboard-top-row"
+          aria-label="Daily tip and mood log"
+          data-testid="dashboard-top-row"
+        >
+          <DailyTipWidget :tip="dailyTip" />
+          <MoodEntryWidget />
+        </section>
 
-      <section
-        class="dashboard-section dashboard-section--content-row"
-        data-testid="content-row-section"
-      >
-        <div class="content-widgets">
-          <div data-testid="resources-widget">
-            <ResourcesWidget :items="resourceItems" />
+        <section class="dashboard-section" data-testid="content-row-section">
+          <div class="content-widgets">
+            <div data-testid="resources-widget">
+              <ResourcesWidget :items="resourceItems" />
+            </div>
+            <div data-testid="video-widget">
+              <VideoWidget :items="videoItems" />
+            </div>
+            <div data-testid="wellbeing-widget">
+              <WellbeingWidget :items="wellbeingItems" />
+            </div>
           </div>
-          <div data-testid="video-widget">
-            <VideoWidget :items="videoItems" />
+        </section>
+
+        <section class="dashboard-section" data-testid="pending-activities-section">
+          <PendingActivitiesWidget />
+        </section>
+
+        <section class="dashboard-section" data-testid="active-goals-section">
+          <div v-if="goalsStore.loading" class="goals-loading">Loading goals...</div>
+          <div v-else-if="goalsStore.error" class="goals-error">
+            <p>{{ goalsStore.error }}</p>
+            <button class="btn btn-sm btn-secondary" @click="goalsStore.fetchGoals()">Retry</button>
           </div>
-          <div data-testid="wellbeing-widget">
-            <WellbeingWidget :items="wellbeingItems" />
+          <ActiveGoalsWidget v-else :goals="goalsStore.activeGoals" />
+        </section>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards" data-testid="summary-cards">
+          <div class="summary-card">
+            <span class="card-label">Average Mood</span>
+            <span class="card-value card-value--mood">
+              {{ formatMood(store.summary.averageMood) }}
+            </span>
+            <span class="card-unit">/10</span>
+          </div>
+          <div class="summary-card">
+            <span class="card-label">Activity Rate</span>
+            <span class="card-value card-value--activity">
+              {{ formatRate(store.summary.activityCompletionRate) }}
+            </span>
+            <span class="card-detail"> {{ store.summary.totalActivitiesLogged }} logged </span>
+          </div>
+          <div class="summary-card">
+            <span class="card-label">Goals</span>
+            <span class="card-value card-value--goals">
+              {{ store.summary.completedGoals }}/{{ store.summary.totalGoals }}
+            </span>
+            <span class="card-detail"> {{ store.summary.activeGoals }} active </span>
+          </div>
+          <div class="summary-card">
+            <span class="card-label">Journal Entries</span>
+            <span class="card-value card-value--journal">
+              {{ store.summary.totalJournalEntries }}
+            </span>
+            <span class="card-detail">in this period</span>
           </div>
         </div>
-      </section>
 
-      <section class="dashboard-section" data-testid="mood-entry-section">
-        <MoodEntryWidget />
-      </section>
-
-      <section class="dashboard-section" data-testid="pending-activities-section">
-        <PendingActivitiesWidget />
-      </section>
-
-      <section class="dashboard-section" data-testid="active-goals-section">
-        <div v-if="goalsStore.loading" class="goals-loading">Loading goals...</div>
-        <div v-else-if="goalsStore.error" class="goals-error">
-          <p>{{ goalsStore.error }}</p>
-          <button class="btn btn-sm btn-secondary" @click="goalsStore.fetchGoals()">Retry</button>
-        </div>
-        <ActiveGoalsWidget v-else :goals="goalsStore.activeGoals" />
-      </section>
-
-      <!-- Summary Cards -->
-      <div class="summary-cards" data-testid="summary-cards">
-        <div class="summary-card">
-          <span class="card-label">Average Mood</span>
-          <span class="card-value card-value--mood">
-            {{ formatMood(store.summary.averageMood) }}
-          </span>
-          <span class="card-unit">/10</span>
-        </div>
-        <div class="summary-card">
-          <span class="card-label">Activity Rate</span>
-          <span class="card-value card-value--activity">
-            {{ formatRate(store.summary.activityCompletionRate) }}
-          </span>
-          <span class="card-detail"> {{ store.summary.totalActivitiesLogged }} logged </span>
-        </div>
-        <div class="summary-card">
-          <span class="card-label">Goals</span>
-          <span class="card-value card-value--goals">
-            {{ store.summary.completedGoals }}/{{ store.summary.totalGoals }}
-          </span>
-          <span class="card-detail"> {{ store.summary.activeGoals }} active </span>
-        </div>
-        <div class="summary-card">
-          <span class="card-label">Journal Entries</span>
-          <span class="card-value card-value--journal">
-            {{ store.summary.totalJournalEntries }}
-          </span>
-          <span class="card-detail">in this period</span>
-        </div>
-      </div>
-
-      <!-- Goal Validation Cards -->
-      <div class="validation-cards" data-testid="validation-cards">
-        <div class="validation-card">
-          <span class="vcard-icon">✅</span>
-          <span class="vcard-count">{{ store.summary.validatedGoals }}</span>
-          <span class="vcard-label">Validated Goals</span>
-        </div>
-        <div class="validation-card">
-          <span class="vcard-icon">⏳</span>
-          <span class="vcard-count">{{ store.summary.pendingValidationGoals }}</span>
-          <span class="vcard-label">Pending Review</span>
-        </div>
-      </div>
-
-      <!-- Charts -->
-      <div class="charts-section" data-testid="charts-section">
-        <div class="chart-card chart-card--full">
-          <h2 class="chart-title">Mood Trends</h2>
-          <MoodTrendChart :data="store.moodTrends" />
-        </div>
-        <div class="charts-row">
-          <div class="chart-card">
-            <h2 class="chart-title">Activity Completion</h2>
-            <ActivityCompletionChart :data="store.activityStats" />
+        <!-- Goal Validation Cards -->
+        <div class="validation-cards" data-testid="validation-cards">
+          <div class="validation-card">
+            <span class="vcard-icon">✅</span>
+            <span class="vcard-count">{{ store.summary.validatedGoals }}</span>
+            <span class="vcard-label">Validated Goals</span>
           </div>
-          <div class="chart-card">
-            <h2 class="chart-title">Goal Progress</h2>
-            <GoalProgressChart :data="store.goalProgress" />
+          <div class="validation-card">
+            <span class="vcard-icon">⏳</span>
+            <span class="vcard-count">{{ store.summary.pendingValidationGoals }}</span>
+            <span class="vcard-label">Pending Review</span>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-section" data-testid="charts-section">
+          <div class="chart-card chart-card--full">
+            <h2 class="chart-title">Mood Trends</h2>
+            <MoodTrendChart :data="store.moodTrends" />
+          </div>
+          <div class="charts-row">
+            <div class="chart-card">
+              <h2 class="chart-title">Activity Completion</h2>
+              <ActivityCompletionChart :data="store.activityStats" />
+            </div>
+            <div class="chart-card">
+              <h2 class="chart-title">Goal Progress</h2>
+              <GoalProgressChart :data="store.goalProgress" />
+            </div>
           </div>
         </div>
       </div>
@@ -335,9 +332,20 @@ watch(
   color: var(--color-gray-500);
 }
 
-.dashboard-section--daily-tip,
-.dashboard-section--content-row {
-  margin-bottom: var(--space-6);
+.dashboard-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.dashboard-top-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+
+.dashboard-section {
+  margin: 0;
 }
 
 /* Summary Cards */
@@ -345,7 +353,6 @@ watch(
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-4);
-  margin-bottom: var(--space-8);
 }
 
 .summary-card {
@@ -461,7 +468,6 @@ watch(
 .validation-cards {
   display: flex;
   gap: var(--space-4);
-  margin-bottom: var(--space-8);
   flex-wrap: wrap;
 }
 
@@ -570,6 +576,10 @@ watch(
 
   .summary-cards {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-top-row {
+    grid-template-columns: 1fr;
   }
 
   .charts-row {

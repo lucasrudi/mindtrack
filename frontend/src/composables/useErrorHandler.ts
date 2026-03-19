@@ -8,10 +8,11 @@ export interface AppError {
 }
 
 const globalErrors = ref<AppError[]>([])
+let errorCounter = 0
 
 export function useErrorHandler() {
   function addError(message: string, type: AppError['type'] = 'error') {
-    const id = Math.random().toString(36).slice(2)
+    const id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${++errorCounter}`
     const error: AppError = { id, message, type, timestamp: Date.now() }
     globalErrors.value.push(error)
 
