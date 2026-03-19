@@ -80,7 +80,6 @@ async function submitMood() {
   border: 1px solid var(--color-gray-200);
   border-radius: var(--border-radius-lg);
   padding: var(--space-5);
-  margin-bottom: var(--space-6);
 }
 .widget-title {
   font-size: var(--font-size-lg);
