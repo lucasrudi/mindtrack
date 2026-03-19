@@ -185,9 +185,7 @@ watch(
           <div v-if="goalsStore.loading" class="goals-loading">Loading goals...</div>
           <div v-else-if="goalsStore.error" class="goals-error">
             <p>{{ goalsStore.error }}</p>
-            <button class="btn btn-sm btn-secondary" @click="goalsStore.fetchGoals()">
-              Retry
-            </button>
+            <button class="btn btn-sm btn-secondary" @click="goalsStore.fetchGoals()">Retry</button>
           </div>
           <ActiveGoalsWidget v-else :goals="goalsStore.activeGoals" />
         </section>
