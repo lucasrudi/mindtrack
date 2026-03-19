@@ -189,7 +189,7 @@ watch(
           <span class="vcard-label">Validated Goals</span>
         </div>
         <div class="validation-card">
-          <span class="vcard-icon">⬜</span>
+          <span class="vcard-icon">⏳</span>
           <span class="vcard-count">{{ store.summary.pendingValidationGoals }}</span>
           <span class="vcard-label">Pending Review</span>
         </div>
