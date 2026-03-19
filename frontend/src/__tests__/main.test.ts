@@ -2,9 +2,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const appUse = vi.fn()
 const appMount = vi.fn()
+const appConfig = { errorHandler: undefined as unknown }
 const createAppMock = vi.fn(() => ({
   use: appUse,
   mount: appMount,
+  config: appConfig,
 }))
 const createPiniaMock = vi.fn(() => ({ pinia: true }))
 const sentryInit = vi.fn()
@@ -14,6 +16,16 @@ const routerMock = { name: 'router' }
 
 vi.mock('vue', () => ({
   createApp: createAppMock,
+  ref: vi.fn(() => ({ value: [] })),
+}))
+
+vi.mock('@/composables/useErrorHandler', () => ({
+  useErrorHandler: vi.fn(() => ({
+    globalErrors: { value: [] },
+    addError: vi.fn(),
+    dismissError: vi.fn(),
+    clearAll: vi.fn(),
+  })),
 }))
 
 vi.mock('pinia', () => ({
