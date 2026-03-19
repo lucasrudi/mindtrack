@@ -196,7 +196,12 @@ watch(
       </div>
 
       <!-- Active Goals -->
-      <ActiveGoalsWidget :goals="goalsStore.activeGoals" />
+      <div v-if="goalsStore.loading" class="goals-loading">Loading goals...</div>
+      <div v-else-if="goalsStore.error" class="goals-error">
+        <p>{{ goalsStore.error }}</p>
+        <button class="btn btn-sm btn-secondary" @click="goalsStore.fetchGoals()">Retry</button>
+      </div>
+      <ActiveGoalsWidget v-else :goals="goalsStore.activeGoals" />
 
       <!-- Charts -->
       <div class="charts-section">
@@ -540,5 +545,28 @@ watch(
   .content-widgets {
     grid-template-columns: 1fr;
   }
+}
+
+.goals-loading {
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
+  padding: var(--space-4) 0;
+}
+
+.goals-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: var(--color-error);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.goals-error p {
+  margin: 0;
+  flex: 1;
 }
 </style>
