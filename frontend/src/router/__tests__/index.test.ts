@@ -13,7 +13,7 @@ import router from '../index'
 vi.mock('@/services/api', () => ({
   default: {
     post: vi.fn().mockResolvedValue({ data: {} }),
-    get: vi.fn().mockResolvedValue({ data: {} }),
+    get: vi.fn().mockResolvedValue({ data: null }),
     delete: vi.fn().mockResolvedValue({ data: {} }),
     interceptors: { response: { use: vi.fn() } },
   },
@@ -79,6 +79,7 @@ describe('Router', () => {
     const auth = useAuthStore()
     const profileStore = useProfileStore()
     auth.user = null
+    auth.hasBootstrapped = true
     profileStore.profile = null
     localStorageMock.getItem.mockReturnValue(null)
 
@@ -111,6 +112,47 @@ describe('Router', () => {
     await router.push('/dashboard')
     await router.isReady()
     expect(router.currentRoute.value.name).toBe('landing')
+  })
+
+  it('waits for auth bootstrap before redirecting a protected route', async () => {
+    const auth = useAuthStore()
+    auth.hasBootstrapped = false
+
+    const module = await import('@/services/api')
+    const api = module.default as unknown as {
+      get: ReturnType<typeof vi.fn>
+      post: ReturnType<typeof vi.fn>
+      delete: ReturnType<typeof vi.fn>
+    }
+
+    let resolveFetch: (value: { data: unknown }) => void = () => {
+      throw new Error('Expected pending auth fetch resolver')
+    }
+    api.get.mockImplementationOnce(
+      () =>
+        new Promise<{ data: unknown }>((resolve) => {
+          resolveFetch = resolve
+        }),
+    )
+
+    const navigation = router.push('/dashboard')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(router.currentRoute.value.name).toBe('login')
+
+    resolveFetch({
+      data: {
+        id: '1',
+        email: 'test@test.com',
+        name: 'Test',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: false,
+      },
+    })
+
+    await navigation
+    expect(router.currentRoute.value.name).toBe('dashboard')
   })
 
   it('redirects authenticated user from landing to dashboard', async () => {

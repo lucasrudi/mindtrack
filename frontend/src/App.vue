@@ -13,9 +13,7 @@ const showNavbar = computed(() => {
 })
 
 onMounted(async () => {
-  if (auth.isAuthenticated && !auth.user) {
-    await auth.fetchCurrentUser()
-  }
+  await auth.bootstrap()
 })
 </script>
 

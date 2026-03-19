@@ -103,9 +103,11 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
   const profileStore = useProfileStore()
+
+  await auth.bootstrap()
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'landing' }
