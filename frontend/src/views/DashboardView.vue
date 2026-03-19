@@ -9,6 +9,7 @@ import ActivityCompletionChart from '@/components/charts/ActivityCompletionChart
 import GoalProgressChart from '@/components/charts/GoalProgressChart.vue'
 import TutorialOverlay from '@/components/tutorial/TutorialOverlay.vue'
 import ActiveGoalsWidget from '@/components/dashboard/ActiveGoalsWidget.vue'
+import PendingActivitiesWidget from '@/components/dashboard/PendingActivitiesWidget.vue'
 import DailyTipWidget from '@/components/dashboard/DailyTipWidget.vue'
 import MoodEntryWidget from '@/components/dashboard/MoodEntryWidget.vue'
 import ResourcesWidget from '@/components/dashboard/ResourcesWidget.vue'
@@ -196,6 +197,8 @@ watch(
         </div>
       </div>
 
+      <!-- Pending Activities -->
+      <PendingActivitiesWidget />
       <!-- Mood Entry -->
       <MoodEntryWidget />
 
