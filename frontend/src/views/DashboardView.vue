@@ -2,14 +2,17 @@
 import { onMounted, ref, watch } from 'vue'
 import { useAnalyticsStore } from '@/stores/analytics'
 import { useProfileStore } from '@/stores/profile'
+import { useGoalsStore } from '@/stores/goals'
 import { useTutorial } from '@/composables/useTutorial'
 import MoodTrendChart from '@/components/charts/MoodTrendChart.vue'
 import ActivityCompletionChart from '@/components/charts/ActivityCompletionChart.vue'
 import GoalProgressChart from '@/components/charts/GoalProgressChart.vue'
 import TutorialOverlay from '@/components/tutorial/TutorialOverlay.vue'
+import ActiveGoalsWidget from '@/components/dashboard/ActiveGoalsWidget.vue'
 
 const store = useAnalyticsStore()
 const profileStore = useProfileStore()
+const goalsStore = useGoalsStore()
 const { start: startTutorial } = useTutorial()
 const surveyPromptDismissed = ref(sessionStorage.getItem('surveyPromptDismissed') === 'true')
 
@@ -53,7 +56,7 @@ function formatMood(mood: number | null): string {
 
 onMounted(async () => {
   try {
-    await store.fetchAll()
+    await Promise.all([store.fetchAll(), goalsStore.fetchGoals()])
   } catch {
     // Error state handled by store
   }
@@ -180,6 +183,9 @@ watch(
           <span class="vcard-label">Pending Review</span>
         </div>
       </div>
+
+      <!-- Active Goals -->
+      <ActiveGoalsWidget :goals="goalsStore.activeGoals" />
 
       <!-- Charts -->
       <div class="charts-section">

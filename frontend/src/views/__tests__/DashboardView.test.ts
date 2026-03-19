@@ -30,7 +30,7 @@ vi.mock('vue-router', () => ({
   },
 }))
 
-const mockGet = vi.fn().mockResolvedValue({ data: {} })
+const mockGet = vi.fn().mockResolvedValue({ data: [] })
 vi.mock('@/services/api', () => ({
   default: {
     get: (...args: unknown[]) => mockGet(...args),
@@ -60,6 +60,21 @@ vi.mock('@/components/charts/GoalProgressChart.vue', () => ({
     props: ['data'],
     template: '<div class="mock-goal-chart">{{ data.length }} statuses</div>',
   },
+}))
+
+vi.mock('@/components/dashboard/ActiveGoalsWidget.vue', () => ({
+  default: {
+    name: 'ActiveGoalsWidget',
+    props: ['goals'],
+    template: '<div class="mock-active-goals-widget"></div>',
+  },
+}))
+
+vi.mock('@/stores/goals', () => ({
+  useGoalsStore: () => ({
+    activeGoals: [],
+    fetchGoals: vi.fn().mockResolvedValue(undefined),
+  }),
 }))
 
 const mockSummary = {
