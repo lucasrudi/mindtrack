@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -239,13 +238,12 @@ public class ContentRegistry {
 
     private final VideoAvailabilityChecker videoAvailabilityChecker;
 
-    @Autowired
-    public ContentRegistry(VideoAvailabilityChecker videoAvailabilityChecker) {
-        this.videoAvailabilityChecker = videoAvailabilityChecker;
+    public ContentRegistry() {
+        this(new OEmbedVideoAvailabilityChecker());
     }
 
-    ContentRegistry() {
-        this(new OEmbedVideoAvailabilityChecker());
+    ContentRegistry(VideoAvailabilityChecker videoAvailabilityChecker) {
+        this.videoAvailabilityChecker = videoAvailabilityChecker;
     }
 
     /**
