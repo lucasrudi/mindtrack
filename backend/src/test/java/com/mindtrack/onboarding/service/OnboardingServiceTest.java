@@ -1,8 +1,11 @@
 package com.mindtrack.onboarding.service;
 
 import com.mindtrack.goals.model.GoalValidationStatus;
+import com.mindtrack.goals.model.Milestone;
 import com.mindtrack.goals.repository.GoalRepository;
+import com.mindtrack.goals.repository.MilestoneRepository;
 import com.mindtrack.goals.service.GoalMapper;
+import com.mindtrack.goals.service.MilestoneTemplateRegistry;
 import com.mindtrack.onboarding.dto.SurveyRequest;
 import com.mindtrack.profile.service.ProfileService;
 import java.util.List;
@@ -16,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +27,7 @@ import static org.mockito.Mockito.when;
 class OnboardingServiceTest {
 
     @Mock private GoalRepository goalRepository;
+    @Mock private MilestoneRepository milestoneRepository;
     @Mock private ProfileService profileService;
 
     private OnboardingService onboardingService;
@@ -30,7 +35,10 @@ class OnboardingServiceTest {
     @BeforeEach
     void setUp() {
         GoalMapper goalMapper = new GoalMapper();
-        onboardingService = new OnboardingService(goalRepository, goalMapper, profileService);
+        MilestoneTemplateRegistry milestoneTemplateRegistry = new MilestoneTemplateRegistry();
+        lenient().when(milestoneRepository.save(any(Milestone.class))).thenAnswer(inv -> inv.getArgument(0));
+        onboardingService = new OnboardingService(
+                goalRepository, milestoneRepository, goalMapper, milestoneTemplateRegistry, profileService);
     }
 
     @Test

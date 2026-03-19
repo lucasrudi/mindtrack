@@ -236,7 +236,10 @@ const availableStatuses: GoalStatus[] = [
                 <span class="checkbox">{{ milestone.completed ? '\u2713' : '' }}</span>
               </button>
               <div class="milestone-content">
-                <span class="milestone-title">{{ milestone.title }}</span>
+                <div class="milestone-title-row">
+                  <span class="milestone-title">{{ milestone.title }}</span>
+                  <span v-if="milestone.suggested" class="suggested-badge">Suggested</span>
+                </div>
                 <span v-if="milestone.targetDate" class="milestone-date">
                   {{ formatDate(milestone.targetDate) }}
                 </span>
@@ -595,10 +598,27 @@ const availableStatuses: GoalStatus[] = [
   min-width: 0;
 }
 
+.milestone-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
 .milestone-title {
   font-size: var(--font-size-sm);
   color: var(--color-gray-900);
   font-weight: var(--font-weight-medium);
+}
+
+.suggested-badge {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+  background: var(--color-gray-100);
+  padding: 1px var(--space-2);
+  border-radius: var(--border-radius-full);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
 }
 
 .milestone-item.completed .milestone-title {

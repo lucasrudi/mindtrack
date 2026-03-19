@@ -52,6 +52,9 @@ public class Milestone {
     @Column(name = "updated_by")
     private Long updatedBy;
 
+    @Column(name = "suggested", nullable = false)
+    private boolean suggested = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -105,6 +108,14 @@ public class Milestone {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public boolean isSuggested() {
+        return suggested;
+    }
+
+    public void setSuggested(boolean suggested) {
+        this.suggested = suggested;
     }
 
     public LocalDateTime getCreatedAt() {
