@@ -2,6 +2,7 @@ package com.mindtrack.activity.dto;
 
 import com.mindtrack.activity.model.ActivityType;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Response DTO for activity data.
@@ -16,6 +17,7 @@ public class ActivityResponse {
     private Long linkedInterviewId;
     private boolean active;
     private LocalDateTime createdAt;
+    private List<Long> goalIds;
 
     public ActivityResponse() {
         // Required by Jackson for response serialization/deserialization.
@@ -83,5 +85,13 @@ public class ActivityResponse {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public List<Long> getGoalIds() {
+        return goalIds;
+    }
+
+    public void setGoalIds(List<Long> goalIds) {
+        this.goalIds = goalIds;
     }
 }

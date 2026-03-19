@@ -6,7 +6,9 @@ import com.mindtrack.activity.dto.ActivityResponse;
 import com.mindtrack.activity.dto.DailyChecklistResponse;
 import com.mindtrack.activity.model.Activity;
 import com.mindtrack.activity.model.ActivityLog;
+import com.mindtrack.goals.model.Goal;
 import java.time.LocalDate;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,6 +30,9 @@ public class ActivityMapper {
         response.setLinkedInterviewId(activity.getLinkedInterviewId());
         response.setActive(activity.isActive());
         response.setCreatedAt(activity.getCreatedAt());
+        response.setGoalIds(activity.getLinkedGoals().stream()
+                .map(Goal::getId)
+                .collect(Collectors.toList()));
         return response;
     }
 
