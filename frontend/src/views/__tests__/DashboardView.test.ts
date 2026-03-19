@@ -254,11 +254,10 @@ describe('DashboardView', () => {
 
     const order = [
       'survey-prompt',
-      'daily-tip-section',
+      'dashboard-top-row',
       'resources-widget',
       'video-widget',
       'wellbeing-widget',
-      'mood-entry-section',
       'pending-activities-section',
       'active-goals-section',
       'summary-cards',
@@ -277,6 +276,16 @@ describe('DashboardView', () => {
         nodes[index].compareDocumentPosition(nodes[index + 1]) & Node.DOCUMENT_POSITION_FOLLOWING
       expect(isFollowing).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
     }
+  })
+
+  it('renders daily tip and mood entry in the shared top row', async () => {
+    setupSuccessfulMocks()
+    const wrapper = mount(DashboardView)
+    await flushPromises()
+
+    const topRow = wrapper.get('[data-testid="dashboard-top-row"]')
+    expect(topRow.find('.mock-daily-tip').exists()).toBe(true)
+    expect(topRow.find('.mood-widget').exists()).toBe(true)
   })
 
   describe('survey prompt card', () => {
