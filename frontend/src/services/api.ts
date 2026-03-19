@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import router from '@/router'
+import { useErrorHandler } from '@/composables/useErrorHandler'
 
 const api = axios.create({
   baseURL: '/api',
@@ -36,6 +37,23 @@ api.interceptors.response.use(
       auth.logout()
       router.push('/')
     }
+
+    if (!error.response) {
+      const { addError } = useErrorHandler()
+      addError('Network error — please check your connection', 'error')
+      return Promise.reject(error)
+    }
+
+    if (error.code === 'ECONNABORTED') {
+      const { addError } = useErrorHandler()
+      addError('Request timed out — please try again', 'error')
+      return Promise.reject(error)
+    }
+
+    if (error.response?.data?.message) {
+      error.userMessage = error.response.data.message
+    }
+
     throw error
   },
 )
