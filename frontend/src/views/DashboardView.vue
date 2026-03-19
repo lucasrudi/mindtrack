@@ -14,6 +14,7 @@ import DailyTipWidget from '@/components/dashboard/DailyTipWidget.vue'
 import MoodEntryWidget from '@/components/dashboard/MoodEntryWidget.vue'
 import ResourcesWidget from '@/components/dashboard/ResourcesWidget.vue'
 import WellbeingWidget from '@/components/dashboard/WellbeingWidget.vue'
+import VideoWidget from '@/components/dashboard/VideoWidget.vue'
 
 const store = useAnalyticsStore()
 const profileStore = useProfileStore()
@@ -66,6 +67,7 @@ const resourceItems = computed(() =>
 const wellbeingItems = computed(() =>
   store.contentItems.filter((i) => i.type === 'WELLBEING_INDICATOR'),
 )
+const videoItems = computed(() => store.contentItems.filter((i) => i.type === 'VIDEO'))
 
 onMounted(async () => {
   try {
@@ -233,6 +235,7 @@ watch(
         <DailyTipWidget :tip="dailyTip" />
         <ResourcesWidget :items="resourceItems" />
         <WellbeingWidget :items="wellbeingItems" />
+        <VideoWidget :items="videoItems" />
       </div>
     </template>
 
@@ -529,7 +532,7 @@ watch(
 /* Content Widgets */
 .content-widgets {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-6);
   margin-top: var(--space-6);
 }

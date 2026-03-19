@@ -28,7 +28,23 @@ public class ContentRegistry {
                 therapistTip("Journaling Prompt for Today",
                     "Write about a recent moment when you felt calm or content. What was happening?"
                         + " What were you doing? Use this as a reference point.",
-                    ContentCategory.MENTAL_HEALTH)
+                    ContentCategory.MENTAL_HEALTH),
+                video("Why We All Need to Practice Emotional First Aid",
+                    "Guy Winch makes a compelling case for practising emotional hygiene — tending to"
+                        + " psychological wounds the way we treat physical ones.",
+                    ContentCategory.MENTAL_HEALTH, "F2hc2FLOdhI"),
+                video("Understanding Anxiety",
+                    "Therapy in a Nutshell explains what anxiety is, why it happens,"
+                        + " and practical strategies to manage it day-to-day.",
+                    ContentCategory.MENTAL_HEALTH, "d9avpnRRXU4"),
+                video("How to Meditate",
+                    "Headspace guides you through a simple, accessible meditation practice"
+                        + " suitable for complete beginners.",
+                    ContentCategory.MENTAL_HEALTH, "wuh5B3_y8nY"),
+                video("How to Stop Overthinking",
+                    "Dr Daniel Amen shares evidence-based strategies for quieting an overactive mind"
+                        + " and breaking the overthinking cycle.",
+                    ContentCategory.MENTAL_HEALTH, "H9UI5ON-kbM")
             ),
             ContentCategory.WELLNESS, List.of(
                 tip("Start Your Day with Gratitude",
@@ -41,7 +57,19 @@ public class ContentRegistry {
                     ContentCategory.WELLNESS, null, ContentSourceType.BOOK, ContentSourceLabel.BOOK_REVIEW),
                 therapistTip("Body Scan Meditation",
                     "Spend 5 minutes slowly scanning from head to toe, noticing sensations without judgment."
-                        + " This builds body awareness and reduces tension.", ContentCategory.WELLNESS)
+                        + " This builds body awareness and reduces tension.", ContentCategory.WELLNESS),
+                video("How to Build a Morning Routine",
+                    "A practical guide to designing a morning routine that boosts energy,"
+                        + " focus, and overall well-being.",
+                    ContentCategory.WELLNESS, "kceUBEEcgn4"),
+                video("The Science of Gratitude",
+                    "Explores the research behind gratitude practice and how making it a daily habit"
+                        + " can rewire the brain for greater positivity.",
+                    ContentCategory.WELLNESS, "IanFcCFctBk"),
+                video("The Power of Vulnerability",
+                    "Brene Brown's iconic TED Talk on embracing vulnerability as the birthplace"
+                        + " of connection, creativity, and belonging.",
+                    ContentCategory.WELLNESS, "lDGpFEo1oyg")
             ),
             ContentCategory.SLEEP, List.of(
                 tip("The 10-3-2-1-0 Sleep Rule",
@@ -55,7 +83,19 @@ public class ContentRegistry {
                 therapistTip("Progressive Muscle Relaxation",
                     "Before sleep: tense each muscle group for 5 seconds, then release."
                         + " Start at your feet and work up to your face. Promotes deep physical relaxation.",
-                    ContentCategory.SLEEP)
+                    ContentCategory.SLEEP),
+                video("Why Do We Sleep?",
+                    "TED-Ed explores the science of sleep — what happens in your brain and body"
+                        + " each night and why it matters so much for health.",
+                    ContentCategory.SLEEP, "nm1TxQj9IsQ"),
+                video("How to Fall Asleep Faster",
+                    "Practical, evidence-backed tips for winding down quickly and improving"
+                        + " your overall sleep quality.",
+                    ContentCategory.SLEEP, "t0kACis_dJE"),
+                video("Sleep Is Your Superpower",
+                    "Matthew Walker explains the life-saving importance of sleep in this"
+                        + " powerful TEDx Talk packed with research insights.",
+                    ContentCategory.SLEEP, "5MuIMqhT8pM")
             ),
             ContentCategory.FITNESS, List.of(
                 tip("The 2-Minute Rule for Exercise",
@@ -69,7 +109,19 @@ public class ContentRegistry {
                 therapistTip("Exercise as Emotional Regulation",
                     "Physical activity reduces cortisol and releases endorphins."
                         + " Even a 20-minute walk can shift your emotional state significantly.",
-                    ContentCategory.FITNESS)
+                    ContentCategory.FITNESS),
+                video("Exercise and Mental Health",
+                    "NHS-backed guidance on how regular physical activity reduces anxiety,"
+                        + " depression, and stress while boosting mood.",
+                    ContentCategory.FITNESS, "I-MH7bVGNzM"),
+                video("The Mental Health Benefits of Exercise",
+                    "A clear breakdown of the science behind exercise as medicine for"
+                        + " the mind, covering depression, anxiety, and cognitive function.",
+                    ContentCategory.FITNESS, "BHY0FxzoKZE"),
+                video("10-Minute Morning Workout for Mental Health",
+                    "A quick, accessible morning workout designed to lift mood and set"
+                        + " a positive tone for the rest of your day.",
+                    ContentCategory.FITNESS, "YQLQoW6BUCA")
             )
     );
 
@@ -89,7 +141,19 @@ public class ContentRegistry {
             wellbeingIndicator("Mood Patterns This Week",
                 "Tracking your mood consistently helps you identify patterns and triggers."
                     + " Even a few data points reveal meaningful trends.",
-                ContentCategory.GENERAL)
+                ContentCategory.GENERAL),
+            video("Mental Health Basics",
+                "Mayo Clinic provides a clear, accessible overview of mental health — what it means,"
+                    + " common conditions, and when to seek professional support.",
+                ContentCategory.GENERAL, "hd-PCMKR0pY"),
+            video("Self-Compassion Meditation",
+                "A guided meditation from the Mindful Awareness Research Center to cultivate"
+                    + " kindness and compassion toward yourself.",
+                ContentCategory.GENERAL, "4d9SjbbfjS0"),
+            video("Mindfulness for Beginners",
+                "A beginner-friendly guided mindfulness session to help you slow down,"
+                    + " notice the present moment, and reduce everyday stress.",
+                ContentCategory.GENERAL, "RVA2XlmMQOs")
     );
 
     private static final List<ContentItemResponse> ALL_TIPS;
@@ -158,6 +222,11 @@ public class ContentRegistry {
         return item(ContentType.WELLBEING_INDICATOR, title, body, category, null, null, null);
     }
 
+    private static ContentItemResponse video(String title, String body, ContentCategory category, String videoId) {
+        return item(ContentType.VIDEO, title, body, category, videoId, ContentSourceType.YOUTUBE,
+                ContentSourceLabel.YOUTUBE);
+    }
+
     private static ContentItemResponse item(ContentType type, String title, String body, ContentCategory category,
                                             String url, ContentSourceType sourceType,
                                             ContentSourceLabel sourceLabel) {
@@ -184,7 +253,8 @@ public class ContentRegistry {
         TIP("TIP"),
         RESOURCE("RESOURCE"),
         THERAPIST_TIP("THERAPIST_TIP"),
-        WELLBEING_INDICATOR("WELLBEING_INDICATOR");
+        WELLBEING_INDICATOR("WELLBEING_INDICATOR"),
+        VIDEO("VIDEO");
 
         private final String value;
 
