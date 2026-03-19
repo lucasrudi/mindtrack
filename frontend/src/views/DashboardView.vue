@@ -9,6 +9,7 @@ import ActivityCompletionChart from '@/components/charts/ActivityCompletionChart
 import GoalProgressChart from '@/components/charts/GoalProgressChart.vue'
 import TutorialOverlay from '@/components/tutorial/TutorialOverlay.vue'
 import ActiveGoalsWidget from '@/components/dashboard/ActiveGoalsWidget.vue'
+import PendingActivitiesWidget from '@/components/dashboard/PendingActivitiesWidget.vue'
 import DailyTipWidget from '@/components/dashboard/DailyTipWidget.vue'
 import ResourcesWidget from '@/components/dashboard/ResourcesWidget.vue'
 import WellbeingWidget from '@/components/dashboard/WellbeingWidget.vue'
@@ -194,6 +195,9 @@ watch(
           <span class="vcard-label">Pending Review</span>
         </div>
       </div>
+
+      <!-- Pending Activities -->
+      <PendingActivitiesWidget />
 
       <!-- Active Goals -->
       <div v-if="goalsStore.loading" class="goals-loading">Loading goals...</div>
