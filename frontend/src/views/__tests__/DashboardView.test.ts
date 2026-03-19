@@ -62,6 +62,21 @@ vi.mock('@/components/charts/GoalProgressChart.vue', () => ({
   },
 }))
 
+vi.mock('@/components/dashboard/ActiveGoalsWidget.vue', () => ({
+  default: {
+    name: 'ActiveGoalsWidget',
+    props: ['goals'],
+    template: '<div class="mock-active-goals-widget"></div>',
+  },
+}))
+
+vi.mock('@/stores/goals', () => ({
+  useGoalsStore: () => ({
+    activeGoals: [],
+    fetchGoals: vi.fn().mockResolvedValue(undefined),
+  }),
+}))
+
 // Mock dashboard widget components
 vi.mock('@/components/dashboard/DailyTipWidget.vue', () => ({
   default: {
