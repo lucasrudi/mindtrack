@@ -90,22 +90,25 @@ public class OnboardingService {
         List<GoalResponse> saved = new ArrayList<>();
         for (Goal goal : capped) {
             Goal savedGoal = goalRepository.save(goal);
-            var templates = milestoneTemplateRegistry.getTemplates(savedGoal.getCategory());
-            for (var template : templates) {
-                var milestone = new Milestone();
-                milestone.setGoal(savedGoal);
-                milestone.setTitle(template.title());
-                milestone.setNotes(template.notes());
-                milestone.setTargetDate(LocalDate.now().plusDays(template.daysOffset()));
-                milestone.setSuggested(true);
-                milestoneRepository.save(milestone);
-            }
+            createSuggestedMilestones(savedGoal);
             saved.add(goalMapper.toGoalResponse(goalRepository.save(savedGoal)));
         }
 
         profileService.completeSurvey(userId);
         LOG.info("Created {} onboarding goals for user {}", saved.size(), userId);
         return saved;
+    }
+
+    private void createSuggestedMilestones(Goal goal) {
+        for (var template : milestoneTemplateRegistry.getTemplates(goal.getCategory())) {
+            var milestone = new Milestone();
+            milestone.setGoal(goal);
+            milestone.setTitle(template.title());
+            milestone.setNotes(template.notes());
+            milestone.setTargetDate(LocalDate.now().plusDays(template.daysOffset()));
+            milestone.setSuggested(true);
+            milestoneRepository.save(milestone);
+        }
     }
 
     private Goal buildGoal(Long userId, String title, String description, String category) {
