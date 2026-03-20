@@ -52,6 +52,7 @@ public class Appointment {
     private LocalDateTime updatedAt;
 
     public Appointment() {
+        // Default constructor required by JPA.
     }
 
     @PrePersist

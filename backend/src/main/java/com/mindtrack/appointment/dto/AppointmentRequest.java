@@ -27,6 +27,7 @@ public class AppointmentRequest {
     private String notes;
 
     public AppointmentRequest() {
+        // Default constructor for request deserialization.
     }
 
     public LocalDateTime getStartAt() {
