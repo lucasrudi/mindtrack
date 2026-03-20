@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 import PendingActivitiesWidget from '../PendingActivitiesWidget.vue'
 import type { DailyChecklistItem } from '@/stores/activities'
+import { clearDashboardSessionCache } from '@/stores/dashboardSessionCache'
 
 const mockGet = vi.fn().mockResolvedValue({ data: [] })
 const mockPost = vi.fn().mockResolvedValue({ data: {} })
@@ -40,6 +41,7 @@ function makeChecklistItem(overrides: Partial<DailyChecklistItem> = {}): DailyCh
 describe('PendingActivitiesWidget', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    clearDashboardSessionCache()
     mockGet.mockReset().mockResolvedValue({ data: [] })
     mockPost.mockReset().mockResolvedValue({
       data: {

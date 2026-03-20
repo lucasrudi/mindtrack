@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import { getCachedAnalytics, setCachedAnalytics } from './dashboardSessionCache'
 
 export interface DashboardSummary {
   totalJournalEntries: number
@@ -66,9 +67,64 @@ export const useAnalyticsStore = defineStore('analytics', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
   const dateRange = ref<DateRange>(defaultDateRange())
+  let refreshToken = 0
 
   function buildParams() {
     return `from=${dateRange.value.from}&to=${dateRange.value.to}`
+  }
+
+  function cacheKey() {
+    return `${dateRange.value.from}:${dateRange.value.to}`
+  }
+
+  function applyDashboardData(data: {
+    summary: DashboardSummary | null
+    moodTrends: MoodTrend[]
+    activityStats: ActivityStat[]
+    goalProgress: GoalProgress[]
+    contentItems: ContentItem[]
+  }) {
+    summary.value = data.summary
+    moodTrends.value = data.moodTrends
+    activityStats.value = data.activityStats
+    goalProgress.value = data.goalProgress
+    contentItems.value = data.contentItems
+  }
+
+  async function loadDashboardData() {
+    const [
+      summaryResponse,
+      moodTrendsResponse,
+      activityStatsResponse,
+      goalProgressResponse,
+      contentResponse,
+    ] = await Promise.all([
+      api.get(`/analytics/summary?${buildParams()}`),
+      api.get(`/analytics/mood-trends?${buildParams()}`),
+      api.get(`/analytics/activity-stats?${buildParams()}`),
+      api.get('/analytics/goal-progress'),
+      api.get<ContentItem[]>('/analytics/content'),
+    ])
+
+    return {
+      summary: summaryResponse.data as DashboardSummary,
+      moodTrends: moodTrendsResponse.data as MoodTrend[],
+      activityStats: activityStatsResponse.data as ActivityStat[],
+      goalProgress: goalProgressResponse.data as GoalProgress[],
+      contentItems: contentResponse.data as ContentItem[],
+    }
+  }
+
+  async function refreshDashboardSilently(key: string, token: number) {
+    try {
+      const data = await loadDashboardData()
+      if (token !== refreshToken || key !== cacheKey()) return
+      applyDashboardData(data)
+      setCachedAnalytics(key, data)
+      error.value = null
+    } catch {
+      // Keep cached data visible if background refresh fails.
+    }
   }
 
   async function fetchSummary() {
@@ -122,8 +178,20 @@ export const useAnalyticsStore = defineStore('analytics', () => {
   }
 
   async function fetchAll() {
-    loading.value = true
+    const key = cacheKey()
+    const cached = getCachedAnalytics(key)
+    const token = ++refreshToken
+
     error.value = null
+
+    if (cached) {
+      applyDashboardData(cached)
+      loading.value = false
+      void refreshDashboardSilently(key, token)
+      return
+    }
+
+    loading.value = true
     try {
       await Promise.all([
         fetchSummary(),
@@ -132,10 +200,20 @@ export const useAnalyticsStore = defineStore('analytics', () => {
         fetchGoalProgress(),
         fetchContent(),
       ])
+      if (token !== refreshToken) return
+      setCachedAnalytics(key, {
+        summary: summary.value,
+        moodTrends: moodTrends.value,
+        activityStats: activityStats.value,
+        goalProgress: goalProgress.value,
+        contentItems: contentItems.value,
+      })
     } catch {
-      // Individual errors already set
+      // Individual errors already set by the underlying fetch methods
     } finally {
-      loading.value = false
+      if (token === refreshToken) {
+        loading.value = false
+      }
     }
   }
 
