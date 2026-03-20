@@ -70,6 +70,13 @@ vi.mock('@/components/dashboard/ActiveGoalsWidget.vue', () => ({
   },
 }))
 
+vi.mock('@/components/dashboard/NextAppointmentWidget.vue', () => ({
+  default: {
+    name: 'NextAppointmentWidget',
+    template: '<div class="mock-next-appointment-widget"></div>',
+  },
+}))
+
 vi.mock('@/stores/goals', () => ({
   useGoalsStore: () => ({
     activeGoals: [],
@@ -255,6 +262,7 @@ describe('DashboardView', () => {
     const order = [
       'survey-prompt',
       'dashboard-top-row',
+      'next-appointment-section',
       'resources-widget',
       'video-widget',
       'wellbeing-widget',

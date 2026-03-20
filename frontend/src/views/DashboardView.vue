@@ -10,6 +10,7 @@ import GoalProgressChart from '@/components/charts/GoalProgressChart.vue'
 import TutorialOverlay from '@/components/tutorial/TutorialOverlay.vue'
 import ActiveGoalsWidget from '@/components/dashboard/ActiveGoalsWidget.vue'
 import PendingActivitiesWidget from '@/components/dashboard/PendingActivitiesWidget.vue'
+import NextAppointmentWidget from '@/components/dashboard/NextAppointmentWidget.vue'
 import DailyTipWidget from '@/components/dashboard/DailyTipWidget.vue'
 import MoodEntryWidget from '@/components/dashboard/MoodEntryWidget.vue'
 import ResourcesWidget from '@/components/dashboard/ResourcesWidget.vue'
@@ -161,6 +162,14 @@ watch(
         >
           <DailyTipWidget :tip="dailyTip" />
           <MoodEntryWidget />
+        </section>
+
+        <section
+          v-if="profileStore.profile?.isPatient"
+          class="dashboard-section"
+          data-testid="next-appointment-section"
+        >
+          <NextAppointmentWidget />
         </section>
 
         <section class="dashboard-section" data-testid="content-row-section">
