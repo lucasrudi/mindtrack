@@ -24,6 +24,7 @@ public class AppointmentResponse {
     private LocalDateTime updatedAt;
 
     public AppointmentResponse() {
+        // Default constructor for response serialization.
     }
 
     public Long getId() {
