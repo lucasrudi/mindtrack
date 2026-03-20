@@ -140,6 +140,7 @@ describe('DashboardView', () => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
     mockGet.mockResolvedValue({ data: [] })
+    sessionStorageMock.clear()
   })
 
   it('renders page header', () => {
