@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+import { flushPromises } from '@vue/test-utils'
 import { useGoalsStore } from '../goals'
+import { clearDashboardSessionCache } from '../dashboardSessionCache'
 
 vi.mock('@/services/api', () => ({
   default: {
@@ -79,6 +81,7 @@ describe('useGoalsStore', () => {
     const module = await import('@/services/api')
     api = module.default as unknown as typeof api
     vi.clearAllMocks()
+    clearDashboardSessionCache()
   })
 
   it('initializes with empty state', () => {
@@ -258,5 +261,33 @@ describe('useGoalsStore', () => {
     store.error = 'Some error'
     store.clearError()
     expect(store.error).toBeNull()
+  })
+
+  it('uses cached goals first and refreshes them in the background', async () => {
+    api.get.mockResolvedValueOnce({ data: [sampleGoal, sampleGoal2] })
+    const primingStore = useGoalsStore()
+    await primingStore.fetchGoals()
+
+    const refreshedGoals = [
+      { ...sampleGoal, title: 'Updated meditation goal' },
+      { ...sampleGoal2, status: 'IN_PROGRESS' as const },
+    ]
+
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+    api.get.mockResolvedValueOnce({ data: refreshedGoals })
+
+    const cachedStore = useGoalsStore()
+    const fetchPromise = cachedStore.fetchGoals()
+
+    expect(cachedStore.goals).toEqual([sampleGoal, sampleGoal2])
+    expect(cachedStore.loading).toBe(false)
+
+    await fetchPromise
+    await flushPromises()
+
+    expect(api.get).toHaveBeenCalledTimes(1)
+    expect(cachedStore.goals).toEqual(refreshedGoals)
+    expect(cachedStore.activeGoals).toHaveLength(2)
   })
 })

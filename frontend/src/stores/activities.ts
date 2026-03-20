@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import { getCachedChecklist, setCachedChecklist } from './dashboardSessionCache'
 
 export type ActivityType =
   | 'EXERCISE'
@@ -67,6 +68,7 @@ export const useActivitiesStore = defineStore('activities', () => {
   const checklist = ref<DailyChecklistItem[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+  let refreshToken = 0
 
   const activeActivities = computed(() => activities.value.filter((a) => a.active))
   const inactiveActivities = computed(() => activities.value.filter((a) => !a.active))
@@ -149,16 +151,43 @@ export const useActivitiesStore = defineStore('activities', () => {
   }
 
   async function fetchChecklist(date: string) {
-    loading.value = true
     error.value = null
+
+    const cached = getCachedChecklist(date)
+    const token = ++refreshToken
+
+    if (cached) {
+      checklist.value = cached
+      loading.value = false
+      void refreshChecklistSilently(date, token)
+      return
+    }
+
+    loading.value = true
     try {
       const response = await api.get('/activities/checklist', { params: { date } })
+      if (token !== refreshToken) return
       checklist.value = response.data
+      setCachedChecklist(date, checklist.value)
     } catch (err) {
       error.value = 'Failed to load checklist'
       throw err
     } finally {
-      loading.value = false
+      if (token === refreshToken) {
+        loading.value = false
+      }
+    }
+  }
+
+  async function refreshChecklistSilently(date: string, token: number) {
+    try {
+      const response = await api.get('/activities/checklist', { params: { date } })
+      if (token !== refreshToken) return
+      checklist.value = response.data
+      setCachedChecklist(date, checklist.value)
+      error.value = null
+    } catch {
+      // Keep cached checklist visible if background refresh fails.
     }
   }
 
@@ -172,6 +201,8 @@ export const useActivitiesStore = defineStore('activities', () => {
         item.completed = response.data.completed
         item.notes = response.data.notes
         item.moodRating = response.data.moodRating
+        const date = item.date || form.logDate
+        setCachedChecklist(date, checklist.value)
       }
       return response.data
     } catch (err) {

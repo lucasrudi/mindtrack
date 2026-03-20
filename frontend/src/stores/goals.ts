@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import api from '@/services/api'
+import { getCachedGoals, setCachedGoals } from './dashboardSessionCache'
 
 export type GoalStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'PAUSED' | 'CANCELLED'
 export type GoalValidationStatus = 'PENDING_VALIDATION' | 'VALIDATED' | 'OVERRIDDEN' | 'REJECTED'
@@ -50,6 +51,7 @@ export const useGoalsStore = defineStore('goals', () => {
   const currentGoal = ref<Goal | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
+  let refreshToken = 0
 
   const activeGoals = computed(() =>
     goals.value.filter((g) => g.status === 'IN_PROGRESS' || g.status === 'NOT_STARTED'),
@@ -57,17 +59,48 @@ export const useGoalsStore = defineStore('goals', () => {
 
   const completedGoals = computed(() => goals.value.filter((g) => g.status === 'COMPLETED'))
 
-  async function fetchGoals() {
-    loading.value = true
-    error.value = null
+  function syncGoalsCache() {
+    setCachedGoals(goals.value)
+  }
+
+  async function refreshGoalsSilently(token: number) {
     try {
       const response = await api.get('/goals')
+      if (token !== refreshToken) return
       goals.value = response.data
+      syncGoalsCache()
+      error.value = null
+    } catch {
+      // Keep cached goals visible if background refresh fails.
+    }
+  }
+
+  async function fetchGoals() {
+    error.value = null
+
+    const cached = getCachedGoals()
+    const token = ++refreshToken
+
+    if (cached) {
+      goals.value = cached
+      loading.value = false
+      void refreshGoalsSilently(token)
+      return
+    }
+
+    loading.value = true
+    try {
+      const response = await api.get('/goals')
+      if (token !== refreshToken) return
+      goals.value = response.data
+      syncGoalsCache()
     } catch (err) {
       error.value = 'Failed to load goals'
       throw err
     } finally {
-      loading.value = false
+      if (token === refreshToken) {
+        loading.value = false
+      }
     }
   }
 
@@ -92,6 +125,7 @@ export const useGoalsStore = defineStore('goals', () => {
     try {
       const response = await api.post('/goals', form)
       goals.value.unshift(response.data)
+      syncGoalsCache()
       return response.data
     } catch (err) {
       error.value = 'Failed to create goal'
@@ -109,6 +143,7 @@ export const useGoalsStore = defineStore('goals', () => {
       const index = goals.value.findIndex((g) => g.id === id)
       if (index !== -1) {
         goals.value[index] = response.data
+        syncGoalsCache()
       }
       currentGoal.value = response.data
       return response.data
@@ -127,6 +162,7 @@ export const useGoalsStore = defineStore('goals', () => {
       const index = goals.value.findIndex((g) => g.id === id)
       if (index !== -1) {
         goals.value[index] = response.data
+        syncGoalsCache()
       }
       if (currentGoal.value?.id === id) {
         currentGoal.value = response.data
@@ -144,6 +180,7 @@ export const useGoalsStore = defineStore('goals', () => {
     try {
       await api.delete(`/goals/${id}`)
       goals.value = goals.value.filter((g) => g.id !== id)
+      syncGoalsCache()
       if (currentGoal.value?.id === id) {
         currentGoal.value = null
       }
@@ -163,6 +200,7 @@ export const useGoalsStore = defineStore('goals', () => {
       if (goal) {
         goal.milestones.push(response.data)
         goal.totalMilestones++
+        syncGoalsCache()
       }
       if (currentGoal.value?.id === goalId) {
         currentGoal.value.milestones.push(response.data)
@@ -186,6 +224,7 @@ export const useGoalsStore = defineStore('goals', () => {
           const wasCompleted = goal.milestones[idx].completed
           goal.milestones[idx] = response.data
           goal.completedMilestones += wasCompleted ? -1 : 1
+          syncGoalsCache()
         }
       }
       if (currentGoal.value?.id === goalId) {

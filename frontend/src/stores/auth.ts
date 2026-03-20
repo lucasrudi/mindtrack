@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import { clearDashboardSessionCache } from './dashboardSessionCache'
 
 export interface User {
   id: string
@@ -27,6 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout() {
     user.value = null
     hasBootstrapped.value = true
+    clearDashboardSessionCache()
     try {
       const { default: api } = await import('@/services/api')
       await api.post('/auth/logout')
@@ -64,6 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
     await api.delete('/auth/account')
     user.value = null
     hasBootstrapped.value = true
+    clearDashboardSessionCache()
   }
 
   return {

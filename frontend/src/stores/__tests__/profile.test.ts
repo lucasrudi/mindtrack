@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+import { flushPromises } from '@vue/test-utils'
 import { useProfileStore } from '../profile'
+import { clearDashboardSessionCache } from '../dashboardSessionCache'
 
 const mockProfile = {
   id: 1,
@@ -48,6 +50,7 @@ describe('useProfileStore', () => {
     const module = await import('@/services/api')
     api = module.default as unknown as typeof api
     vi.clearAllMocks()
+    clearDashboardSessionCache()
   })
 
   describe('fetchProfile', () => {
@@ -277,5 +280,29 @@ describe('useProfileStore', () => {
       expect(store.error).toBe('Failed to skip survey')
       expect(store.saving).toBe(false)
     })
+  })
+
+  it('uses cached profile first and refreshes it in the background', async () => {
+    api.get.mockResolvedValueOnce({ data: mockProfile })
+    const primingStore = useProfileStore()
+    await primingStore.fetchProfile()
+
+    const refreshedProfile = { ...mockProfile, displayName: 'Jane Doe', tutorialCompleted: false }
+
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+    api.get.mockResolvedValueOnce({ data: refreshedProfile })
+
+    const cachedStore = useProfileStore()
+    const fetchPromise = cachedStore.fetchProfile()
+
+    expect(cachedStore.profile).toEqual(mockProfile)
+    expect(cachedStore.loading).toBe(false)
+
+    await fetchPromise
+    await flushPromises()
+
+    expect(api.get).toHaveBeenCalledTimes(1)
+    expect(cachedStore.profile).toEqual(refreshedProfile)
   })
 })
