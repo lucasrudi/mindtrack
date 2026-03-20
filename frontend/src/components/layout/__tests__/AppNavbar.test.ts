@@ -23,17 +23,25 @@ Object.defineProperty(globalThis, 'localStorage', {
 const router = createRouter({
   history: createMemoryHistory(),
   routes: [
-    { path: '/dashboard', component: { template: '<div>Dashboard</div>' } },
-    { path: '/journal', component: { template: '<div>Journal</div>' } },
-    { path: '/activities', component: { template: '<div>Activities</div>' } },
-    { path: '/goals', component: { template: '<div>Goals</div>' } },
-    { path: '/interviews', component: { template: '<div>Interviews</div>' } },
-    { path: '/chat', component: { template: '<div>Chat</div>' } },
-    { path: '/profile', component: { template: '<div>Profile</div>' } },
-    { path: '/admin', component: { template: '<div>Admin</div>' } },
-    { path: '/therapist', component: { template: '<div>Therapist</div>' } },
-    { path: '/therapist/calendar', component: { template: '<div>Calendar</div>' } },
-    { path: '/', component: { template: '<div>Home</div>' } },
+    { path: '/dashboard', name: 'dashboard', component: { template: '<div>Dashboard</div>' } },
+    { path: '/journal', name: 'journal', component: { template: '<div>Journal</div>' } },
+    { path: '/activities', name: 'activities', component: { template: '<div>Activities</div>' } },
+    { path: '/goals', name: 'goals', component: { template: '<div>Goals</div>' } },
+    {
+      path: '/interviews',
+      name: 'interviews',
+      component: { template: '<div>Interviews</div>' },
+    },
+    { path: '/chat', name: 'chat', component: { template: '<div>Chat</div>' } },
+    { path: '/profile', name: 'profile', component: { template: '<div>Profile</div>' } },
+    { path: '/admin', name: 'admin', component: { template: '<div>Admin</div>' } },
+    { path: '/therapist', name: 'therapist', component: { template: '<div>Therapist</div>' } },
+    {
+      path: '/therapist/calendar',
+      name: 'therapist-calendar',
+      component: { template: '<div>Calendar</div>' },
+    },
+    { path: '/', name: 'landing', component: { template: '<div>Home</div>' } },
   ],
 })
 
@@ -49,6 +57,8 @@ describe('AppNavbar', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorageMock.getItem.mockReturnValue(null)
+    localStorageMock.setItem.mockClear()
+    localStorageMock.removeItem.mockClear()
   })
 
   it('renders the brand name', () => {
@@ -71,6 +81,44 @@ describe('AppNavbar', () => {
     expect(linkTexts).toContain('Goals')
     expect(linkTexts).toContain('Interviews')
     expect(linkTexts).toContain('AI Chat')
+  })
+
+  it('shows therapist view toggle for dual-role users', () => {
+    const auth = useAuthStore()
+    auth.setUser({
+      id: '1',
+      email: 'dual@test.com',
+      name: 'Dual Role',
+      role: 'USER',
+      isPatient: true,
+      isTherapist: true,
+    })
+
+    const wrapper = mountNavbar()
+
+    expect(wrapper.find('.view-toggle').exists()).toBe(true)
+    expect(wrapper.find('.view-toggle-btn.active').text()).toBe('Patient')
+    expect(wrapper.findAll('.nav-link').map((link) => link.text())).toContain('Dashboard')
+    expect(wrapper.findAll('.nav-link').map((link) => link.text())).not.toContain('Patients')
+  })
+
+  it('switches to therapist navigation when the active view changes', async () => {
+    const auth = useAuthStore()
+    auth.setUser({
+      id: '1',
+      email: 'dual@test.com',
+      name: 'Dual Role',
+      role: 'USER',
+      isPatient: true,
+      isTherapist: true,
+    })
+    auth.setActiveView('therapist')
+
+    const wrapper = mountNavbar()
+
+    expect(wrapper.find('.view-toggle-btn.active').text()).toBe('Therapist')
+    expect(wrapper.findAll('.nav-link').map((link) => link.text())).toContain('Patients')
+    expect(wrapper.findAll('.nav-link').map((link) => link.text())).not.toContain('Journal')
   })
 
   it('renders logout button', () => {
@@ -124,6 +172,7 @@ describe('AppNavbar', () => {
       isPatient: true,
       isTherapist: true,
     })
+    auth.setActiveView('therapist')
 
     const wrapper = mountNavbar()
     const linkTexts = wrapper.findAll('.nav-link').map((link) => link.text())

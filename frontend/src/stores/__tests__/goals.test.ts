@@ -169,6 +169,19 @@ describe('useGoalsStore', () => {
     expect(store.goals[0].status).toBe('COMPLETED')
   })
 
+  it('marks goal as started', async () => {
+    api.get.mockResolvedValue({ data: [sampleGoal] })
+    const updated = { ...sampleGoal, status: 'IN_PROGRESS' as const }
+    api.patch.mockResolvedValue({ data: updated })
+    const store = useGoalsStore()
+    await store.fetchGoals()
+
+    await store.markGoalStarted(1)
+
+    expect(api.patch).toHaveBeenCalledWith('/goals/1/status', { status: 'IN_PROGRESS' })
+    expect(store.goals[0].status).toBe('IN_PROGRESS')
+  })
+
   it('updates currentGoal on status change', async () => {
     api.get.mockResolvedValue({ data: sampleGoal })
     const updated = { ...sampleGoal, status: 'PAUSED' as const }

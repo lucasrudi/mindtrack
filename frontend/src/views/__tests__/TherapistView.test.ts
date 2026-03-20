@@ -95,52 +95,32 @@ describe('TherapistView', () => {
     mockGet.mockReset().mockResolvedValue({ data: [] })
   })
 
-  it('renders page header', () => {
-    const wrapper = mount(TherapistView)
-    expect(wrapper.find('h1').text()).toBe('Patient Dashboard')
-    expect(wrapper.find('.subtitle').text()).toContain('patients')
-  })
-
-  it('shows loading state while fetching', async () => {
-    let resolveGet: (value: unknown) => void
-    mockGet.mockReturnValueOnce(
-      new Promise((resolve) => {
-        resolveGet = resolve
-      }),
-    )
-    const wrapper = mount(TherapistView)
-    await wrapper.vm.$nextTick()
-
-    expect(wrapper.find('.loading').exists()).toBe(true)
-
-    resolveGet!({ data: mockPatients })
-    await flushPromises()
-
-    expect(wrapper.find('.loading').exists()).toBe(false)
-  })
-
-  it('renders patient table when data loads', async () => {
+  it('renders therapist overview and patient list', async () => {
     mockGet.mockResolvedValueOnce({ data: mockPatients })
     const wrapper = mount(TherapistView)
     await flushPromises()
 
+    expect(wrapper.find('h1').text()).toBe('Therapist Dashboard')
+    expect(wrapper.find('.subtitle').text()).toContain('Aggregate caseload overview')
+    expect(wrapper.findAll('.overview-card')).toHaveLength(4)
+    expect(wrapper.find('.overview-panel').text()).toContain('Assigned patients')
     expect(wrapper.find('.data-table').exists()).toBe(true)
-    const rows = wrapper.findAll('.patient-row')
-    expect(rows).toHaveLength(2)
-    expect(rows[0].text()).toContain('Patient One')
-    expect(rows[0].text()).toContain('patient1@test.com')
+    expect(wrapper.findAll('.patient-row')).toHaveLength(2)
   })
 
-  it('shows empty state when no patients', async () => {
-    mockGet.mockResolvedValueOnce({ data: [] })
+  it('shows aggregate counts from the assigned patient list', async () => {
+    mockGet.mockResolvedValueOnce({ data: mockPatients })
     const wrapper = mount(TherapistView)
     await flushPromises()
 
-    expect(wrapper.find('.empty-state').exists()).toBe(true)
-    expect(wrapper.find('.empty-state').text()).toContain('No patients')
+    const cards = wrapper.findAll('.overview-card')
+    expect(cards[0].text()).toContain('2')
+    expect(cards[1].text()).toContain('3')
+    expect(cards[2].text()).toContain('2')
+    expect(cards[3].text()).toContain('5')
   })
 
-  it('navigates to patient detail on row click', async () => {
+  it('loads patient detail without hiding the overview list', async () => {
     mockGet.mockResolvedValueOnce({ data: mockPatients })
     const wrapper = mount(TherapistView)
     await flushPromises()
@@ -150,11 +130,16 @@ describe('TherapistView', () => {
     await flushPromises()
 
     expect(mockGet).toHaveBeenCalledWith('/therapist/patients/1')
-    expect(wrapper.find('.patient-header h2').text()).toBe('Patient One')
-    expect(wrapper.find('.patient-email').text()).toBe('patient1@test.com')
+    expect(wrapper.find('.patient-detail-panel').text()).toContain('Patient One')
+    expect(wrapper.find('.patient-detail-panel').text()).toContain(
+      'Showing patient-specific insights only',
+    )
+    expect(wrapper.findAll('.patient-row')).toHaveLength(2)
+    expect(wrapper.findAll('.snapshot-card')).toHaveLength(4)
+    expect(wrapper.find('.patient-row.selected').text()).toContain('Patient One')
   })
 
-  it('shows tabs in patient detail view', async () => {
+  it('shows tabs and selected patient insights', async () => {
     mockGet.mockResolvedValueOnce({ data: mockPatients })
     const wrapper = mount(TherapistView)
     await flushPromises()
@@ -169,9 +154,10 @@ describe('TherapistView', () => {
     expect(tabs[1].text()).toContain('Activities')
     expect(tabs[2].text()).toContain('Goals')
     expect(tabs[3].text()).toContain('Shared Journal')
+    expect(wrapper.find('.tab-content').text()).toContain('Good session')
   })
 
-  it('shows back button that returns to patient list', async () => {
+  it('returns to the overview when the selected patient is cleared', async () => {
     mockGet.mockResolvedValueOnce({ data: mockPatients })
     const wrapper = mount(TherapistView)
     await flushPromises()
@@ -180,16 +166,16 @@ describe('TherapistView', () => {
     await wrapper.findAll('.patient-row')[0].trigger('click')
     await flushPromises()
 
-    expect(wrapper.find('.back-btn').exists()).toBe(true)
-
     await wrapper.find('.back-btn').trigger('click')
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.find('.patient-header').exists()).toBe(false)
-    expect(wrapper.findAll('.patient-row')).toHaveLength(2)
+    expect(wrapper.find('.patient-detail-panel').text()).toContain(
+      'Select a patient to view their individual insights',
+    )
+    expect(wrapper.find('.patient-row.selected').exists()).toBe(false)
   })
 
-  it('shows error message on fetch failure', async () => {
+  it('shows an error message when patients fail to load', async () => {
     mockGet.mockRejectedValueOnce(new Error('Network error'))
     const wrapper = mount(TherapistView)
     await flushPromises()
@@ -197,15 +183,5 @@ describe('TherapistView', () => {
 
     expect(wrapper.find('.error-message').exists()).toBe(true)
     expect(wrapper.find('.error-message').text()).toContain('Failed to load patients')
-  })
-
-  it('formats dates correctly', async () => {
-    mockGet.mockResolvedValueOnce({ data: mockPatients })
-    const wrapper = mount(TherapistView)
-    await flushPromises()
-
-    const dateCells = wrapper.findAll('.cell-date')
-    expect(dateCells[0].text()).toContain('Jan')
-    expect(dateCells[0].text()).toContain('2025')
   })
 })

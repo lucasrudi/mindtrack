@@ -9,7 +9,7 @@ const auth = useAuthStore()
 onMounted(async () => {
   await auth.fetchCurrentUser()
   if (auth.isAuthenticated) {
-    router.replace('/dashboard')
+    router.replace({ name: auth.homeRouteName })
   } else {
     router.replace('/')
   }
