@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useTherapistStore } from '@/stores/therapist'
 import { useAppointmentStore, type AppointmentSummary } from '@/stores/appointments'
 
 const therapistStore = useTherapistStore()
 const appointmentStore = useAppointmentStore()
+
+const CALENDAR_COLORS = ['#2563eb', '#10b981', '#f97316', '#ef4444', '#8b5cf6', '#0f766e']
 
 const form = reactive({
   patientId: '',
@@ -13,6 +15,7 @@ const form = reactive({
   durationMinutes: 50,
   reason: '',
   notes: '',
+  calendarColor: CALENDAR_COLORS[0],
 })
 
 const submitError = ref<string | null>(null)
@@ -29,6 +32,18 @@ onMounted(async () => {
     // Store-level errors handle the failure state.
   }
 })
+
+const selectedPatient = computed(
+  () => therapistStore.patients.find((patient) => String(patient.id) === form.patientId) || null,
+)
+
+watch(
+  selectedPatient,
+  (patient) => {
+    form.calendarColor = patient?.calendarColor || defaultColorForPatient(patient?.id ?? 0)
+  },
+  { immediate: true },
+)
 
 const upcomingAppointments = computed(() => {
   const now = new Date()
@@ -107,6 +122,24 @@ function groupAppointments(appointments: AppointmentSummary[]) {
   }))
 }
 
+function defaultColorForPatient(patientId: number): string {
+  return CALENDAR_COLORS[(patientId - 1) % CALENDAR_COLORS.length] || CALENDAR_COLORS[0]
+}
+
+async function persistCalendarColor(color: string) {
+  if (!selectedPatient.value) {
+    return
+  }
+
+  const updated = await therapistStore.setPatientCalendarColor(selectedPatient.value.id, color)
+  appointmentStore.updatePatientCalendarColor(updated.id, updated.calendarColor || color)
+}
+
+async function chooseCalendarColor(color: string) {
+  form.calendarColor = color
+  await persistCalendarColor(color)
+}
+
 function buildDateTime(date: string, time: string): string {
   const raw = new Date(`${date}T${time}:00`)
   const year = raw.getFullYear()
@@ -130,6 +163,9 @@ async function submitBooking() {
   const endDate = new Date(startDate.getTime() + form.durationMinutes * 60_000)
 
   try {
+    if (selectedPatient.value?.calendarColor !== form.calendarColor) {
+      await persistCalendarColor(form.calendarColor)
+    }
     await appointmentStore.bookAppointment(Number(form.patientId), {
       startAt: buildDateTime(form.date, form.time),
       endAt: buildDateTime(
@@ -215,6 +251,33 @@ async function submitBooking() {
             </select>
           </label>
 
+          <label class="field">
+            <span>Calendar color</span>
+            <div class="color-picker">
+              <input
+                v-model="form.calendarColor"
+                type="color"
+                :disabled="!selectedPatient"
+                @change="chooseCalendarColor(form.calendarColor)"
+              />
+              <div class="color-options">
+                <button
+                  v-for="color in CALENDAR_COLORS"
+                  :key="color"
+                  type="button"
+                  class="color-chip"
+                  :class="{ 'color-chip--active': form.calendarColor === color }"
+                  :style="{ '--swatch-color': color }"
+                  :disabled="!selectedPatient"
+                  @click="chooseCalendarColor(color)"
+                >
+                  <span class="sr-only">{{ color }}</span>
+                </button>
+              </div>
+            </div>
+            <small class="color-hint">Saved per patient and reused on the next booking.</small>
+          </label>
+
           <div class="field-grid">
             <label class="field">
               <span>Date</span>
@@ -289,6 +352,10 @@ async function submitBooking() {
                   v-for="appointment in group.items"
                   :key="appointment.id"
                   class="appointment-card"
+                  :style="{
+                    '--appointment-accent':
+                      appointment.calendarColor || defaultColorForPatient(appointment.patientId),
+                  }"
                 >
                   <div class="appointment-topline">
                     <span class="appointment-time">
@@ -298,7 +365,10 @@ async function submitBooking() {
                       {{ formatStatus(appointment.status) }}
                     </span>
                   </div>
-                  <h4>{{ appointment.patientName }}</h4>
+                  <h4>
+                    <span class="patient-swatch" aria-hidden="true"></span>
+                    {{ appointment.patientName }}
+                  </h4>
                   <p class="appointment-reason">{{ appointment.reason || 'No reason supplied' }}</p>
                 </div>
               </article>
@@ -317,6 +387,10 @@ async function submitBooking() {
                   v-for="appointment in group.items"
                   :key="appointment.id"
                   class="appointment-card muted"
+                  :style="{
+                    '--appointment-accent':
+                      appointment.calendarColor || defaultColorForPatient(appointment.patientId),
+                  }"
                 >
                   <div class="appointment-topline">
                     <span class="appointment-time">
@@ -326,7 +400,10 @@ async function submitBooking() {
                       {{ formatStatus(appointment.status) }}
                     </span>
                   </div>
-                  <h4>{{ appointment.patientName }}</h4>
+                  <h4>
+                    <span class="patient-swatch" aria-hidden="true"></span>
+                    {{ appointment.patientName }}
+                  </h4>
                   <p class="appointment-reason">{{ appointment.reason || 'No reason supplied' }}</p>
                 </div>
               </article>
@@ -525,6 +602,49 @@ async function submitBooking() {
   box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.14);
 }
 
+.color-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.color-picker input[type='color'] {
+  width: 64px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.color-chip {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--swatch-color);
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.15);
+}
+
+.color-chip--active {
+  border-color: var(--color-white);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.1),
+    0 0 0 4px color-mix(in srgb, var(--swatch-color) 42%, transparent);
+}
+
+.color-hint {
+  color: rgba(226, 232, 240, 0.58);
+}
+
 .field-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -569,10 +689,25 @@ async function submitBooking() {
   border-radius: 18px;
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(148, 163, 184, 0.16);
+  border-left: 4px solid var(--appointment-accent, #60a5fa);
 }
 
 .appointment-card.muted {
   background: rgba(15, 23, 42, 0.64);
+}
+
+.appointment-card h4 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.patient-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--appointment-accent, #60a5fa);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--appointment-accent, #60a5fa) 18%, transparent);
 }
 
 .appointment-topline {

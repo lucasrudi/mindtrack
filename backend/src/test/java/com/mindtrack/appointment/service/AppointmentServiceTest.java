@@ -7,6 +7,7 @@ import com.mindtrack.appointment.model.AppointmentStatus;
 import com.mindtrack.appointment.repository.AppointmentRepository;
 import com.mindtrack.auth.repository.UserRepository;
 import com.mindtrack.common.model.User;
+import com.mindtrack.therapist.model.TherapistPatient;
 import com.mindtrack.therapist.model.TherapistPatientStatus;
 import com.mindtrack.therapist.repository.TherapistPatientRepository;
 import java.time.LocalDateTime;
@@ -58,6 +59,9 @@ class AppointmentServiceTest {
 
         when(appointmentRepository.findByTherapistIdOrderByStartAtAsc(3L))
                 .thenReturn(List.of(first, second));
+        when(therapistPatientRepository.findByTherapistIdAndStatus(3L, TherapistPatientStatus.ACTIVE))
+                .thenReturn(List.of(createRelationship(3L, 10L, "#f97316"),
+                        createRelationship(3L, 11L, "#22c55e")));
         when(userRepository.findById(10L)).thenReturn(Optional.of(createUser(10L, "Patient A")));
         when(userRepository.findById(11L)).thenReturn(Optional.of(createUser(11L, "Patient B")));
 
@@ -65,6 +69,7 @@ class AppointmentServiceTest {
 
         assertEquals(2, result.size());
         assertEquals("Patient A", result.get(0).getPatientName());
+        assertEquals("#f97316", result.get(0).getCalendarColor());
         assertEquals(50L, result.get(0).getDurationMinutes());
     }
 
@@ -76,6 +81,8 @@ class AppointmentServiceTest {
                 any(), any(), any(), any())).thenReturn(List.of());
         when(appointmentRepository.findByPatientIdAndStatusInAndStartAtLessThanAndEndAtGreaterThan(
                 any(), any(), any(), any())).thenReturn(List.of());
+        when(therapistPatientRepository.findByTherapistIdAndPatientId(3L, 10L))
+                .thenReturn(Optional.of(createRelationship(3L, 10L, "#f97316")));
         when(userRepository.findById(10L)).thenReturn(Optional.of(createUser(10L, "Patient A")));
         when(userRepository.findById(3L)).thenReturn(Optional.of(createUser(3L, "Therapist A")));
         when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> {
@@ -163,5 +170,13 @@ class AppointmentServiceTest {
         user.setName(name);
         user.setEmail(name.toLowerCase().replace(' ', '.') + "@test.com");
         return user;
+    }
+
+    private TherapistPatient createRelationship(Long therapistId, Long patientId,
+                                                String calendarColor) {
+        TherapistPatient relationship = new TherapistPatient(therapistId, patientId,
+                TherapistPatientStatus.ACTIVE);
+        relationship.setCalendarColor(calendarColor);
+        return relationship;
     }
 }

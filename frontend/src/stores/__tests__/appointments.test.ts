@@ -10,6 +10,7 @@ const mockAppointments: AppointmentSummary[] = [
     patientId: 10,
     patientName: 'Patient One',
     patientEmail: 'patient1@test.com',
+    calendarColor: '#2563eb',
     startAt: '2026-04-20T10:00:00',
     endAt: '2026-04-20T10:50:00',
     status: 'SCHEDULED',
@@ -80,5 +81,14 @@ describe('useAppointmentStore', () => {
     })
     expect(store.appointments[0].id).toBe(2)
     expect(store.notice).toBe('Appointment booked')
+  })
+
+  it('updates calendar colors for a patient across loaded appointments', () => {
+    const store = useAppointmentStore()
+    store.appointments = mockAppointments
+
+    store.updatePatientCalendarColor(10, '#10b981')
+
+    expect(store.appointments[0].calendarColor).toBe('#10b981')
   })
 })

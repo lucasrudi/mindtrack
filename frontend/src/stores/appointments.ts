@@ -8,6 +8,7 @@ export interface AppointmentSummary {
   patientId: number
   patientName: string
   patientEmail: string
+  calendarColor: string | null
   startAt: string
   endAt: string
   status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
@@ -65,6 +66,12 @@ export const useAppointmentStore = defineStore('appointments', () => {
     }
   }
 
+  function updatePatientCalendarColor(patientId: number, calendarColor: string) {
+    appointments.value = appointments.value.map((appointment) =>
+      appointment.patientId === patientId ? { ...appointment, calendarColor } : appointment,
+    )
+  }
+
   function clearNotice() {
     notice.value = null
   }
@@ -81,6 +88,7 @@ export const useAppointmentStore = defineStore('appointments', () => {
     notice,
     fetchAppointments,
     bookAppointment,
+    updatePatientCalendarColor,
     clearNotice,
     clearError,
   }
