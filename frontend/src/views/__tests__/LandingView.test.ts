@@ -5,6 +5,7 @@ import LandingView from '../LandingView.vue'
 const pushMock = vi.fn()
 const authState = vi.hoisted(() => ({
   isAuthenticated: false,
+  homeRouteName: 'dashboard',
 }))
 
 vi.mock('vue-router', () => ({
@@ -38,6 +39,7 @@ describe('LandingView', () => {
   beforeEach(() => {
     pushMock.mockReset()
     authState.isAuthenticated = false
+    authState.homeRouteName = 'dashboard'
     Object.defineProperty(globalThis, 'location', {
       value: { href: 'http://localhost/' },
       configurable: true,
@@ -59,7 +61,7 @@ describe('LandingView', () => {
 
     await wrapper.find('.hero-signin').trigger('click')
 
-    expect(pushMock).toHaveBeenCalledWith('/dashboard')
+    expect(pushMock).toHaveBeenCalledWith({ name: 'dashboard' })
   })
 
   it('redirects unauthenticated users to Google OAuth', async () => {

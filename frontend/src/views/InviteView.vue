@@ -37,7 +37,7 @@ async function accept() {
   try {
     const res = await fetch(`/api/invites/${token}/accept`, { method: 'POST' })
     if (!res.ok) throw new Error('Failed to accept invite')
-    router.push({ name: 'dashboard' })
+    router.push({ name: auth.homeRouteName })
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'An error occurred'
   } finally {
