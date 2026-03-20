@@ -1,9 +1,107 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useTherapistStore } from '@/stores/therapist'
 
 const store = useTherapistStore()
 const activeTab = ref<'interviews' | 'activities' | 'goals' | 'journal'>('interviews')
+const selectedPatientId = ref<number | null>(null)
+
+const overviewCards = computed(() => {
+  const patients = store.patients
+  const totalPatients = patients.length
+  const totalInterviews = patients.reduce((sum, patient) => sum + patient.interviewCount, 0)
+  const totalActiveGoals = patients.reduce((sum, patient) => sum + patient.activeGoalCount, 0)
+  const totalActivities = patients.reduce((sum, patient) => sum + patient.activityCount, 0)
+
+  return [
+    {
+      label: 'Assigned patients',
+      value: totalPatients,
+      detail: 'Active therapist relationships',
+    },
+    {
+      label: 'Interviews',
+      value: totalInterviews,
+      detail: 'Across all assigned patients',
+    },
+    {
+      label: 'Active goals',
+      value: totalActiveGoals,
+      detail: 'In progress right now',
+    },
+    {
+      label: 'Activities',
+      value: totalActivities,
+      detail: 'Tracked across the caseload',
+    },
+  ]
+})
+
+const overviewSummary = computed(() => {
+  const patients = store.patients
+  if (!patients.length) {
+    return 'No patient data yet'
+  }
+
+  const totalInterviews = patients.reduce((sum, patient) => sum + patient.interviewCount, 0)
+  const averageInterviews = totalInterviews / patients.length
+  const latestInterviewDates = patients
+    .map((patient) => patient.lastInterviewDate)
+    .filter((date): date is string => Boolean(date))
+    .sort()
+  const latestInterview = latestInterviewDates.length
+    ? latestInterviewDates[latestInterviewDates.length - 1]
+    : null
+
+  const interviewText =
+    averageInterviews === 1
+      ? '1 interview per patient'
+      : `${averageInterviews.toFixed(1)} interviews per patient`
+  const latestText = latestInterview
+    ? `Most recent interview ${formatDate(latestInterview)}`
+    : 'No interviews logged yet'
+
+  return `${interviewText} · ${latestText}`
+})
+
+const selectedPatientSummary = computed(() => {
+  const patient = store.currentPatient
+  if (!patient) {
+    return []
+  }
+
+  const activeGoals = patient.goals.filter((goal) => goal.status === 'IN_PROGRESS').length
+  const sharedEntries = patient.sharedJournalEntries.length
+  const recentInterview = patient.interviews[0]?.interviewDate ?? null
+
+  return [
+    {
+      label: 'Interviews',
+      value: patient.interviews.length,
+      detail: recentInterview ? `Latest on ${formatDate(recentInterview)}` : 'No interviews yet',
+    },
+    {
+      label: 'Active goals',
+      value: activeGoals,
+      detail: `${patient.goals.length} total goals`,
+    },
+    {
+      label: 'Activities',
+      value: patient.activities.length,
+      detail: `${patient.activities.filter((activity) => activity.active).length} active`,
+    },
+    {
+      label: 'Shared journal',
+      value: sharedEntries,
+      detail: sharedEntries ? 'Visible to the therapist' : 'Nothing shared yet',
+    },
+  ]
+})
+
+const selectedPatientName = computed(() => store.currentPatient?.patientName ?? 'Select a patient')
+const selectedPatientEmail = computed(
+  () => store.currentPatient?.patientEmail ?? 'Choose a patient to review their notes',
+)
 
 onMounted(async () => {
   try {
@@ -14,7 +112,10 @@ onMounted(async () => {
 })
 
 async function selectPatient(patientId: number) {
+  selectedPatientId.value = patientId
   activeTab.value = 'interviews'
+  store.clearPatient()
+
   try {
     await store.fetchPatientDetail(patientId)
   } catch {
@@ -22,14 +123,24 @@ async function selectPatient(patientId: number) {
   }
 }
 
-function backToList() {
+function backToOverview() {
+  selectedPatientId.value = null
+  activeTab.value = 'interviews'
   store.clearPatient()
+}
+
+function isSelectedPatient(patientId: number): boolean {
+  return selectedPatientId.value === patientId
 }
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '-'
   const date = new Date(dateStr)
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function formatMetric(value: number): string {
+  return new Intl.NumberFormat('en-US').format(value)
 }
 
 function moodLabel(mood: number | null): string {
@@ -55,209 +166,279 @@ function statusClass(status: string): string {
   <div class="therapist-view">
     <header class="page-header">
       <div>
-        <h1>Patient Dashboard</h1>
-        <p class="subtitle">View your patients' progress and records</p>
+        <h1>Therapist Dashboard</h1>
+        <p class="subtitle">Aggregate caseload overview with patient-specific drill-down</p>
+      </div>
+      <div class="header-chip">
+        <span class="header-chip__label">Context</span>
+        <span class="header-chip__value">Overview + selected patient</span>
       </div>
     </header>
 
-    <div v-if="store.error" class="error-message">
-      <p>{{ store.error }}</p>
+    <div v-if="store.patientsError" class="error-message">
+      <p>{{ store.patientsError }}</p>
       <button class="btn btn-secondary" @click="store.clearError()">Dismiss</button>
     </div>
 
-    <!-- Patient List -->
-    <div v-if="!store.currentPatient" class="patient-list-section">
-      <div v-if="store.loading" class="loading">
-        <p>Loading patients...</p>
-      </div>
-
-      <div v-else-if="store.patients.length === 0" class="empty-state">
-        <p>No patients assigned to you yet.</p>
-      </div>
-
-      <table v-else class="data-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Interviews</th>
-            <th>Active Goals</th>
-            <th>Activities</th>
-            <th>Last Interview</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="patient in store.patients"
-            :key="patient.id"
-            class="patient-row"
-            @click="selectPatient(patient.id)"
-          >
-            <td class="cell-name">{{ patient.name }}</td>
-            <td class="cell-email">{{ patient.email }}</td>
-            <td>{{ patient.interviewCount }}</td>
-            <td>{{ patient.activeGoalCount }}</td>
-            <td>{{ patient.activityCount }}</td>
-            <td class="cell-date">{{ formatDate(patient.lastInterviewDate) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Patient Detail -->
-    <div v-else class="patient-detail-section">
-      <button class="btn btn-secondary back-btn" @click="backToList">
-        &larr; Back to patients
-      </button>
-
-      <div class="patient-header">
-        <h2>{{ store.currentPatient.patientName }}</h2>
-        <span class="patient-email">{{ store.currentPatient.patientEmail }}</span>
-      </div>
-
-      <div class="tabs">
-        <button
-          :class="['tab', { active: activeTab === 'interviews' }]"
-          @click="activeTab = 'interviews'"
-        >
-          Interviews ({{ store.currentPatient.interviews.length }})
-        </button>
-        <button
-          :class="['tab', { active: activeTab === 'activities' }]"
-          @click="activeTab = 'activities'"
-        >
-          Activities ({{ store.currentPatient.activities.length }})
-        </button>
-        <button :class="['tab', { active: activeTab === 'goals' }]" @click="activeTab = 'goals'">
-          Goals ({{ store.currentPatient.goals.length }})
-        </button>
-        <button
-          :class="['tab', { active: activeTab === 'journal' }]"
-          @click="activeTab = 'journal'"
-        >
-          Shared Journal ({{ store.currentPatient.sharedJournalEntries.length }})
-        </button>
-      </div>
-
-      <!-- Interviews Tab -->
-      <div v-if="activeTab === 'interviews'" class="tab-content">
-        <div v-if="store.currentPatient.interviews.length === 0" class="empty-tab">
-          No interviews recorded.
+    <section class="overview-panel" aria-label="Therapist overview">
+      <div class="panel-header">
+        <div>
+          <p class="section-label">Overview</p>
+          <h2>Assigned patient snapshot</h2>
         </div>
-        <table v-else class="data-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Mood Before</th>
-              <th>Mood After</th>
-              <th>Topics</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="interview in store.currentPatient.interviews" :key="interview.id">
-              <td class="cell-date">{{ formatDate(interview.interviewDate) }}</td>
-              <td>{{ moodLabel(interview.moodBefore) }}</td>
-              <td>{{ moodLabel(interview.moodAfter) }}</td>
-              <td>
-                <span v-for="topic in interview.topics" :key="topic" class="tag">
-                  {{ topic }}
-                </span>
-                <span v-if="!interview.topics.length">-</span>
-              </td>
-              <td class="cell-notes">{{ interview.notes || '-' }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <p class="panel-note">{{ overviewSummary }}</p>
       </div>
 
-      <!-- Activities Tab -->
-      <div v-if="activeTab === 'activities'" class="tab-content">
-        <div v-if="store.currentPatient.activities.length === 0" class="empty-tab">
-          No activities recorded.
+      <div v-if="store.patientsLoading && store.patients.length === 0" class="loading">
+        <p>Loading patient overview...</p>
+      </div>
+
+      <div v-else class="overview-cards">
+        <article v-for="card in overviewCards" :key="card.label" class="overview-card">
+          <span class="card-label">{{ card.label }}</span>
+          <span class="card-value">{{ formatMetric(card.value) }}</span>
+          <span class="card-detail">{{ card.detail }}</span>
+        </article>
+      </div>
+    </section>
+
+    <div class="dashboard-grid">
+      <section class="patient-list-panel">
+        <div class="panel-header">
+          <div>
+            <p class="section-label">Patients</p>
+            <h2>Assigned patients</h2>
+          </div>
+          <p class="panel-note">{{ formatMetric(store.patients.length) }} active assignments</p>
         </div>
+
+        <div v-if="store.patientsLoading && store.patients.length === 0" class="loading">
+          <p>Loading patients...</p>
+        </div>
+
+        <div v-else-if="store.patients.length === 0" class="empty-state">
+          <p>No patients assigned to you yet.</p>
+        </div>
+
         <table v-else class="data-table">
           <thead>
             <tr>
               <th>Name</th>
-              <th>Type</th>
-              <th>Description</th>
-              <th>Status</th>
-              <th>Created</th>
+              <th>Email</th>
+              <th>Interviews</th>
+              <th>Goals</th>
+              <th>Activities</th>
+              <th>Last interview</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="activity in store.currentPatient.activities" :key="activity.id">
-              <td class="cell-name">{{ activity.name }}</td>
-              <td>
-                <span class="tag tag-type">{{ activity.type }}</span>
-              </td>
-              <td class="cell-notes">{{ activity.description || '-' }}</td>
-              <td>
-                <span :class="['status-badge', activity.active ? 'enabled' : 'disabled']">
-                  {{ activity.active ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
-              <td class="cell-date">{{ formatDate(activity.createdAt) }}</td>
+            <tr
+              v-for="patient in store.patients"
+              :key="patient.id"
+              :class="['patient-row', { selected: isSelectedPatient(patient.id) }]"
+              @click="selectPatient(patient.id)"
+            >
+              <td class="cell-name">{{ patient.name }}</td>
+              <td class="cell-email">{{ patient.email }}</td>
+              <td>{{ formatMetric(patient.interviewCount) }}</td>
+              <td>{{ formatMetric(patient.activeGoalCount) }}</td>
+              <td>{{ formatMetric(patient.activityCount) }}</td>
+              <td class="cell-date">{{ formatDate(patient.lastInterviewDate) }}</td>
             </tr>
           </tbody>
         </table>
-      </div>
+      </section>
 
-      <!-- Goals Tab -->
-      <div v-if="activeTab === 'goals'" class="tab-content">
-        <div v-if="store.currentPatient.goals.length === 0" class="empty-tab">
-          No goals recorded.
-        </div>
-        <table v-else class="data-table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Status</th>
-              <th>Target Date</th>
-              <th>Milestones</th>
-              <th>Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="goal in store.currentPatient.goals" :key="goal.id">
-              <td class="cell-name">{{ goal.title }}</td>
-              <td>
-                <span :class="['status-badge', statusClass(goal.status)]">
-                  {{ goal.status.replace('_', ' ') }}
-                </span>
-              </td>
-              <td class="cell-date">{{ formatDate(goal.targetDate) }}</td>
-              <td>{{ goal.completedMilestones }}/{{ goal.totalMilestones }}</td>
-              <td class="cell-date">{{ formatDate(goal.createdAt) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <section class="patient-detail-panel">
+        <template v-if="store.detailLoading">
+          <div class="loading detail-loading">
+            <p>Loading selected patient...</p>
+          </div>
+        </template>
 
-      <!-- Shared Journal Tab -->
-      <div v-if="activeTab === 'journal'" class="tab-content">
-        <div v-if="store.currentPatient.sharedJournalEntries.length === 0" class="empty-tab">
-          No shared journal entries.
-        </div>
-        <div v-else class="journal-cards">
-          <div
-            v-for="entry in store.currentPatient.sharedJournalEntries"
-            :key="entry.id"
-            class="journal-card"
-          >
-            <div class="journal-card-header">
-              <span class="journal-date">{{ formatDate(entry.entryDate) }}</span>
-              <span v-if="entry.mood !== null" class="journal-mood">Mood: {{ entry.mood }}/10</span>
+        <template v-else-if="store.detailError">
+          <div class="detail-error">
+            <p>{{ store.detailError }}</p>
+            <button class="btn btn-secondary btn-sm" @click="store.clearError()">Dismiss</button>
+          </div>
+        </template>
+
+        <template v-else-if="store.currentPatient">
+          <div class="patient-header">
+            <div>
+              <p class="section-label">Selected patient</p>
+              <h2>{{ selectedPatientName }}</h2>
+              <span class="patient-email">{{ selectedPatientEmail }}</span>
             </div>
-            <h3 v-if="entry.title" class="journal-title">{{ entry.title }}</h3>
-            <p v-if="entry.content" class="journal-content">{{ entry.content }}</p>
-            <div v-if="entry.tags.length" class="journal-tags">
-              <span v-for="tag in entry.tags" :key="tag" class="tag">{{ tag }}</span>
+            <button class="btn btn-secondary back-btn" @click="backToOverview">
+              Back to overview
+            </button>
+          </div>
+
+          <div class="patient-scope-banner">
+            Showing patient-specific insights only. Aggregate metrics remain in the overview above.
+          </div>
+
+          <div class="snapshot-cards">
+            <article v-for="card in selectedPatientSummary" :key="card.label" class="snapshot-card">
+              <span class="card-label">{{ card.label }}</span>
+              <span class="card-value">{{ formatMetric(card.value) }}</span>
+              <span class="card-detail">{{ card.detail }}</span>
+            </article>
+          </div>
+
+          <div class="tabs">
+            <button
+              :class="['tab', { active: activeTab === 'interviews' }]"
+              @click="activeTab = 'interviews'"
+            >
+              Interviews ({{ store.currentPatient.interviews.length }})
+            </button>
+            <button
+              :class="['tab', { active: activeTab === 'activities' }]"
+              @click="activeTab = 'activities'"
+            >
+              Activities ({{ store.currentPatient.activities.length }})
+            </button>
+            <button
+              :class="['tab', { active: activeTab === 'goals' }]"
+              @click="activeTab = 'goals'"
+            >
+              Goals ({{ store.currentPatient.goals.length }})
+            </button>
+            <button
+              :class="['tab', { active: activeTab === 'journal' }]"
+              @click="activeTab = 'journal'"
+            >
+              Shared Journal ({{ store.currentPatient.sharedJournalEntries.length }})
+            </button>
+          </div>
+
+          <div v-if="activeTab === 'interviews'" class="tab-content">
+            <div v-if="store.currentPatient.interviews.length === 0" class="empty-tab">
+              No interviews recorded.
+            </div>
+            <table v-else class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Mood Before</th>
+                  <th>Mood After</th>
+                  <th>Topics</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="interview in store.currentPatient.interviews" :key="interview.id">
+                  <td class="cell-date">{{ formatDate(interview.interviewDate) }}</td>
+                  <td>{{ moodLabel(interview.moodBefore) }}</td>
+                  <td>{{ moodLabel(interview.moodAfter) }}</td>
+                  <td>
+                    <span v-for="topic in interview.topics" :key="topic" class="tag">
+                      {{ topic }}
+                    </span>
+                    <span v-if="!interview.topics.length">-</span>
+                  </td>
+                  <td class="cell-notes">{{ interview.notes || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div v-else-if="activeTab === 'activities'" class="tab-content">
+            <div v-if="store.currentPatient.activities.length === 0" class="empty-tab">
+              No activities recorded.
+            </div>
+            <table v-else class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="activity in store.currentPatient.activities" :key="activity.id">
+                  <td class="cell-name">{{ activity.name }}</td>
+                  <td>
+                    <span class="tag tag-type">{{ activity.type }}</span>
+                  </td>
+                  <td class="cell-notes">{{ activity.description || '-' }}</td>
+                  <td>
+                    <span :class="['status-badge', activity.active ? 'enabled' : 'disabled']">
+                      {{ activity.active ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                  <td class="cell-date">{{ formatDate(activity.createdAt) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div v-else-if="activeTab === 'goals'" class="tab-content">
+            <div v-if="store.currentPatient.goals.length === 0" class="empty-tab">
+              No goals recorded.
+            </div>
+            <table v-else class="data-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Status</th>
+                  <th>Target Date</th>
+                  <th>Milestones</th>
+                  <th>Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="goal in store.currentPatient.goals" :key="goal.id">
+                  <td class="cell-name">{{ goal.title }}</td>
+                  <td>
+                    <span :class="['status-badge', statusClass(goal.status)]">
+                      {{ goal.status.replace('_', ' ') }}
+                    </span>
+                  </td>
+                  <td class="cell-date">{{ formatDate(goal.targetDate) }}</td>
+                  <td>{{ goal.completedMilestones }}/{{ goal.totalMilestones }}</td>
+                  <td class="cell-date">{{ formatDate(goal.createdAt) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div v-else-if="activeTab === 'journal'" class="tab-content">
+            <div v-if="store.currentPatient.sharedJournalEntries.length === 0" class="empty-tab">
+              No shared journal entries.
+            </div>
+            <div v-else class="journal-cards">
+              <div
+                v-for="entry in store.currentPatient.sharedJournalEntries"
+                :key="entry.id"
+                class="journal-card"
+              >
+                <div class="journal-card-header">
+                  <span class="journal-date">{{ formatDate(entry.entryDate) }}</span>
+                  <span v-if="entry.mood !== null" class="journal-mood"
+                    >Mood: {{ entry.mood }}/10</span
+                  >
+                </div>
+                <h3 v-if="entry.title" class="journal-title">{{ entry.title }}</h3>
+                <p v-if="entry.content" class="journal-content">{{ entry.content }}</p>
+                <div v-if="entry.tags.length" class="journal-tags">
+                  <span v-for="tag in entry.tags" :key="tag" class="tag">{{ tag }}</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </template>
+
+        <template v-else>
+          <div class="empty-state detail-empty">
+            <p>Select a patient to view their individual insights.</p>
+          </div>
+        </template>
+      </section>
     </div>
   </div>
 </template>
@@ -266,10 +447,14 @@ function statusClass(status: string): string {
 .therapist-view {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: var(--space-8) var(--space-6);
+  padding: var(--space-8) var(--space-6) var(--space-10);
 }
 
 .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-4);
   margin-bottom: var(--space-6);
 }
 
@@ -285,41 +470,142 @@ function statusClass(status: string): string {
   margin-top: var(--space-1);
 }
 
-.error-message {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: var(--color-error);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--border-radius);
-  margin-bottom: var(--space-6);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.loading {
-  text-align: center;
-  padding: var(--space-12);
-  color: var(--color-gray-500);
-}
-
-.empty-state {
-  text-align: center;
-  padding: var(--space-12);
-  color: var(--color-gray-500);
-  background: var(--color-white);
-  border: 1px solid var(--color-gray-200);
-  border-radius: var(--border-radius-lg);
-}
-
-.empty-tab {
-  text-align: center;
-  padding: var(--space-8);
-  color: var(--color-gray-500);
+.header-chip,
+.patient-scope-banner {
+  border-radius: var(--border-radius-full);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary-50);
+  color: var(--color-primary);
   font-size: var(--font-size-sm);
 }
 
-/* Data Table */
+.header-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.header-chip__label,
+.section-label {
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: var(--font-weight-semibold);
+}
+
+.header-chip__value {
+  font-weight: var(--font-weight-medium);
+}
+
+.overview-panel,
+.patient-list-panel,
+.patient-detail-panel {
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.overview-panel {
+  padding: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.patient-list-panel,
+.patient-detail-panel {
+  padding: var(--space-5);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  color: var(--color-gray-900);
+}
+
+.panel-note {
+  margin: 0;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
+  text-align: right;
+}
+
+.overview-cards,
+.snapshot-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.overview-card,
+.snapshot-card {
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-4);
+  background: linear-gradient(180deg, var(--color-white), var(--color-gray-50));
+}
+
+.card-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+}
+
+.card-value {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+}
+
+.card-detail {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.loading,
+.empty-state,
+.empty-tab,
+.detail-error {
+  text-align: center;
+  padding: var(--space-8);
+  color: var(--color-gray-500);
+}
+
+.detail-loading {
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+}
+
+.detail-empty {
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -338,7 +624,6 @@ function statusClass(status: string): string {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   background: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
 }
 
 .data-table td {
@@ -361,6 +646,10 @@ function statusClass(status: string): string {
   background-color: var(--color-primary-50);
 }
 
+.patient-row.selected {
+  background: var(--color-primary-50);
+}
+
 .cell-name {
   font-weight: var(--font-weight-medium);
   color: var(--color-gray-900);
@@ -376,22 +665,18 @@ function statusClass(status: string): string {
 }
 
 .cell-notes {
-  max-width: 200px;
+  max-width: 220px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Patient Detail */
-.back-btn {
-  margin-bottom: var(--space-4);
-}
-
 .patient-header {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
-  margin-bottom: var(--space-6);
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
 }
 
 .patient-header h2 {
@@ -402,15 +687,21 @@ function statusClass(status: string): string {
 }
 
 .patient-email {
+  display: inline-block;
+  margin-top: var(--space-1);
   font-size: var(--font-size-sm);
   color: var(--color-gray-500);
 }
 
-/* Tabs */
+.patient-scope-banner {
+  margin-bottom: var(--space-5);
+}
+
 .tabs {
   display: flex;
   border-bottom: 2px solid var(--color-gray-200);
-  margin-bottom: var(--space-6);
+  margin: var(--space-5) 0;
+  overflow-x: auto;
 }
 
 .tab {
@@ -424,6 +715,7 @@ function statusClass(status: string): string {
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
   transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
 .tab.active {
@@ -435,7 +727,6 @@ function statusClass(status: string): string {
   color: var(--color-gray-700);
 }
 
-/* Tags */
 .tag {
   display: inline-block;
   font-size: var(--font-size-xs);
@@ -452,7 +743,6 @@ function statusClass(status: string): string {
   color: #0369a1;
 }
 
-/* Status Badges */
 .status-badge {
   display: inline-block;
   font-size: var(--font-size-xs);
@@ -492,7 +782,6 @@ function statusClass(status: string): string {
   color: var(--color-gray-500);
 }
 
-/* Journal Cards */
 .journal-cards {
   display: flex;
   flex-direction: column;
@@ -510,6 +799,7 @@ function statusClass(status: string): string {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-2);
   margin-bottom: var(--space-2);
 }
 
@@ -547,7 +837,6 @@ function statusClass(status: string): string {
   gap: var(--space-1);
 }
 
-/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -568,5 +857,43 @@ function statusClass(status: string): string {
 
 .btn-secondary:hover {
   background: var(--color-gray-200);
+}
+
+.btn-sm {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+}
+
+@media (max-width: 1100px) {
+  .overview-cards,
+  .snapshot-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .therapist-view {
+    padding: var(--space-6) var(--space-4) var(--space-8);
+  }
+
+  .page-header,
+  .panel-header,
+  .patient-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .panel-note {
+    text-align: left;
+  }
+
+  .overview-cards,
+  .snapshot-cards {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
