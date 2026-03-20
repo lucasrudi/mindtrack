@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import NotificationBell from '@/components/NotificationBell.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -74,6 +75,7 @@ function switchView(view: 'patient' | 'therapist') {
         <div v-else-if="auth.isAuthenticated" class="view-badge">
           {{ auth.activeViewLabel }} view
         </div>
+        <NotificationBell v-if="auth.isAuthenticated" />
         <router-link to="/profile" class="nav-link nav-link--subtle">
           {{ auth.user?.name || 'Profile' }}
         </router-link>
