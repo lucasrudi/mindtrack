@@ -1,40 +1,76 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
 const router = useRouter()
 
-function handleLogout() {
-  auth.logout()
+const patientLinks = [
+  { label: 'Dashboard', to: { name: 'dashboard' } },
+  { label: 'Journal', to: { name: 'journal' } },
+  { label: 'Activities', to: { name: 'activities' } },
+  { label: 'Goals', to: { name: 'goals' } },
+  { label: 'Interviews', to: { name: 'interviews' } },
+  { label: 'AI Chat', to: { name: 'chat' } },
+]
+
+const therapistLinks = [{ label: 'Patients', to: { name: 'therapist' } }]
+
+const navLinks = computed(() => (auth.activeView === 'therapist' ? therapistLinks : patientLinks))
+
+const homeRoute = computed(() => ({ name: auth.homeRouteName }))
+
+const showViewToggle = computed(() => auth.canSwitchViews)
+
+async function handleLogout() {
+  await auth.logout()
   router.push('/')
+}
+
+function switchView(view: 'patient' | 'therapist') {
+  auth.setActiveView(view)
+  router.replace(homeRoute.value)
 }
 </script>
 
 <template>
   <nav class="navbar">
     <div class="navbar-inner container">
-      <router-link to="/dashboard" class="navbar-brand">
+      <router-link :to="homeRoute" class="navbar-brand">
         <span class="navbar-logo">M</span>
         <span class="navbar-title">MindTrack</span>
       </router-link>
 
       <div class="navbar-links">
-        <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
-        <router-link to="/journal" class="nav-link">Journal</router-link>
-        <router-link to="/activities" class="nav-link">Activities</router-link>
-        <router-link to="/goals" class="nav-link">Goals</router-link>
-        <router-link to="/interviews" class="nav-link">Interviews</router-link>
-        <router-link to="/chat" class="nav-link">AI Chat</router-link>
+        <router-link v-for="link in navLinks" :key="link.label" :to="link.to" class="nav-link">
+          {{ link.label }}
+        </router-link>
         <router-link v-if="auth.isAdmin" to="/admin" class="nav-link nav-link--admin">
           Admin
-        </router-link>
-        <router-link v-if="auth.isTherapist" to="/therapist" class="nav-link nav-link--therapist">
-          Patients
         </router-link>
       </div>
 
       <div class="navbar-actions">
+        <div v-if="showViewToggle" class="view-toggle" role="group" aria-label="Active view">
+          <button
+            type="button"
+            :class="['view-toggle-btn', { active: auth.activeView === 'patient' }]"
+            @click="switchView('patient')"
+          >
+            Patient
+          </button>
+          <button
+            type="button"
+            :class="['view-toggle-btn', { active: auth.activeView === 'therapist' }]"
+            @click="switchView('therapist')"
+          >
+            Therapist
+          </button>
+        </div>
+        <div v-else-if="auth.isAuthenticated" class="view-badge">
+          {{ auth.activeViewLabel }} view
+        </div>
         <router-link to="/profile" class="nav-link nav-link--subtle">
           {{ auth.user?.name || 'Profile' }}
         </router-link>
@@ -116,6 +152,40 @@ function handleLogout() {
   display: flex;
   align-items: center;
   gap: var(--space-4);
+}
+
+.view-toggle {
+  display: inline-flex;
+  padding: 2px;
+  background-color: var(--color-gray-100);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 999px;
+}
+
+.view-toggle-btn {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-500);
+  border-radius: 999px;
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.view-toggle-btn.active {
+  color: var(--color-gray-900);
+  background-color: var(--color-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.view-badge {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-600);
+  background-color: var(--color-gray-100);
+  border-radius: 999px;
 }
 
 .nav-link--subtle {

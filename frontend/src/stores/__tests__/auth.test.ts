@@ -2,6 +2,20 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '../auth'
 
+const localStorageMock = {
+  getItem: vi.fn<(key: string) => string | null>(() => null),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  length: 0,
+  key: vi.fn(() => null),
+}
+
+Object.defineProperty(globalThis, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+})
+
 vi.mock('@/services/api', () => ({
   default: {
     get: vi.fn(),
@@ -13,6 +27,7 @@ describe('useAuthStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     setActivePinia(createPinia())
+    localStorageMock.getItem.mockReturnValue(null)
   })
 
   describe('isAuthenticated', () => {
@@ -160,6 +175,76 @@ describe('useAuthStore', () => {
       }
       store.setUser(user)
       expect(store.user).toEqual(user)
+    })
+
+    it('defaults therapists without patient access to therapist view', () => {
+      const store = useAuthStore()
+      store.setUser({
+        id: '1',
+        email: 'therapist@test.com',
+        name: 'Therapist',
+        role: 'USER',
+        isPatient: false,
+        isTherapist: true,
+      })
+
+      expect(store.activeView).toBe('therapist')
+      expect(store.homeRouteName).toBe('therapist')
+    })
+
+    it('keeps a persisted therapist preference for dual-role users', () => {
+      localStorageMock.getItem.mockReturnValue('therapist')
+
+      const store = useAuthStore()
+      store.setUser({
+        id: '1',
+        email: 'dual@test.com',
+        name: 'Dual',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: true,
+      })
+
+      expect(store.activeView).toBe('therapist')
+      expect(store.homeRouteName).toBe('therapist')
+    })
+  })
+
+  describe('active view', () => {
+    it('switches and persists the current view for authenticated users', () => {
+      const store = useAuthStore()
+      store.setUser({
+        id: '1',
+        email: 'dual@test.com',
+        name: 'Dual',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: true,
+      })
+
+      store.setActiveView('therapist')
+
+      expect(store.activeView).toBe('therapist')
+      expect(store.homeRouteName).toBe('therapist')
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('mindtrack.activeView', 'therapist')
+    })
+
+    it('resets to patient view when logging out', async () => {
+      const store = useAuthStore()
+      store.setUser({
+        id: '1',
+        email: 'dual@test.com',
+        name: 'Dual',
+        role: 'USER',
+        isPatient: true,
+        isTherapist: true,
+      })
+      store.setActiveView('therapist')
+
+      await store.logout()
+
+      expect(store.activeView).toBe('patient')
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('mindtrack.activeView')
     })
   })
 
