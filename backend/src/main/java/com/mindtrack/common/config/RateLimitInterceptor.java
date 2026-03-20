@@ -10,14 +10,14 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
  * Fixed-window per-user rate limiter.
- * General endpoints: 60 requests per minute.
- * AI endpoints (/api/ai/**): 10 requests per minute.
+ * General endpoints: 120 requests per minute.
+ * AI endpoints (/api/ai/**): 20 requests per minute.
  */
 public class RateLimitInterceptor implements HandlerInterceptor {
 
     private static final int WINDOW_MS = 60_000;
-    private static final int GENERAL_LIMIT = 60;
-    private static final int AI_LIMIT = 10;
+    private static final int GENERAL_LIMIT = 120;
+    private static final int AI_LIMIT = 20;
 
     /** [0] = window start timestamp, [1] = count in current window. */
     private final ConcurrentHashMap<String, long[]> generalCounters = new ConcurrentHashMap<>();
