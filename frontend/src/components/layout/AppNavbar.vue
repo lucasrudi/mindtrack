@@ -32,6 +32,13 @@ function handleLogout() {
         <router-link v-if="auth.isTherapist" to="/therapist" class="nav-link nav-link--therapist">
           Patients
         </router-link>
+        <router-link
+          v-if="auth.isTherapist"
+          to="/therapist/calendar"
+          class="nav-link nav-link--therapist"
+        >
+          Calendar
+        </router-link>
       </div>
 
       <div class="navbar-actions">

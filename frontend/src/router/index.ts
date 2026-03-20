@@ -98,6 +98,14 @@ const router = createRouter({
     protectedRoute('/therapist', 'therapist', () => import('@/views/TherapistView.vue'), {
       requiresTherapist: true,
     }),
+    protectedRoute(
+      '/therapist/calendar',
+      'therapist-calendar',
+      () => import('@/views/TherapistCalendarView.vue'),
+      {
+        requiresTherapist: true,
+      },
+    ),
     protectedRoute('/onboarding', 'onboarding', () => import('@/views/OnboardingView.vue')),
     publicRoute('/invite/:token', 'invite', () => import('@/views/InviteView.vue')),
   ],

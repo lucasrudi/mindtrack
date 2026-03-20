@@ -43,6 +43,7 @@ vi.mock('@/views/ChatView.vue', () => ({ default: stub }))
 vi.mock('@/views/ProfileView.vue', () => ({ default: stub }))
 vi.mock('@/views/AdminView.vue', () => ({ default: stub }))
 vi.mock('@/views/TherapistView.vue', () => ({ default: stub }))
+vi.mock('@/views/TherapistCalendarView.vue', () => ({ default: stub }))
 vi.mock('@/views/OnboardingView.vue', () => ({ default: stub }))
 vi.mock('@/views/InviteView.vue', () => ({ default: stub }))
 
@@ -219,6 +220,12 @@ describe('Router', () => {
     expect(router.currentRoute.value.name).toBe('dashboard')
   })
 
+  it('has therapist calendar route', () => {
+    const route = router.getRoutes().find((r) => r.path === '/therapist/calendar')
+    expect(route).toBeDefined()
+    expect(route?.name).toBe('therapist-calendar')
+  })
+
   it('redirects authenticated users with incomplete onboarding to onboarding', async () => {
     const auth = useAuthStore()
     const profileStore = useProfileStore()
@@ -264,6 +271,7 @@ describe('Router', () => {
       '/profile',
       '/admin',
       '/therapist',
+      '/therapist/calendar',
     ]
     for (const path of protectedPaths) {
       const route = router.getRoutes().find((r) => r.path === path)
