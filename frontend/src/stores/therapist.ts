@@ -10,6 +10,7 @@ export interface PatientSummary {
   activeGoalCount: number
   activityCount: number
   lastInterviewDate: string | null
+  status?: string | null
 }
 
 export interface PatientDetail {
@@ -56,6 +57,7 @@ export interface PatientDetail {
 
 export const useTherapistStore = defineStore('therapist', () => {
   const patients = ref<PatientSummary[]>([])
+  const pendingPatients = ref<PatientSummary[]>([])
   const currentPatient = ref<PatientDetail | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
@@ -68,6 +70,20 @@ export const useTherapistStore = defineStore('therapist', () => {
       patients.value = response.data
     } catch (err) {
       error.value = 'Failed to load patients'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function fetchPendingPatients() {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.get('/therapist/patients/pending')
+      pendingPatients.value = response.data
+    } catch (err) {
+      error.value = 'Failed to load pending requests'
       throw err
     } finally {
       loading.value = false
@@ -89,6 +105,17 @@ export const useTherapistStore = defineStore('therapist', () => {
     }
   }
 
+  async function requestPatient(patientEmail: string) {
+    error.value = null
+    try {
+      const response = await api.post('/invites/request', { patientEmail })
+      return response.data as { token: string; url: string }
+    } catch (err) {
+      error.value = 'Failed to send patient request'
+      throw err
+    }
+  }
+
   function clearPatient() {
     currentPatient.value = null
   }
@@ -99,11 +126,14 @@ export const useTherapistStore = defineStore('therapist', () => {
 
   return {
     patients,
+    pendingPatients,
     currentPatient,
     loading,
     error,
     fetchPatients,
+    fetchPendingPatients,
     fetchPatientDetail,
+    requestPatient,
     clearPatient,
     clearError,
   }

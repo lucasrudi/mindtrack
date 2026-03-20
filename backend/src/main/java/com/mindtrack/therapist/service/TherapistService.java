@@ -102,7 +102,8 @@ public class TherapistService {
                             interviews.size(),
                             activeGoals.size(),
                             activities.size(),
-                            interviews.isEmpty() ? null : interviews.get(0).getCreatedAt());
+                            interviews.isEmpty() ? null : interviews.get(0).getCreatedAt(),
+                            TherapistPatientStatus.ACTIVE.name());
                 })
                 .toList();
     }
@@ -190,7 +191,8 @@ public class TherapistService {
                     User patient = userRepository.findById(rel.getPatientId())
                             .orElseThrow(() -> new IllegalArgumentException(
                                     PATIENT_NOT_FOUND_PREFIX + rel.getPatientId()));
-                    return therapistMapper.toPatientSummary(patient, 0, 0, 0, null);
+                    return therapistMapper.toPatientSummary(patient, 0, 0, 0, null,
+                            TherapistPatientStatus.PENDING.name());
                 })
                 .toList();
     }

@@ -36,16 +36,21 @@ describe('InviteView', () => {
   it('renders invite preview details after loading', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ initiatorName: 'Dr Smith', initiatorRole: 'THERAPIST' }),
+      json: async () => ({
+        initiatorName: 'Dr Smith',
+        initiatorRole: 'THERAPIST',
+        status: 'PENDING',
+      }),
     })
 
     const wrapper = mount(InviteView)
     await flushPromises()
 
     expect(fetchMock).toHaveBeenCalledWith('/api/invites/invite-token')
-    expect(wrapper.text()).toContain("You've been invited")
+    expect(wrapper.text()).toContain('Therapist request received')
     expect(wrapper.text()).toContain('Dr Smith')
     expect(wrapper.text()).toContain('(Therapist)')
+    expect(wrapper.text()).toContain('PENDING')
   })
 
   it('shows preview fetch error when invite is invalid', async () => {
@@ -60,7 +65,7 @@ describe('InviteView', () => {
   it('redirects unauthenticated users to login when accepting', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ initiatorName: 'Alex', initiatorRole: 'PATIENT' }),
+      json: async () => ({ initiatorName: 'Alex', initiatorRole: 'PATIENT', status: null }),
     })
 
     const wrapper = mount(InviteView)
@@ -88,7 +93,11 @@ describe('InviteView', () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ initiatorName: 'Dr Smith', initiatorRole: 'THERAPIST' }),
+        json: async () => ({
+          initiatorName: 'Dr Smith',
+          initiatorRole: 'THERAPIST',
+          status: 'PENDING',
+        }),
       })
       .mockResolvedValueOnce({ ok: true })
 
@@ -118,7 +127,11 @@ describe('InviteView', () => {
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ initiatorName: 'Dr Smith', initiatorRole: 'THERAPIST' }),
+        json: async () => ({
+          initiatorName: 'Dr Smith',
+          initiatorRole: 'THERAPIST',
+          status: 'PENDING',
+        }),
       })
       .mockResolvedValueOnce({ ok: false })
 
@@ -130,5 +143,39 @@ describe('InviteView', () => {
 
     expect(wrapper.find('.error-msg').text()).toContain('Failed to accept invite')
     expect(mockPush).not.toHaveBeenCalledWith({ name: 'dashboard' })
+  })
+
+  it('rejects request and redirects authenticated users to dashboard', async () => {
+    const authStore = useAuthStore()
+    authStore.setUser({
+      id: '1',
+      email: 'test@example.com',
+      name: 'Test User',
+      role: 'PATIENT',
+      isPatient: true,
+      isTherapist: false,
+    })
+
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          initiatorName: 'Dr Smith',
+          initiatorRole: 'THERAPIST',
+          status: 'PENDING',
+        }),
+      })
+      .mockResolvedValueOnce({ ok: true })
+
+    const wrapper = mount(InviteView)
+    await flushPromises()
+
+    await wrapper.find('.reject-btn').trigger('click')
+    await flushPromises()
+
+    expect(fetchMock).toHaveBeenLastCalledWith('/api/invites/invite-token/reject', {
+      method: 'POST',
+    })
+    expect(mockPush).toHaveBeenCalledWith({ name: 'dashboard' })
   })
 })

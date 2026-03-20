@@ -27,6 +27,9 @@ public class InviteToken {
     @Column(name = "initiator_id", nullable = false)
     private Long initiatorId;
 
+    @Column(name = "recipient_id")
+    private Long recipientId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "initiator_role", nullable = false)
     private InitiatorRole initiatorRole;
@@ -66,6 +69,14 @@ public class InviteToken {
 
     public void setInitiatorId(Long initiatorId) {
         this.initiatorId = initiatorId;
+    }
+
+    public Long getRecipientId() {
+        return recipientId;
+    }
+
+    public void setRecipientId(Long recipientId) {
+        this.recipientId = recipientId;
     }
 
     public InitiatorRole getInitiatorRole() {

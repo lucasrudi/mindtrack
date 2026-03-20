@@ -3,5 +3,5 @@ package com.mindtrack.therapist.dto;
 /**
  * Response DTO for invite token preview.
  */
-public record InvitePreviewResponse(String initiatorName, String initiatorRole) {
+public record InvitePreviewResponse(String initiatorName, String initiatorRole, String status) {
 }

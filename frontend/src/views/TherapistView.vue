@@ -4,14 +4,40 @@ import { useTherapistStore } from '@/stores/therapist'
 
 const store = useTherapistStore()
 const activeTab = ref<'interviews' | 'activities' | 'goals' | 'journal'>('interviews')
+const requestEmail = ref('')
+const requestLink = ref<string | null>(null)
+const requestMessage = ref<string | null>(null)
+const requesting = ref(false)
 
 onMounted(async () => {
   try {
     await store.fetchPatients()
+    await store.fetchPendingPatients()
   } catch {
     // Error handled by store
   }
 })
+
+async function sendPatientRequest() {
+  if (!requestEmail.value.trim()) {
+    requestMessage.value = 'Enter a patient email address.'
+    return
+  }
+  requesting.value = true
+  requestMessage.value = null
+  requestLink.value = null
+  try {
+    const response = await store.requestPatient(requestEmail.value.trim())
+    requestLink.value = response.url
+    requestMessage.value = 'Request sent. Share the link with your patient.'
+    requestEmail.value = ''
+    await store.fetchPendingPatients()
+  } catch {
+    requestMessage.value = 'Could not send the request.'
+  } finally {
+    requesting.value = false
+  }
+}
 
 async function selectPatient(patientId: number) {
   activeTab.value = 'interviews'
@@ -39,6 +65,10 @@ function moodLabel(mood: number | null): string {
 
 function statusClass(status: string): string {
   switch (status) {
+    case 'ACTIVE':
+      return 'status-active'
+    case 'PENDING':
+      return 'status-pending'
     case 'COMPLETED':
       return 'status-completed'
     case 'IN_PROGRESS':
@@ -65,21 +95,78 @@ function statusClass(status: string): string {
       <button class="btn btn-secondary" @click="store.clearError()">Dismiss</button>
     </div>
 
-    <!-- Patient List -->
-    <div v-if="!store.currentPatient" class="patient-list-section">
-      <div v-if="store.loading" class="loading">
-        <p>Loading patients...</p>
+    <!-- Request Composer -->
+    <section v-if="!store.currentPatient" class="request-panel">
+      <div class="request-panel-copy">
+        <h2>Request a patient</h2>
+        <p>Send a therapist request to a specific user by email.</p>
       </div>
-
-      <div v-else-if="store.patients.length === 0" class="empty-state">
-        <p>No patients assigned to you yet.</p>
+      <div class="request-form">
+        <input
+          v-model="requestEmail"
+          type="email"
+          class="form-input"
+          placeholder="patient@example.com"
+        />
+        <button class="btn btn-primary" :disabled="requesting" @click="sendPatientRequest">
+          {{ requesting ? 'Sending...' : 'Send request' }}
+        </button>
       </div>
+      <p v-if="requestMessage" class="request-message">{{ requestMessage }}</p>
+      <a v-if="requestLink" class="request-link" :href="requestLink" target="_blank">
+        Open request link
+      </a>
+    </section>
 
+    <!-- Pending Requests -->
+    <section v-if="!store.currentPatient" class="patient-list-section">
+      <div class="section-heading">
+        <h2>Pending requests</h2>
+        <span class="section-count">{{ store.pendingPatients.length }}</span>
+      </div>
+      <div v-if="store.pendingPatients.length === 0" class="empty-state">
+        <p>No pending requests right now.</p>
+      </div>
       <table v-else class="data-table">
         <thead>
           <tr>
             <th>Name</th>
             <th>Email</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="patient in store.pendingPatients" :key="patient.id">
+            <td class="cell-name">{{ patient.name }}</td>
+            <td class="cell-email">{{ patient.email }}</td>
+            <td>
+              <span :class="['status-badge', statusClass(patient.status || 'PENDING')]">
+                {{ patient.status || 'PENDING' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Active Patient List -->
+    <section v-if="!store.currentPatient" class="patient-list-section">
+      <div class="section-heading">
+        <h2>Active patients</h2>
+        <span class="section-count">{{ store.patients.length }}</span>
+      </div>
+      <div v-if="store.loading" class="loading">
+        <p>Loading patients...</p>
+      </div>
+      <div v-else-if="store.patients.length === 0" class="empty-state">
+        <p>No active patients assigned to you yet.</p>
+      </div>
+      <table v-else class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
             <th>Interviews</th>
             <th>Active Goals</th>
             <th>Activities</th>
@@ -95,6 +182,11 @@ function statusClass(status: string): string {
           >
             <td class="cell-name">{{ patient.name }}</td>
             <td class="cell-email">{{ patient.email }}</td>
+            <td>
+              <span :class="['status-badge', statusClass(patient.status || 'ACTIVE')]">
+                {{ patient.status || 'ACTIVE' }}
+              </span>
+            </td>
             <td>{{ patient.interviewCount }}</td>
             <td>{{ patient.activeGoalCount }}</td>
             <td>{{ patient.activityCount }}</td>
@@ -102,7 +194,7 @@ function statusClass(status: string): string {
           </tr>
         </tbody>
       </table>
-    </div>
+    </section>
 
     <!-- Patient Detail -->
     <div v-else class="patient-detail-section">
@@ -319,6 +411,69 @@ function statusClass(status: string): string {
   font-size: var(--font-size-sm);
 }
 
+.request-panel {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  background: linear-gradient(135deg, var(--color-white), var(--color-gray-50));
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.request-panel-copy h2,
+.section-heading h2 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+  margin: 0 0 var(--space-1);
+}
+
+.request-panel-copy p {
+  margin: 0;
+  color: var(--color-gray-500);
+}
+
+.request-form {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.request-message {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-gray-600);
+}
+
+.request-link {
+  grid-column: 1 / -1;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.section-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  padding: 0 var(--space-2);
+  border-radius: var(--border-radius-full);
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
 /* Data Table */
 .data-table {
   width: 100%;
@@ -475,6 +630,16 @@ function statusClass(status: string): string {
 .status-badge.status-completed {
   background: #f0fdf4;
   color: var(--color-success);
+}
+
+.status-badge.status-active {
+  background: #ecfeff;
+  color: #0f766e;
+}
+
+.status-badge.status-pending {
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .status-badge.status-in-progress {
