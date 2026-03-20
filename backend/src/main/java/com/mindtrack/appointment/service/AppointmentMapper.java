@@ -12,10 +12,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppointmentMapper {
 
-    public AppointmentResponse toResponse(Appointment appointment, User patient) {
+    public AppointmentResponse toResponse(Appointment appointment, User therapist, User patient) {
         AppointmentResponse response = new AppointmentResponse();
         response.setId(appointment.getId());
         response.setTherapistId(appointment.getTherapistId());
+        response.setTherapistName(therapist.getName());
+        response.setTherapistEmail(therapist.getEmail());
         response.setPatientId(appointment.getPatientId());
         response.setPatientName(patient.getName());
         response.setPatientEmail(patient.getEmail());

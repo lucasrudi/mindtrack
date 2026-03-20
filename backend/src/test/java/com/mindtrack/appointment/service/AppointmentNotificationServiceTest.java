@@ -21,6 +21,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -96,6 +97,24 @@ class AppointmentNotificationServiceTest {
                 org.mockito.ArgumentMatchers.contains("Weekly check-in"));
         verify(telegramService, never()).sendMessage(org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
+    void shouldNotifyBothParticipantsWhenAppointmentIsCancelled() {
+        when(userProfileRepository.findByUserId(3L)).thenReturn(Optional.of(createProfile(
+                3L, null, "999", null)));
+        when(userProfileRepository.findByUserId(10L)).thenReturn(Optional.of(createProfile(
+                10L, null, null, null)));
+
+        appointmentNotificationService.notifyParticipantsAboutCancellation(
+                createAppointment(),
+                createUser(3L, "Dr. Lane", "therapist@test.com"),
+                createUser(10L, "Patient One", "patient@test.com"),
+                createUser(10L, "Patient One", "patient@test.com"));
+
+        verify(telegramService).sendMessage(org.mockito.ArgumentMatchers.eq("999"),
+                org.mockito.ArgumentMatchers.contains("Appointment cancelled by Patient One"));
+        verify(mailSender, times(2)).send(org.mockito.ArgumentMatchers.any(SimpleMailMessage.class));
     }
 
     private Appointment createAppointment() {

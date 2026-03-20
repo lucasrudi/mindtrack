@@ -147,6 +147,14 @@ async function submitBooking() {
     // Store-level error handles the failure state.
   }
 }
+
+async function cancelAppointment(appointmentId: number) {
+  try {
+    await appointmentStore.cancelAppointmentForTherapist(appointmentId)
+  } catch {
+    // Store-level error handles the failure state.
+  }
+}
 </script>
 
 <template>
@@ -300,6 +308,18 @@ async function submitBooking() {
                   </div>
                   <h4>{{ appointment.patientName }}</h4>
                   <p class="appointment-reason">{{ appointment.reason || 'No reason supplied' }}</p>
+                  <button
+                    v-if="appointment.status === 'SCHEDULED'"
+                    class="btn btn-secondary btn-inline"
+                    :disabled="appointmentStore.cancelling === appointment.id"
+                    @click="cancelAppointment(appointment.id)"
+                  >
+                    {{
+                      appointmentStore.cancelling === appointment.id
+                        ? 'Cancelling...'
+                        : 'Cancel appointment'
+                    }}
+                  </button>
                 </div>
               </article>
             </div>
@@ -328,6 +348,18 @@ async function submitBooking() {
                   </div>
                   <h4>{{ appointment.patientName }}</h4>
                   <p class="appointment-reason">{{ appointment.reason || 'No reason supplied' }}</p>
+                  <button
+                    v-if="appointment.status === 'SCHEDULED'"
+                    class="btn btn-secondary btn-inline"
+                    :disabled="appointmentStore.cancelling === appointment.id"
+                    @click="cancelAppointment(appointment.id)"
+                  >
+                    {{
+                      appointmentStore.cancelling === appointment.id
+                        ? 'Cancelling...'
+                        : 'Cancel appointment'
+                    }}
+                  </button>
                 </div>
               </article>
             </div>
@@ -533,6 +565,11 @@ async function submitBooking() {
 
 .btn-full {
   width: 100%;
+}
+
+.btn-inline {
+  justify-self: start;
+  margin-top: var(--space-2);
 }
 
 .agenda-columns {

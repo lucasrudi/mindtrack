@@ -4,12 +4,14 @@ import com.mindtrack.appointment.model.AppointmentStatus;
 import java.time.LocalDateTime;
 
 /**
- * Response payload for therapist appointments.
+ * Response payload for appointment views.
  */
 public class AppointmentResponse {
 
     private Long id;
     private Long therapistId;
+    private String therapistName;
+    private String therapistEmail;
     private Long patientId;
     private String patientName;
     private String patientEmail;
@@ -39,6 +41,22 @@ public class AppointmentResponse {
 
     public void setTherapistId(Long therapistId) {
         this.therapistId = therapistId;
+    }
+
+    public String getTherapistName() {
+        return therapistName;
+    }
+
+    public void setTherapistName(String therapistName) {
+        this.therapistName = therapistName;
+    }
+
+    public String getTherapistEmail() {
+        return therapistEmail;
+    }
+
+    public void setTherapistEmail(String therapistEmail) {
+        this.therapistEmail = therapistEmail;
     }
 
     public Long getPatientId() {

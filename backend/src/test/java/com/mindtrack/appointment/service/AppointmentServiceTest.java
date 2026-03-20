@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,6 +59,7 @@ class AppointmentServiceTest {
 
         when(appointmentRepository.findByTherapistIdOrderByStartAtAsc(3L))
                 .thenReturn(List.of(first, second));
+        when(userRepository.findById(3L)).thenReturn(Optional.of(createUser(3L, "Therapist A")));
         when(userRepository.findById(10L)).thenReturn(Optional.of(createUser(10L, "Patient A")));
         when(userRepository.findById(11L)).thenReturn(Optional.of(createUser(11L, "Patient B")));
 
@@ -65,6 +67,7 @@ class AppointmentServiceTest {
 
         assertEquals(2, result.size());
         assertEquals("Patient A", result.get(0).getPatientName());
+        assertEquals("Therapist A", result.get(0).getTherapistName());
         assertEquals(50L, result.get(0).getDurationMinutes());
     }
 
@@ -139,6 +142,37 @@ class AppointmentServiceTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> appointmentService.bookAppointment(3L, 10L, request));
+    }
+
+    @Test
+    void shouldCancelAppointmentForTherapist() {
+        Appointment appointment = createAppointment(5L, 3L, 10L,
+                LocalDateTime.of(2025, 1, 20, 10, 0),
+                LocalDateTime.of(2025, 1, 20, 10, 50));
+        when(appointmentRepository.findById(5L)).thenReturn(Optional.of(appointment));
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userRepository.findById(3L)).thenReturn(Optional.of(createUser(3L, "Therapist A")));
+        when(userRepository.findById(10L)).thenReturn(Optional.of(createUser(10L, "Patient A")));
+
+        AppointmentResponse result = appointmentService.cancelAppointmentAsTherapist(3L, 5L);
+
+        assertEquals(AppointmentStatus.CANCELLED, result.getStatus());
+        verify(appointmentNotificationService).notifyParticipantsAboutCancellation(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldRejectDuplicateCancellation() {
+        Appointment appointment = createAppointment(5L, 3L, 10L,
+                LocalDateTime.of(2025, 1, 20, 10, 0),
+                LocalDateTime.of(2025, 1, 20, 10, 50));
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+        when(appointmentRepository.findById(5L)).thenReturn(Optional.of(appointment));
+        when(userRepository.findById(3L)).thenReturn(Optional.of(createUser(3L, "Therapist A")));
+
+        ResponseStatusException error = assertThrows(ResponseStatusException.class,
+                () -> appointmentService.cancelAppointmentAsTherapist(3L, 5L));
+
+        assertEquals(HttpStatus.CONFLICT, error.getStatusCode());
     }
 
     private Appointment createAppointment(Long id, Long therapistId, Long patientId,

@@ -50,13 +50,14 @@ const appointments = [
 
 const mockGet = vi.fn()
 const mockPost = vi.fn()
+const mockPatch = vi.fn()
 
 vi.mock('@/services/api', () => ({
   default: {
     get: (...args: unknown[]) => mockGet(...args),
     post: (...args: unknown[]) => mockPost(...args),
     put: vi.fn(),
-    patch: vi.fn(),
+    patch: (...args: unknown[]) => mockPatch(...args),
     delete: vi.fn(),
   },
 }))
@@ -66,6 +67,7 @@ describe('TherapistCalendarView', () => {
     setActivePinia(createPinia())
     mockGet.mockReset()
     mockPost.mockReset()
+    mockPatch.mockReset()
   })
 
   it('renders the appointment agenda', async () => {
@@ -113,5 +115,28 @@ describe('TherapistCalendarView', () => {
       notes: 'Bring worksheets',
     })
     expect(wrapper.text()).toContain('Appointment booked')
+  })
+
+  it('cancels a scheduled appointment', async () => {
+    mockGet.mockResolvedValueOnce({ data: patients })
+    mockGet.mockResolvedValueOnce({ data: appointments })
+    mockPatch.mockResolvedValueOnce({
+      data: {
+        ...appointments[0],
+        status: 'CANCELLED',
+      },
+    })
+
+    const wrapper = mount(TherapistCalendarView)
+    await flushPromises()
+
+    const cancelButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Cancel appointment'))
+    await cancelButton!.trigger('click')
+    await flushPromises()
+
+    expect(mockPatch).toHaveBeenCalledWith('/therapist/appointments/1/cancel')
+    expect(wrapper.text()).toContain('Appointment cancelled')
   })
 })

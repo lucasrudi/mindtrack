@@ -55,6 +55,11 @@ const router = createRouter({
     publicRoute('/', 'landing', () => import('@/views/LandingView.vue')),
     publicRoute('/login', 'login', () => import('@/views/LoginView.vue')),
     protectedRoute('/dashboard', 'dashboard', () => import('@/views/DashboardView.vue')),
+    protectedRoute(
+      '/appointments',
+      'appointments',
+      () => import('@/views/PatientAppointmentsView.vue'),
+    ),
     protectedRoute('/interviews', 'interviews', () => import('@/views/InterviewsView.vue')),
     protectedRoute(
       '/interviews/new',

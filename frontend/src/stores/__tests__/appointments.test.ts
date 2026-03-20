@@ -7,6 +7,8 @@ const mockAppointments: AppointmentSummary[] = [
   {
     id: 1,
     therapistId: 3,
+    therapistName: 'Dr. Lane',
+    therapistEmail: 'therapist@test.com',
     patientId: 10,
     patientName: 'Patient One',
     patientEmail: 'patient1@test.com',
@@ -35,6 +37,7 @@ describe('useAppointmentStore', () => {
   let api: {
     get: ReturnType<typeof vi.fn>
     post: ReturnType<typeof vi.fn>
+    patch: ReturnType<typeof vi.fn>
   }
 
   beforeEach(async () => {
@@ -80,5 +83,22 @@ describe('useAppointmentStore', () => {
     })
     expect(store.appointments[0].id).toBe(2)
     expect(store.notice).toBe('Appointment booked')
+  })
+
+  it('cancels an appointment for the patient', async () => {
+    api.patch.mockResolvedValueOnce({
+      data: {
+        ...mockAppointments[0],
+        status: 'CANCELLED',
+      },
+    })
+    const store = useAppointmentStore()
+    store.appointments = mockAppointments
+
+    await store.cancelAppointmentForPatient(1)
+
+    expect(api.patch).toHaveBeenCalledWith('/patient/appointments/1/cancel')
+    expect(store.appointments[0].status).toBe('CANCELLED')
+    expect(store.notice).toBe('Appointment cancelled')
   })
 })

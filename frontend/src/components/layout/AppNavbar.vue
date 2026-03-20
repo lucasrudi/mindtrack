@@ -21,6 +21,7 @@ function handleLogout() {
 
       <div class="navbar-links">
         <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
+        <router-link to="/appointments" class="nav-link">Appointments</router-link>
         <router-link to="/journal" class="nav-link">Journal</router-link>
         <router-link to="/activities" class="nav-link">Activities</router-link>
         <router-link to="/goals" class="nav-link">Goals</router-link>

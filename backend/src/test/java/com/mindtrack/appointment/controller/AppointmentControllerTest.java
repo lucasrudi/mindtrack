@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -83,5 +84,18 @@ class AppointmentControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(5))
                 .andExpect(jsonPath("$.status").value("SCHEDULED"));
+    }
+
+    @Test
+    void shouldCancelAppointment() throws Exception {
+        AppointmentResponse response = new AppointmentResponse();
+        response.setId(5L);
+        response.setStatus(AppointmentStatus.CANCELLED);
+        when(appointmentService.cancelAppointmentAsTherapist(3L, 5L)).thenReturn(response);
+
+        mockMvc.perform(patch("/api/therapist/appointments/5/cancel")
+                        .with(authentication(therapistAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
     }
 }

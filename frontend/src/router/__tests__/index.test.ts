@@ -28,6 +28,7 @@ const stub = { template: '<div />' }
 vi.mock('@/views/LandingView.vue', () => ({ default: stub }))
 vi.mock('@/views/LoginView.vue', () => ({ default: stub }))
 vi.mock('@/views/DashboardView.vue', () => ({ default: stub }))
+vi.mock('@/views/PatientAppointmentsView.vue', () => ({ default: stub }))
 vi.mock('@/views/InterviewsView.vue', () => ({ default: stub }))
 vi.mock('@/views/InterviewFormView.vue', () => ({ default: stub }))
 vi.mock('@/views/InterviewDetailView.vue', () => ({ default: stub }))
@@ -98,6 +99,13 @@ describe('Router', () => {
   it('has dashboard route with requiresAuth', () => {
     const route = router.getRoutes().find((r) => r.path === '/dashboard')
     expect(route).toBeDefined()
+    expect(route?.meta.requiresAuth).toBe(true)
+  })
+
+  it('has patient appointments route with requiresAuth', () => {
+    const route = router.getRoutes().find((r) => r.path === '/appointments')
+    expect(route).toBeDefined()
+    expect(route?.name).toBe('appointments')
     expect(route?.meta.requiresAuth).toBe(true)
   })
 

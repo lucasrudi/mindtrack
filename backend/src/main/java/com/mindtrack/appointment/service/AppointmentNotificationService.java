@@ -67,6 +67,16 @@ public class AppointmentNotificationService {
         }
     }
 
+    /**
+     * Notifies both participants when an appointment is cancelled.
+     */
+    public void notifyParticipantsAboutCancellation(Appointment appointment, User therapist,
+                                                    User patient, User cancelledBy) {
+        String message = buildCancellationMessage(appointment, therapist, patient, cancelledBy);
+        sendImportantNotification(therapist, message);
+        sendImportantNotification(patient, message);
+    }
+
     private NotificationPreferences resolvePreferences(@Nullable UserProfile profile) {
         if (profile == null || !StringUtils.hasText(profile.getNotificationPrefs())) {
             return new NotificationPreferences(true, false);
@@ -121,35 +131,55 @@ public class AppointmentNotificationService {
     }
 
     private void sendEmail(User patient, User therapist, String message) {
+        sendEmail(patient, therapist, message, "New MindTrack appointment");
+    }
+
+    private void sendEmail(User recipient, User actor, String message, String subject) {
         if (mailSender == null) {
             LOG.warn("Skipping appointment email notification for patientId={} because mail is not configured",
-                    patient.getId());
+                    recipient.getId());
             return;
         }
-        if (!StringUtils.hasText(patient.getEmail())) {
+        if (!StringUtils.hasText(recipient.getEmail())) {
             LOG.warn("Skipping appointment email notification for patientId={} because no email exists",
-                    patient.getId());
+                    recipient.getId());
             return;
         }
 
         SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(patient.getEmail());
-        mailMessage.setSubject("New MindTrack appointment with " + displayName(therapist));
+        mailMessage.setTo(recipient.getEmail());
+        mailMessage.setSubject(subject + " with " + displayName(actor));
         mailMessage.setText(message);
 
         try {
             mailSender.send(mailMessage);
-            LOG.info("Sent appointment email notification to patientId={}", patient.getId());
+            LOG.info("Sent appointment email notification to patientId={}", recipient.getId());
         } catch (MailException ex) {
             LOG.warn("Failed to send appointment email notification to patientId={}: {}",
-                    patient.getId(), ex.getMessage());
+                    recipient.getId(), ex.getMessage());
         }
+    }
+
+    private void sendImportantNotification(User recipient, String message) {
+        UserProfile profile = userProfileRepository.findByUserId(recipient.getId()).orElse(null);
+        sendPushNotification(profile, recipient.getId(), message);
+        sendEmail(recipient, recipient, message, "MindTrack appointment update");
     }
 
     private String buildMessage(Appointment appointment, User therapist) {
         return "Your therapist " + displayName(therapist) + " booked a new appointment for "
                 + appointment.getStartAt().format(DATE_TIME_FORMATTER) + ".\n"
                 + "Ends at " + appointment.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")) + ".\n"
+                + "Reason: " + defaultText(appointment.getReason(), "No reason provided") + ".";
+    }
+
+    private String buildCancellationMessage(Appointment appointment, User therapist,
+                                            User patient, User cancelledBy) {
+        return "Appointment cancelled by " + displayName(cancelledBy) + ".\n"
+                + "Session: " + appointment.getStartAt().format(DATE_TIME_FORMATTER) + " - "
+                + appointment.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")) + ".\n"
+                + "Therapist: " + displayName(therapist) + ".\n"
+                + "Patient: " + displayName(patient) + ".\n"
                 + "Reason: " + defaultText(appointment.getReason(), "No reason provided") + ".";
     }
 

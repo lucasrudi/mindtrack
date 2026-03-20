@@ -24,6 +24,7 @@ const router = createRouter({
   history: createMemoryHistory(),
   routes: [
     { path: '/dashboard', component: { template: '<div>Dashboard</div>' } },
+    { path: '/appointments', component: { template: '<div>Appointments</div>' } },
     { path: '/journal', component: { template: '<div>Journal</div>' } },
     { path: '/activities', component: { template: '<div>Activities</div>' } },
     { path: '/goals', component: { template: '<div>Goals</div>' } },
@@ -66,6 +67,7 @@ describe('AppNavbar', () => {
     const links = wrapper.findAll('.nav-link')
     const linkTexts = links.map((l) => l.text())
     expect(linkTexts).toContain('Dashboard')
+    expect(linkTexts).toContain('Appointments')
     expect(linkTexts).toContain('Journal')
     expect(linkTexts).toContain('Activities')
     expect(linkTexts).toContain('Goals')
