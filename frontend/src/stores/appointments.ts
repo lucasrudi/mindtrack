@@ -68,9 +68,7 @@ export const useAppointmentStore = defineStore('appointments', () => {
 
   function updatePatientCalendarColor(patientId: number, calendarColor: string) {
     appointments.value = appointments.value.map((appointment) =>
-      appointment.patientId === patientId
-        ? { ...appointment, calendarColor }
-        : appointment,
+      appointment.patientId === patientId ? { ...appointment, calendarColor } : appointment,
     )
   }
 
