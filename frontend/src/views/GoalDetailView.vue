@@ -40,6 +40,10 @@ async function handleStatusChange(status: GoalStatus) {
   await store.updateStatus(goalId, status)
 }
 
+async function handleMarkStarted() {
+  await store.markGoalStarted(goalId)
+}
+
 async function handleAddMilestone() {
   if (!milestoneForm.title.trim()) return
   await store.addMilestone(goalId, { ...milestoneForm })
@@ -142,6 +146,10 @@ const availableStatuses: GoalStatus[] = [
         <!-- Status controls -->
         <div class="status-controls">
           <span class="status-label">Status:</span>
+          <div v-if="store.currentGoal.status === 'NOT_STARTED'" class="status-start-row">
+            <button class="btn btn-primary btn-sm" @click="handleMarkStarted">Mark Started</button>
+            <span class="status-start-hint">This moves the goal into In Progress.</span>
+          </div>
           <div class="status-buttons">
             <button
               v-for="s in availableStatuses"
@@ -430,6 +438,18 @@ const availableStatuses: GoalStatus[] = [
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
+}
+
+.status-start-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.status-start-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
 }
 
 .btn-status {
