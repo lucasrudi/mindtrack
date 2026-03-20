@@ -3,7 +3,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '../auth'
 
 const localStorageMock = {
-  getItem: vi.fn(() => null),
+  getItem: vi.fn<(key: string) => string | null>(() => null),
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
