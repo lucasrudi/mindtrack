@@ -19,15 +19,16 @@ public class TherapistMapper {
                                                     LocalDateTime lastInterviewDate,
                                                     String calendarColor,
                                                     String status) {
-        return new PatientSummaryResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                calendarColor,
-                interviewCount,
-                activeGoalCount,
-                activityCount,
-                lastInterviewDate,
-                status);
+        PatientSummaryResponse response = new PatientSummaryResponse();
+        response.setId(user.getId());
+        response.setName(user.getName());
+        response.setEmail(user.getEmail());
+        response.setCalendarColor(calendarColor);
+        response.setInterviewCount(interviewCount);
+        response.setActiveGoalCount(activeGoalCount);
+        response.setActivityCount(activityCount);
+        response.setLastInterviewDate(lastInterviewDate);
+        response.setStatus(status);
+        return response;
     }
 }
