@@ -178,7 +178,7 @@ async function replayTutorial() {
     await store.updateProfile({ tutorialCompleted: false } as unknown as Parameters<
       typeof store.updateProfile
     >[0])
-    router.push('/dashboard')
+    router.push({ name: authStore.homeRouteName })
   } catch {
     // Error handled by store
   }
