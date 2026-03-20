@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +35,8 @@ class AppointmentServiceTest {
     private TherapistPatientRepository therapistPatientRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private AppointmentNotificationService appointmentNotificationService;
 
     private AppointmentService appointmentService;
 
@@ -41,7 +44,7 @@ class AppointmentServiceTest {
     void setUp() {
         appointmentService = new AppointmentService(
                 appointmentRepository, therapistPatientRepository, userRepository,
-                new AppointmentMapper());
+                new AppointmentMapper(), appointmentNotificationService);
     }
 
     @Test
@@ -74,6 +77,7 @@ class AppointmentServiceTest {
         when(appointmentRepository.findByPatientIdAndStatusInAndStartAtLessThanAndEndAtGreaterThan(
                 any(), any(), any(), any())).thenReturn(List.of());
         when(userRepository.findById(10L)).thenReturn(Optional.of(createUser(10L, "Patient A")));
+        when(userRepository.findById(3L)).thenReturn(Optional.of(createUser(3L, "Therapist A")));
         when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> {
             Appointment appointment = inv.getArgument(0);
             appointment.setId(99L);
@@ -92,6 +96,7 @@ class AppointmentServiceTest {
         assertEquals(99L, result.getId());
         assertEquals(AppointmentStatus.SCHEDULED, result.getStatus());
         assertEquals("Weekly check-in", result.getReason());
+        verify(appointmentNotificationService).notifyPatientAboutBooking(any(), any(), any());
     }
 
     @Test
