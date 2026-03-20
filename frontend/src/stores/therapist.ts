@@ -11,6 +11,7 @@ export interface PatientSummary {
   activeGoalCount: number
   activityCount: number
   lastInterviewDate: string | null
+  status?: string | null
 }
 
 export interface PatientDetail {
@@ -57,6 +58,7 @@ export interface PatientDetail {
 
 export const useTherapistStore = defineStore('therapist', () => {
   const patients = ref<PatientSummary[]>([])
+  const pendingPatients = ref<PatientSummary[]>([])
   const currentPatient = ref<PatientDetail | null>(null)
   const patientsLoading = ref(false)
   const detailLoading = ref(false)
@@ -83,6 +85,20 @@ export const useTherapistStore = defineStore('therapist', () => {
     }
   }
 
+  async function fetchPendingPatients() {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.get('/therapist/patients/pending')
+      pendingPatients.value = response.data
+    } catch (err) {
+      error.value = 'Failed to load pending requests'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function fetchPatientDetail(patientId: number) {
     detailLoading.value = true
     loading.value = true
@@ -99,6 +115,17 @@ export const useTherapistStore = defineStore('therapist', () => {
     } finally {
       detailLoading.value = false
       loading.value = patientsLoading.value || detailLoading.value
+    }
+  }
+
+  async function requestPatient(patientEmail: string) {
+    error.value = null
+    try {
+      const response = await api.post('/invites/request', { patientEmail })
+      return response.data as { token: string; url: string }
+    } catch (err) {
+      error.value = 'Failed to send patient request'
+      throw err
     }
   }
 
@@ -132,6 +159,7 @@ export const useTherapistStore = defineStore('therapist', () => {
 
   return {
     patients,
+    pendingPatients,
     currentPatient,
     loading,
     error,
@@ -140,7 +168,9 @@ export const useTherapistStore = defineStore('therapist', () => {
     patientsError,
     detailError,
     fetchPatients,
+    fetchPendingPatients,
     fetchPatientDetail,
+    requestPatient,
     setPatientCalendarColor,
     clearPatient,
     clearError,

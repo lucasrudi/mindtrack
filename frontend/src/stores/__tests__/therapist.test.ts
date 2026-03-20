@@ -12,6 +12,7 @@ const mockPatients = [
     activeGoalCount: 2,
     activityCount: 5,
     lastInterviewDate: '2025-01-15T10:00:00',
+    status: 'ACTIVE',
   },
   {
     id: 2,
@@ -22,6 +23,20 @@ const mockPatients = [
     activeGoalCount: 0,
     activityCount: 2,
     lastInterviewDate: null,
+    status: 'ACTIVE',
+  },
+]
+
+const mockPendingPatients = [
+  {
+    id: 3,
+    name: 'Pending Patient',
+    email: 'pending@test.com',
+    interviewCount: 0,
+    activeGoalCount: 0,
+    activityCount: 0,
+    lastInterviewDate: null,
+    status: 'PENDING',
   },
 ]
 
@@ -88,6 +103,7 @@ vi.mock('@/services/api', () => ({
 describe('useTherapistStore', () => {
   let api: {
     get: ReturnType<typeof vi.fn>
+    post: ReturnType<typeof vi.fn>
     put: ReturnType<typeof vi.fn>
   }
 
@@ -137,6 +153,19 @@ describe('useTherapistStore', () => {
       expect(store.patientsError).toBe('Failed to load patients')
       expect(store.error).toBe('Failed to load patients')
       expect(store.patientsLoading).toBe(false)
+      expect(store.loading).toBe(false)
+    })
+  })
+
+  describe('fetchPendingPatients', () => {
+    it('fetches pending requests', async () => {
+      api.get.mockResolvedValueOnce({ data: mockPendingPatients })
+      const store = useTherapistStore()
+
+      await store.fetchPendingPatients()
+
+      expect(api.get).toHaveBeenCalledWith('/therapist/patients/pending')
+      expect(store.pendingPatients).toEqual(mockPendingPatients)
       expect(store.loading).toBe(false)
     })
   })
@@ -209,6 +238,25 @@ describe('useTherapistStore', () => {
       expect(store.error).toBeNull()
       expect(store.patientsError).toBeNull()
       expect(store.detailError).toBeNull()
+    })
+  })
+
+  describe('requestPatient', () => {
+    it('creates a therapist request', async () => {
+      api.post.mockResolvedValueOnce({
+        data: { token: 'abc', url: 'http://localhost:3000/invite/abc' },
+      })
+      const store = useTherapistStore()
+
+      const response = await store.requestPatient('patient@test.com')
+
+      expect(api.post).toHaveBeenCalledWith('/invites/request', {
+        patientEmail: 'patient@test.com',
+      })
+      expect(response).toEqual({
+        token: 'abc',
+        url: 'http://localhost:3000/invite/abc',
+      })
     })
   })
 

@@ -29,7 +29,7 @@ class TherapistMapperTest {
         LocalDateTime lastInterview = LocalDateTime.of(2025, 1, 15, 10, 30);
 
         PatientSummaryResponse result = therapistMapper.toPatientSummary(
-                user, 5, 3, 8, lastInterview, "#f97316");
+                user, 5, 3, 8, lastInterview, "#f97316", "ACTIVE");
 
         assertNotNull(result);
         assertEquals(1L, result.getId());
@@ -40,6 +40,7 @@ class TherapistMapperTest {
         assertEquals(3, result.getActiveGoalCount());
         assertEquals(8, result.getActivityCount());
         assertEquals(lastInterview, result.getLastInterviewDate());
+        assertEquals("ACTIVE", result.getStatus());
     }
 
     @Test
@@ -50,10 +51,11 @@ class TherapistMapperTest {
         user.setEmail("jane@example.com");
 
         PatientSummaryResponse result = therapistMapper.toPatientSummary(
-                user, 0, 0, 0, null, null);
+                user, 0, 0, 0, null, null, "PENDING");
 
         assertNotNull(result);
         assertEquals(0, result.getInterviewCount());
         assertNull(result.getLastInterviewDate());
+        assertEquals("PENDING", result.getStatus());
     }
 }

@@ -15,13 +15,21 @@ public class PatientSummaryResponse {
     private int activeGoalCount;
     private int activityCount;
     private LocalDateTime lastInterviewDate;
+    private String status;
 
     public PatientSummaryResponse() {
     }
 
     public PatientSummaryResponse(Long id, String name, String email, String calendarColor,
-                                   int interviewCount, int activeGoalCount, int activityCount,
-                                   LocalDateTime lastInterviewDate) {
+                                  int interviewCount, int activeGoalCount, int activityCount,
+                                  LocalDateTime lastInterviewDate) {
+        this(id, name, email, calendarColor, interviewCount, activeGoalCount,
+                activityCount, lastInterviewDate, null);
+    }
+
+    public PatientSummaryResponse(Long id, String name, String email, String calendarColor,
+                                  int interviewCount, int activeGoalCount, int activityCount,
+                                  LocalDateTime lastInterviewDate, String status) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -30,6 +38,7 @@ public class PatientSummaryResponse {
         this.activeGoalCount = activeGoalCount;
         this.activityCount = activityCount;
         this.lastInterviewDate = lastInterviewDate;
+        this.status = status;
     }
 
     public Long getId() {
@@ -94,5 +103,13 @@ public class PatientSummaryResponse {
 
     public void setLastInterviewDate(LocalDateTime lastInterviewDate) {
         this.lastInterviewDate = lastInterviewDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

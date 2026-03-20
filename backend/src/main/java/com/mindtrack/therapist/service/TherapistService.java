@@ -174,7 +174,13 @@ public class TherapistService {
                             .orElseThrow(() -> new IllegalArgumentException(
                                     PATIENT_NOT_FOUND_PREFIX + rel.getPatientId()));
                     return therapistMapper.toPatientSummary(
-                            patient, 0, 0, 0, null, rel.getCalendarColor());
+                            patient,
+                            0,
+                            0,
+                            0,
+                            null,
+                            rel.getCalendarColor(),
+                            TherapistPatientStatus.PENDING.name());
                 })
                 .toList();
     }
@@ -314,7 +320,8 @@ public class TherapistService {
                 activeGoals.size(),
                 activities.size(),
                 interviews.isEmpty() ? null : interviews.get(0).getCreatedAt(),
-                rel.getCalendarColor());
+                rel.getCalendarColor(),
+                rel.getStatus().name());
     }
 
     private TherapistPatient loadActiveRelationship(Long therapistId, Long patientId) {

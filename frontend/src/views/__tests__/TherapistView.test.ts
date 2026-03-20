@@ -16,6 +16,7 @@ const mockPatients = [
     activeGoalCount: 2,
     activityCount: 5,
     lastInterviewDate: '2025-01-15T10:00:00',
+    status: 'ACTIVE',
   },
   {
     id: 2,
@@ -25,6 +26,20 @@ const mockPatients = [
     activeGoalCount: 0,
     activityCount: 0,
     lastInterviewDate: null,
+    status: 'ACTIVE',
+  },
+]
+
+const mockPendingPatients = [
+  {
+    id: 3,
+    name: 'Pending Patient',
+    email: 'pending@test.com',
+    interviewCount: 0,
+    activeGoalCount: 0,
+    activityCount: 0,
+    lastInterviewDate: null,
+    status: 'PENDING',
   },
 ]
 
@@ -79,10 +94,11 @@ const mockPatientDetail = {
 }
 
 const mockGet = vi.fn().mockResolvedValue({ data: [] })
+const mockPost = vi.fn()
 vi.mock('@/services/api', () => ({
   default: {
     get: (...args: unknown[]) => mockGet(...args),
-    post: vi.fn(),
+    post: (...args: unknown[]) => mockPost(...args),
     put: vi.fn(),
     patch: vi.fn(),
     delete: vi.fn(),
@@ -93,10 +109,14 @@ describe('TherapistView', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     mockGet.mockReset().mockResolvedValue({ data: [] })
+    mockPost.mockReset().mockResolvedValue({
+      data: { token: 'request-token', url: 'http://localhost:3000/invite/request-token' },
+    })
   })
 
   it('renders therapist overview and patient list', async () => {
     mockGet.mockResolvedValueOnce({ data: mockPatients })
+    mockGet.mockResolvedValueOnce({ data: mockPendingPatients })
     const wrapper = mount(TherapistView)
     await flushPromises()
 
@@ -110,6 +130,7 @@ describe('TherapistView', () => {
 
   it('shows aggregate counts from the assigned patient list', async () => {
     mockGet.mockResolvedValueOnce({ data: mockPatients })
+    mockGet.mockResolvedValueOnce({ data: mockPendingPatients })
     const wrapper = mount(TherapistView)
     await flushPromises()
 
@@ -120,8 +141,20 @@ describe('TherapistView', () => {
     expect(cards[3].text()).toContain('5')
   })
 
+  it('renders pending requests section', async () => {
+    mockGet.mockResolvedValueOnce({ data: mockPatients })
+    mockGet.mockResolvedValueOnce({ data: mockPendingPatients })
+    const wrapper = mount(TherapistView)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Pending requests')
+    expect(wrapper.text()).toContain('Pending Patient')
+    expect(wrapper.text()).toContain('PENDING')
+  })
+
   it('loads patient detail without hiding the overview list', async () => {
     mockGet.mockResolvedValueOnce({ data: mockPatients })
+    mockGet.mockResolvedValueOnce({ data: mockPendingPatients })
     const wrapper = mount(TherapistView)
     await flushPromises()
 
@@ -157,8 +190,24 @@ describe('TherapistView', () => {
     expect(wrapper.find('.tab-content').text()).toContain('Good session')
   })
 
+  it('submits a patient request from the dashboard', async () => {
+    mockGet.mockResolvedValueOnce({ data: mockPatients })
+    mockGet.mockResolvedValueOnce({ data: mockPendingPatients })
+    const wrapper = mount(TherapistView)
+    await flushPromises()
+
+    const requestInput = wrapper.find('input[type="email"]')
+    await requestInput.setValue('newpatient@test.com')
+    await wrapper.find('.request-panel .btn-primary').trigger('click')
+    await flushPromises()
+
+    expect(mockGet).toHaveBeenCalledWith('/therapist/patients/pending')
+    expect(wrapper.text()).toContain('Request sent')
+  })
+
   it('returns to the overview when the selected patient is cleared', async () => {
     mockGet.mockResolvedValueOnce({ data: mockPatients })
+    mockGet.mockResolvedValueOnce({ data: mockPendingPatients })
     const wrapper = mount(TherapistView)
     await flushPromises()
 

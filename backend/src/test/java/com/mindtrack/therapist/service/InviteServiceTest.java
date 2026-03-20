@@ -21,9 +21,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,6 +66,38 @@ class InviteServiceTest {
 
         assertEquals("Dr. Smith", response.initiatorName());
         assertEquals("THERAPIST", response.initiatorRole());
+        assertNull(response.status());
+    }
+
+    @Test
+    void shouldCreateTherapistRequestForPatientEmail() {
+        User patient = makeUser(20L, "Patient One");
+        patient.setEmail("patient@test.com");
+        when(userRepository.findByEmail("patient@test.com")).thenReturn(Optional.of(patient));
+        when(therapistPatientRepository.findByTherapistIdAndPatientId(10L, 20L))
+                .thenReturn(Optional.empty());
+        when(inviteTokenRepository.findByInitiatorIdAndRecipientIdAndUsedAtIsNullAndExpiresAtAfter(
+                eq(10L), eq(20L), any(LocalDateTime.class))).thenReturn(Optional.empty());
+        when(therapistPatientRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(inviteTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        InviteGenerateResponse response = inviteService.requestPatient(10L, "patient@test.com");
+
+        assertNotNull(response.token());
+        assertTrue(response.url().contains(response.token()));
+    }
+
+    @Test
+    void shouldRejectDuplicatePendingRequest() {
+        User patient = makeUser(20L, "Patient One");
+        patient.setEmail("patient@test.com");
+        when(userRepository.findByEmail("patient@test.com")).thenReturn(Optional.of(patient));
+        TherapistPatient existing = new TherapistPatient(10L, 20L, TherapistPatientStatus.PENDING);
+        when(therapistPatientRepository.findByTherapistIdAndPatientId(10L, 20L))
+                .thenReturn(Optional.of(existing));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> inviteService.requestPatient(10L, "patient@test.com"));
     }
 
     @Test
@@ -104,6 +138,31 @@ class InviteServiceTest {
         assertEquals(TherapistPatientStatus.PENDING, captor.getValue().getStatus());
     }
 
+    @Test
+    void shouldRejectTherapistRequestWhenWrongUserTriesToAccept() {
+        InviteToken token = makeRequestToken(10L, 20L);
+        when(inviteTokenRepository.findByToken("t3")).thenReturn(Optional.of(token));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> inviteService.acceptInvite("t3", 21L, InitiatorRole.PATIENT));
+    }
+
+    @Test
+    void shouldRejectTherapistRequest() {
+        InviteToken token = makeRequestToken(10L, 20L);
+        when(inviteTokenRepository.findByToken("t4")).thenReturn(Optional.of(token));
+        when(therapistPatientRepository.findByTherapistIdAndPatientId(10L, 20L))
+                .thenReturn(Optional.of(new TherapistPatient(10L, 20L, TherapistPatientStatus.PENDING)));
+        when(therapistPatientRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(inviteTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        inviteService.rejectInvite("t4", 20L, InitiatorRole.PATIENT);
+
+        ArgumentCaptor<TherapistPatient> captor = ArgumentCaptor.forClass(TherapistPatient.class);
+        verify(therapistPatientRepository).save(captor.capture());
+        assertEquals(TherapistPatientStatus.INACTIVE, captor.getValue().getStatus());
+    }
+
     private InviteToken makeToken(InitiatorRole role, Long initiatorId) {
         InviteToken t = new InviteToken();
         t.setToken("tok-" + initiatorId);
@@ -111,6 +170,12 @@ class InviteServiceTest {
         t.setInitiatorId(initiatorId);
         t.setExpiresAt(LocalDateTime.now().plusDays(7));
         t.setCreatedAt(LocalDateTime.now());
+        return t;
+    }
+
+    private InviteToken makeRequestToken(Long therapistId, Long patientId) {
+        InviteToken t = makeToken(InitiatorRole.THERAPIST, therapistId);
+        t.setRecipientId(patientId);
         return t;
     }
 
