@@ -241,7 +241,7 @@ describe('ProfileView', () => {
     expect(updateProfileSpy).toHaveBeenCalledWith(
       expect.objectContaining({ tutorialCompleted: false }),
     )
-    expect(mockPush).toHaveBeenCalledWith('/dashboard')
+    expect(mockPush).toHaveBeenCalledWith({ name: 'dashboard' })
   })
 
   it('deletes the account after confirmation', async () => {

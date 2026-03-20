@@ -6,6 +6,7 @@ import com.mindtrack.goals.dto.MilestoneRequest;
 import com.mindtrack.goals.dto.MilestoneResponse;
 import com.mindtrack.goals.model.Goal;
 import com.mindtrack.goals.model.GoalStatus;
+import com.mindtrack.goals.model.GoalValidationStatus;
 import com.mindtrack.goals.model.Milestone;
 import com.mindtrack.goals.repository.GoalRepository;
 import com.mindtrack.goals.repository.MilestoneRepository;
@@ -13,14 +14,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import com.mindtrack.goals.model.GoalValidationStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -194,6 +196,49 @@ class GoalServiceTest {
     }
 
     @Test
+    void shouldMarkGoalStartedWhenAddingMilestoneToNotStartedGoal() {
+        Goal goal = createGoal(1L);
+        goal.setStatus(GoalStatus.NOT_STARTED);
+        when(goalRepository.findByIdAndUserId(1L, 1L))
+                .thenReturn(Optional.of(goal));
+        when(milestoneRepository.save(any(Milestone.class))).thenAnswer(invocation -> {
+            Milestone saved = invocation.getArgument(0);
+            saved.setId(10L);
+            return saved;
+        });
+
+        MilestoneRequest request = new MilestoneRequest();
+        request.setTitle("Learn chords");
+
+        goalService.addMilestone(1L, 1L, request);
+
+        assertEquals(GoalStatus.IN_PROGRESS, goal.getStatus());
+        verify(goalRepository).save(goal);
+    }
+
+    @ParameterizedTest
+    @MethodSource("terminalStatuses")
+    void shouldNotStartTerminalOrPausedGoalsWhenAddingMilestone(GoalStatus status) {
+        Goal goal = createGoal(1L);
+        goal.setStatus(status);
+        when(goalRepository.findByIdAndUserId(1L, 1L))
+                .thenReturn(Optional.of(goal));
+        when(milestoneRepository.save(any(Milestone.class))).thenAnswer(invocation -> {
+            Milestone saved = invocation.getArgument(0);
+            saved.setId(10L);
+            return saved;
+        });
+
+        MilestoneRequest request = new MilestoneRequest();
+        request.setTitle("Learn chords");
+
+        goalService.addMilestone(1L, 1L, request);
+
+        assertEquals(status, goal.getStatus());
+        verify(goalRepository, never()).save(goal);
+    }
+
+    @Test
     void shouldReturnNullWhenAddingMilestoneToNonExistentGoal() {
         when(goalRepository.findByIdAndUserId(999L, 1L))
                 .thenReturn(Optional.empty());
@@ -219,6 +264,43 @@ class GoalServiceTest {
 
         assertNotNull(result);
         assertTrue(result.isCompleted());
+    }
+
+    @Test
+    void shouldMarkGoalStartedWhenCompletingMilestoneOnNotStartedGoal() {
+        Goal goal = createGoal(1L);
+        goal.setStatus(GoalStatus.NOT_STARTED);
+        Milestone milestone = createMilestone(10L, goal, false);
+
+        when(goalRepository.findByIdAndUserId(1L, 1L))
+                .thenReturn(Optional.of(goal));
+        when(milestoneRepository.findByIdAndGoalId(10L, 1L))
+                .thenReturn(Optional.of(milestone));
+        when(milestoneRepository.save(any(Milestone.class))).thenReturn(milestone);
+
+        goalService.toggleMilestoneCompletion(1L, 1L, 10L);
+
+        assertEquals(GoalStatus.IN_PROGRESS, goal.getStatus());
+        verify(goalRepository).save(goal);
+    }
+
+    @ParameterizedTest
+    @MethodSource("terminalStatuses")
+    void shouldNotStartTerminalOrPausedGoalsWhenCompletingMilestone(GoalStatus status) {
+        Goal goal = createGoal(1L);
+        goal.setStatus(status);
+        Milestone milestone = createMilestone(10L, goal, false);
+
+        when(goalRepository.findByIdAndUserId(1L, 1L))
+                .thenReturn(Optional.of(goal));
+        when(milestoneRepository.findByIdAndGoalId(10L, 1L))
+                .thenReturn(Optional.of(milestone));
+        when(milestoneRepository.save(any(Milestone.class))).thenReturn(milestone);
+
+        goalService.toggleMilestoneCompletion(1L, 1L, 10L);
+
+        assertEquals(status, goal.getStatus());
+        verify(goalRepository, never()).save(goal);
     }
 
     @Test
@@ -310,5 +392,9 @@ class GoalServiceTest {
             milestone.setCompletedAt(LocalDateTime.now());
         }
         return milestone;
+    }
+
+    private static Stream<GoalStatus> terminalStatuses() {
+        return Stream.of(GoalStatus.COMPLETED, GoalStatus.PAUSED, GoalStatus.CANCELLED);
     }
 }

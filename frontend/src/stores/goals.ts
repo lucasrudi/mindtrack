@@ -174,6 +174,10 @@ export const useGoalsStore = defineStore('goals', () => {
     }
   }
 
+  async function markGoalStarted(id: number) {
+    return updateStatus(id, 'IN_PROGRESS')
+  }
+
   async function deleteGoal(id: number) {
     loading.value = true
     error.value = null
@@ -258,6 +262,7 @@ export const useGoalsStore = defineStore('goals', () => {
     createGoal,
     updateGoal,
     updateStatus,
+    markGoalStarted,
     deleteGoal,
     addMilestone,
     toggleMilestone,
