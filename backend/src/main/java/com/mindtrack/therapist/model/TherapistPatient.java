@@ -32,6 +32,9 @@ public class TherapistPatient {
     @Enumerated(EnumType.STRING)
     private TherapistPatientStatus status = TherapistPatientStatus.ACTIVE;
 
+    @Column(name = "calendar_color")
+    private String calendarColor;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -79,6 +82,14 @@ public class TherapistPatient {
 
     public void setStatus(TherapistPatientStatus status) {
         this.status = status;
+    }
+
+    public String getCalendarColor() {
+        return calendarColor;
+    }
+
+    public void setCalendarColor(String calendarColor) {
+        this.calendarColor = calendarColor;
     }
 
     public LocalDateTime getCreatedAt() {

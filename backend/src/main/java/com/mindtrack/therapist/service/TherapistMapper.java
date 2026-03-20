@@ -17,11 +17,13 @@ public class TherapistMapper {
     public PatientSummaryResponse toPatientSummary(User user, int interviewCount,
                                                     int activeGoalCount, int activityCount,
                                                     LocalDateTime lastInterviewDate,
+                                                    String calendarColor,
                                                     String status) {
         return new PatientSummaryResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
+                calendarColor,
                 interviewCount,
                 activeGoalCount,
                 activityCount,

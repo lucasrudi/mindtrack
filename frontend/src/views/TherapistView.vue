@@ -592,6 +592,8 @@ function statusClass(status: string): string {
   background: linear-gradient(135deg, var(--color-white), var(--color-gray-50));
   border: 1px solid var(--color-gray-200);
   border-radius: var(--border-radius-lg);
+}
+
 .overview-panel,
 .pending-panel,
 .patient-list-panel,
@@ -746,6 +748,7 @@ function statusClass(status: string): string {
   display: grid;
   place-items: center;
 }
+
 .data-table {
   width: 100%;
   border-collapse: collapse;

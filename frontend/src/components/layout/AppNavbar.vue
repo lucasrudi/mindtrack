@@ -15,7 +15,10 @@ const patientLinks = [
   { label: 'AI Chat', to: { name: 'chat' } },
 ]
 
-const therapistLinks = [{ label: 'Patients', to: { name: 'therapist' } }]
+const therapistLinks = [
+  { label: 'Patients', to: { name: 'therapist' } },
+  { label: 'Calendar', to: { name: 'therapist-calendar' } },
+]
 
 const navLinks = computed(() => (auth.activeView === 'therapist' ? therapistLinks : patientLinks))
 

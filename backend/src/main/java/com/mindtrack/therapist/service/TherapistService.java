@@ -86,25 +86,7 @@ public class TherapistService {
         return therapistPatientRepository
                 .findByTherapistIdAndStatus(therapistId, TherapistPatientStatus.ACTIVE)
                 .stream()
-                .map(rel -> {
-                    User patient = userRepository.findById(rel.getPatientId())
-                            .orElseThrow(() -> new IllegalArgumentException(
-                                    PATIENT_NOT_FOUND_PREFIX + rel.getPatientId()));
-                    List<Interview> interviews = interviewRepository
-                            .findByUserIdOrderByInterviewDateDesc(rel.getPatientId());
-                    List<Goal> activeGoals = goalRepository
-                            .findByUserIdAndStatusOrderByCreatedAtDesc(
-                                    rel.getPatientId(), GoalStatus.IN_PROGRESS);
-                    List<Activity> activities = activityRepository
-                            .findByUserIdAndActiveOrderByCreatedAtDesc(rel.getPatientId(), true);
-                    return therapistMapper.toPatientSummary(
-                            patient,
-                            interviews.size(),
-                            activeGoals.size(),
-                            activities.size(),
-                            interviews.isEmpty() ? null : interviews.get(0).getCreatedAt(),
-                            TherapistPatientStatus.ACTIVE.name());
-                })
+                .map(this::toPatientSummary)
                 .toList();
     }
 
@@ -191,7 +173,13 @@ public class TherapistService {
                     User patient = userRepository.findById(rel.getPatientId())
                             .orElseThrow(() -> new IllegalArgumentException(
                                     PATIENT_NOT_FOUND_PREFIX + rel.getPatientId()));
-                    return therapistMapper.toPatientSummary(patient, 0, 0, 0, null,
+                    return therapistMapper.toPatientSummary(
+                            patient,
+                            0,
+                            0,
+                            0,
+                            null,
+                            rel.getCalendarColor(),
                             TherapistPatientStatus.PENDING.name());
                 })
                 .toList();
@@ -210,6 +198,18 @@ public class TherapistService {
         therapistPatientRepository.save(rel);
         LOG.info("Set therapist-patient status: therapist={} patient={} status={}",
                 therapistId, patientId, newStatus);
+    }
+
+    /**
+     * Updates the therapist's preferred calendar color for a patient.
+     */
+    @Transactional
+    public PatientSummaryResponse setPatientCalendarColor(Long therapistId, Long patientId,
+                                                          String calendarColor) {
+        TherapistPatient rel = loadActiveRelationship(therapistId, patientId);
+        rel.setCalendarColor(calendarColor);
+        therapistPatientRepository.save(rel);
+        return toPatientSummary(rel);
     }
 
     /**
@@ -302,5 +302,35 @@ public class TherapistService {
                     "No active therapist-patient relationship for therapist "
                     + therapistId + " and patient " + patientId);
         }
+    }
+
+    private PatientSummaryResponse toPatientSummary(TherapistPatient rel) {
+        User patient = userRepository.findById(rel.getPatientId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        PATIENT_NOT_FOUND_PREFIX + rel.getPatientId()));
+        List<Interview> interviews = interviewRepository
+                .findByUserIdOrderByInterviewDateDesc(rel.getPatientId());
+        List<Goal> activeGoals = goalRepository.findByUserIdAndStatusOrderByCreatedAtDesc(
+                rel.getPatientId(), GoalStatus.IN_PROGRESS);
+        List<Activity> activities = activityRepository
+                .findByUserIdAndActiveOrderByCreatedAtDesc(rel.getPatientId(), true);
+        return therapistMapper.toPatientSummary(
+                patient,
+                interviews.size(),
+                activeGoals.size(),
+                activities.size(),
+                interviews.isEmpty() ? null : interviews.get(0).getCreatedAt(),
+                rel.getCalendarColor(),
+                rel.getStatus().name());
+    }
+
+    private TherapistPatient loadActiveRelationship(Long therapistId, Long patientId) {
+        TherapistPatient rel = therapistPatientRepository
+                .findByTherapistIdAndPatientId(therapistId, patientId)
+                .orElseThrow(() -> new IllegalArgumentException("Relationship not found"));
+        if (rel.getStatus() != TherapistPatientStatus.ACTIVE) {
+            throw new IllegalArgumentException("Relationship not active");
+        }
+        return rel;
     }
 }

@@ -1,6 +1,7 @@
 package com.mindtrack.therapist.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mindtrack.therapist.dto.CalendarColorRequest;
 import com.mindtrack.goals.dto.GoalRequest;
 import com.mindtrack.goals.dto.GoalResponse;
 import com.mindtrack.goals.model.GoalValidationStatus;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -62,7 +64,7 @@ class TherapistControllerTest {
     @Test
     void shouldListPatients() throws Exception {
         PatientSummaryResponse patient = new PatientSummaryResponse(
-                1L, "John Patient", "john@example.com", 5, 3, 8,
+                1L, "John Patient", "john@example.com", "#f97316", 5, 3, 8,
                 LocalDateTime.of(2025, 1, 15, 10, 0));
         when(therapistService.listPatients(3L)).thenReturn(List.of(patient));
 
@@ -73,6 +75,24 @@ class TherapistControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].name").value("John Patient"))
                 .andExpect(jsonPath("$[0].interviewCount").value(5));
+    }
+
+    @Test
+    void shouldUpdatePatientCalendarColor() throws Exception {
+        CalendarColorRequest request = new CalendarColorRequest();
+        request.setCalendarColor("#22c55e");
+        PatientSummaryResponse response = new PatientSummaryResponse(
+                1L, "John Patient", "john@example.com", "#22c55e", 5, 3, 8,
+                LocalDateTime.of(2025, 1, 15, 10, 0));
+        when(therapistService.setPatientCalendarColor(3L, 1L, "#22c55e"))
+                .thenReturn(response);
+
+        mockMvc.perform(put("/api/therapist/patients/1/calendar-color")
+                        .with(authentication(therapistAuth()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.calendarColor").value("#22c55e"));
     }
 
     @Test

@@ -6,6 +6,7 @@ export interface PatientSummary {
   id: number
   name: string
   email: string
+  calendarColor: string | null
   interviewCount: number
   activeGoalCount: number
   activityCount: number
@@ -128,6 +129,23 @@ export const useTherapistStore = defineStore('therapist', () => {
     }
   }
 
+  async function setPatientCalendarColor(patientId: number, calendarColor: string) {
+    error.value = null
+    try {
+      const response = await api.put(`/therapist/patients/${patientId}/calendar-color`, {
+        calendarColor,
+      })
+      const updated = response.data
+      patients.value = patients.value.map((patient) =>
+        patient.id === patientId ? updated : patient,
+      )
+      return updated
+    } catch (err) {
+      error.value = 'Failed to save patient calendar color'
+      throw err
+    }
+  }
+
   function clearPatient() {
     currentPatient.value = null
     detailError.value = null
@@ -153,6 +171,7 @@ export const useTherapistStore = defineStore('therapist', () => {
     fetchPendingPatients,
     fetchPatientDetail,
     requestPatient,
+    setPatientCalendarColor,
     clearPatient,
     clearError,
   }

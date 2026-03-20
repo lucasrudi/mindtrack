@@ -5,6 +5,7 @@ import com.mindtrack.goals.dto.GoalRequest;
 import com.mindtrack.goals.dto.GoalResponse;
 import com.mindtrack.interview.dto.InterviewResponse;
 import com.mindtrack.journal.dto.JournalEntryResponse;
+import com.mindtrack.therapist.dto.CalendarColorRequest;
 import com.mindtrack.therapist.dto.PatientDetailResponse;
 import com.mindtrack.therapist.dto.PatientSummaryResponse;
 import com.mindtrack.therapist.model.TherapistPatientStatus;
@@ -118,6 +119,20 @@ public class TherapistController {
         Long therapistId = (Long) authentication.getPrincipal();
         therapistService.setPatientStatus(therapistId, patientId, TherapistPatientStatus.INACTIVE);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Updates the preferred calendar color for a patient.
+     */
+    @PutMapping("/patients/{patientId}/calendar-color")
+    public ResponseEntity<PatientSummaryResponse> setPatientCalendarColor(
+            @PathVariable Long patientId,
+            @RequestBody @Valid CalendarColorRequest request,
+            Authentication authentication) {
+        Long therapistId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(
+                therapistService.setPatientCalendarColor(
+                        therapistId, patientId, request.getCalendarColor()));
     }
 
     /**

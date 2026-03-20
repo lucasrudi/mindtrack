@@ -36,6 +36,11 @@ const router = createRouter({
     { path: '/profile', name: 'profile', component: { template: '<div>Profile</div>' } },
     { path: '/admin', name: 'admin', component: { template: '<div>Admin</div>' } },
     { path: '/therapist', name: 'therapist', component: { template: '<div>Therapist</div>' } },
+    {
+      path: '/therapist/calendar',
+      name: 'therapist-calendar',
+      component: { template: '<div>Calendar</div>' },
+    },
     { path: '/', name: 'landing', component: { template: '<div>Home</div>' } },
   ],
 })
@@ -174,5 +179,6 @@ describe('AppNavbar', () => {
 
     expect(linkTexts).toContain('Admin')
     expect(linkTexts).toContain('Patients')
+    expect(linkTexts).toContain('Calendar')
   })
 })
