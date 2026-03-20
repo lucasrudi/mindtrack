@@ -13,6 +13,7 @@ public class AppointmentResponse {
     private Long patientId;
     private String patientName;
     private String patientEmail;
+    private String calendarColor;
     private LocalDateTime startAt;
     private LocalDateTime endAt;
     private AppointmentStatus status;
@@ -63,6 +64,14 @@ public class AppointmentResponse {
 
     public void setPatientEmail(String patientEmail) {
         this.patientEmail = patientEmail;
+    }
+
+    public String getCalendarColor() {
+        return calendarColor;
+    }
+
+    public void setCalendarColor(String calendarColor) {
+        this.calendarColor = calendarColor;
     }
 
     public LocalDateTime getStartAt() {

@@ -8,6 +8,7 @@ const patients = [
     id: 10,
     name: 'Patient One',
     email: 'patient1@test.com',
+    calendarColor: '#2563eb',
     interviewCount: 0,
     activeGoalCount: 0,
     activityCount: 0,
@@ -22,6 +23,7 @@ const appointments = [
     patientId: 10,
     patientName: 'Patient One',
     patientEmail: 'patient1@test.com',
+    calendarColor: '#2563eb',
     startAt: '2026-04-20T10:00:00',
     endAt: '2026-04-20T10:50:00',
     status: 'SCHEDULED',
@@ -50,12 +52,13 @@ const appointments = [
 
 const mockGet = vi.fn()
 const mockPost = vi.fn()
+const mockPut = vi.fn()
 
 vi.mock('@/services/api', () => ({
   default: {
     get: (...args: unknown[]) => mockGet(...args),
     post: (...args: unknown[]) => mockPost(...args),
-    put: vi.fn(),
+    put: (...args: unknown[]) => mockPut(...args),
     patch: vi.fn(),
     delete: vi.fn(),
   },
@@ -66,6 +69,7 @@ describe('TherapistCalendarView', () => {
     setActivePinia(createPinia())
     mockGet.mockReset()
     mockPost.mockReset()
+    mockPut.mockReset()
   })
 
   it('renders the appointment agenda', async () => {
@@ -113,5 +117,26 @@ describe('TherapistCalendarView', () => {
       notes: 'Bring worksheets',
     })
     expect(wrapper.text()).toContain('Appointment booked')
+  })
+
+  it('saves a selected patient calendar color', async () => {
+    mockGet.mockResolvedValueOnce({ data: patients })
+    mockGet.mockResolvedValueOnce({ data: appointments })
+    mockPut.mockResolvedValueOnce({
+      data: {
+        ...patients[0],
+        calendarColor: '#10b981',
+      },
+    })
+
+    const wrapper = mount(TherapistCalendarView)
+    await flushPromises()
+
+    await wrapper.findAll('.color-chip')[1].trigger('click')
+    await flushPromises()
+
+    expect(mockPut).toHaveBeenCalledWith('/therapist/patients/10/calendar-color', {
+      calendarColor: '#10b981',
+    })
   })
 })

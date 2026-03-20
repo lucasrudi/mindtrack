@@ -86,6 +86,7 @@ class TherapistServiceTest {
     @Test
     void shouldListActivePatientsWithSummary() {
         TherapistPatient rel = new TherapistPatient(3L, 1L, TherapistPatientStatus.ACTIVE);
+        rel.setCalendarColor("#f97316");
         User patient = createUser(1L, "John Patient", "john@example.com");
         Interview interview = new Interview();
         interview.setCreatedAt(LocalDateTime.of(2025, 1, 15, 10, 0));
@@ -104,6 +105,7 @@ class TherapistServiceTest {
 
         assertEquals(1, result.size());
         assertEquals("John Patient", result.get(0).getName());
+        assertEquals("#f97316", result.get(0).getCalendarColor());
         assertEquals(1, result.get(0).getInterviewCount());
         assertEquals(1, result.get(0).getActiveGoalCount());
         assertEquals(2, result.get(0).getActivityCount());
@@ -158,6 +160,25 @@ class TherapistServiceTest {
         assertEquals(1, result.getActivities().size());
         assertEquals(1, result.getGoals().size());
         assertEquals(1, result.getSharedJournalEntries().size());
+    }
+
+    @Test
+    void shouldUpdatePatientCalendarColor() {
+        TherapistPatient rel = new TherapistPatient(3L, 1L, TherapistPatientStatus.ACTIVE);
+        rel.setCalendarColor(null);
+        when(therapistPatientRepository.findByTherapistIdAndPatientId(3L, 1L))
+                .thenReturn(Optional.of(rel));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(createUser(1L, "John Patient", "john@example.com")));
+        when(interviewRepository.findByUserIdOrderByInterviewDateDesc(1L)).thenReturn(List.of());
+        when(goalRepository.findByUserIdAndStatusOrderByCreatedAtDesc(1L, GoalStatus.IN_PROGRESS))
+                .thenReturn(List.of());
+        when(activityRepository.findByUserIdAndActiveOrderByCreatedAtDesc(1L, true))
+                .thenReturn(List.of());
+
+        PatientSummaryResponse result = therapistService.setPatientCalendarColor(3L, 1L, "#22c55e");
+
+        assertEquals("#22c55e", rel.getCalendarColor());
+        assertEquals("#22c55e", result.getCalendarColor());
     }
 
     @Test

@@ -8,9 +8,12 @@ import com.mindtrack.appointment.repository.AppointmentRepository;
 import com.mindtrack.auth.repository.UserRepository;
 import com.mindtrack.common.model.User;
 import com.mindtrack.therapist.model.TherapistPatientStatus;
+import com.mindtrack.therapist.model.TherapistPatient;
 import com.mindtrack.therapist.repository.TherapistPatientRepository;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,9 +48,15 @@ public class AppointmentService {
     public List<AppointmentResponse> listAppointments(Long therapistId) {
         List<Appointment> appointments = appointmentRepository
                 .findByTherapistIdOrderByStartAtAsc(therapistId);
+        Map<Long, String> calendarColors = new HashMap<>();
+        therapistPatientRepository.findByTherapistIdAndStatus(therapistId,
+                TherapistPatientStatus.ACTIVE).forEach(rel ->
+                calendarColors.put(rel.getPatientId(), rel.getCalendarColor()));
         return appointments.stream()
                 .map(appointment -> appointmentMapper.toResponse(
-                        appointment, loadPatient(appointment.getPatientId())))
+                        appointment,
+                        loadPatient(appointment.getPatientId()),
+                        calendarColors.get(appointment.getPatientId())))
                 .toList();
     }
 
@@ -71,7 +80,8 @@ public class AppointmentService {
         appointment.setNotes(request.getNotes());
 
         Appointment saved = appointmentRepository.save(appointment);
-        return appointmentMapper.toResponse(saved, loadPatient(patientId));
+        return appointmentMapper.toResponse(saved, loadPatient(patientId),
+                loadCalendarColor(therapistId, patientId));
     }
 
     private void validateRelationship(Long therapistId, Long patientId) {
@@ -114,5 +124,12 @@ public class AppointmentService {
     private User loadPatient(Long patientId) {
         return userRepository.findById(patientId)
                 .orElseThrow(() -> new IllegalArgumentException(PATIENT_NOT_FOUND_PREFIX + patientId));
+    }
+
+    private String loadCalendarColor(Long therapistId, Long patientId) {
+        return therapistPatientRepository.findByTherapistIdAndPatientId(therapistId, patientId)
+                .filter(rel -> rel.getStatus() == TherapistPatientStatus.ACTIVE)
+                .map(TherapistPatient::getCalendarColor)
+                .orElse(null);
     }
 }

@@ -7,6 +7,7 @@ const mockPatients = [
     id: 1,
     name: 'Patient One',
     email: 'patient1@test.com',
+    calendarColor: '#2563eb',
     interviewCount: 3,
     activeGoalCount: 2,
     activityCount: 5,
@@ -16,6 +17,7 @@ const mockPatients = [
     id: 2,
     name: 'Patient Two',
     email: 'patient2@test.com',
+    calendarColor: null,
     interviewCount: 1,
     activeGoalCount: 0,
     activityCount: 2,
@@ -86,6 +88,7 @@ vi.mock('@/services/api', () => ({
 describe('useTherapistStore', () => {
   let api: {
     get: ReturnType<typeof vi.fn>
+    put: ReturnType<typeof vi.fn>
   }
 
   beforeEach(async () => {
@@ -190,6 +193,27 @@ describe('useTherapistStore', () => {
       store.clearError()
 
       expect(store.error).toBeNull()
+    })
+  })
+
+  describe('setPatientCalendarColor', () => {
+    it('saves the selected color and updates the cached patient list', async () => {
+      api.put.mockResolvedValueOnce({
+        data: {
+          ...mockPatients[0],
+          calendarColor: '#10b981',
+        },
+      })
+
+      const store = useTherapistStore()
+      store.patients = mockPatients
+
+      await store.setPatientCalendarColor(1, '#10b981')
+
+      expect(api.put).toHaveBeenCalledWith('/therapist/patients/1/calendar-color', {
+        calendarColor: '#10b981',
+      })
+      expect(store.patients[0].calendarColor).toBe('#10b981')
     })
   })
 })
