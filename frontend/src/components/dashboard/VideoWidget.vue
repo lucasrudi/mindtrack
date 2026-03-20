@@ -6,7 +6,21 @@ const props = defineProps<{
   items: ContentItem[]
 }>()
 
-const currentIndex = ref(Math.floor(Math.random() * Math.max(props.items.length, 1)))
+function getRandomIndex(length: number) {
+  if (length <= 1) return 0
+
+  const randomValue = new Uint32Array(1)
+  const maxUint32Exclusive = 0x1_0000_0000
+  const unbiasedUpperBound = maxUint32Exclusive - (maxUint32Exclusive % length)
+
+  do {
+    crypto.getRandomValues(randomValue)
+  } while (randomValue[0] >= unbiasedUpperBound)
+
+  return randomValue[0] % length
+}
+
+const currentIndex = ref(getRandomIndex(props.items.length))
 
 const current = computed(() => props.items[currentIndex.value] ?? null)
 
@@ -29,7 +43,6 @@ function next() {
         <iframe
           :src="`https://www.youtube-nocookie.com/embed/${current.url}`"
           :title="current.title"
-          frameborder="0"
           allow="
             accelerometer;
             autoplay;
@@ -89,6 +102,7 @@ function next() {
   left: 0;
   width: 100%;
   height: 100%;
+  border: 0;
   border-radius: var(--border-radius);
 }
 

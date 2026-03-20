@@ -51,12 +51,10 @@ export const useAuthStore = defineStore('auth', () => {
       return
     }
 
-    if (!bootstrapPromise) {
-      bootstrapPromise = fetchCurrentUser().finally(() => {
-        hasBootstrapped.value = true
-        bootstrapPromise = null
-      })
-    }
+    bootstrapPromise ??= fetchCurrentUser().finally(() => {
+      hasBootstrapped.value = true
+      bootstrapPromise = null
+    })
 
     await bootstrapPromise
   }
