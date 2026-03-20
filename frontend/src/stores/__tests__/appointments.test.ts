@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useAppointmentStore } from '../appointments'
+import type { AppointmentSummary } from '../appointments'
 
-const mockAppointments = [
+const mockAppointments: AppointmentSummary[] = [
   {
     id: 1,
     therapistId: 3,
