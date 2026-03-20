@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useTherapistStore } from '@/stores/therapist'
-import { useAppointmentStore, type AppointmentSummary } from '@/stores/appointments'
+import {
+  useAppointmentStore,
+  type AppointmentSummary,
+  type CancellationScope,
+} from '@/stores/appointments'
+import AppointmentCancelModal from '@/components/AppointmentCancelModal.vue'
 
 const therapistStore = useTherapistStore()
 const appointmentStore = useAppointmentStore()
@@ -16,9 +21,40 @@ const form = reactive({
   reason: '',
   notes: '',
   calendarColor: CALENDAR_COLORS[0],
+  repeatWeekly: false,
+  recurrenceCount: 12,
+  recurrenceEndDate: '',
 })
 
 const submitError = ref<string | null>(null)
+
+const cancelModal = reactive({
+  show: false,
+  appointmentId: null as number | null,
+  isSeries: false,
+})
+
+function openCancelModal(appointment: AppointmentSummary) {
+  cancelModal.appointmentId = appointment.id
+  cancelModal.isSeries = appointment.seriesId !== null
+  cancelModal.show = true
+}
+
+function closeCancelModal() {
+  cancelModal.show = false
+  cancelModal.appointmentId = null
+  cancelModal.isSeries = false
+}
+
+async function confirmCancel(scope: CancellationScope) {
+  if (cancelModal.appointmentId === null) return
+  try {
+    await appointmentStore.cancelAppointment(cancelModal.appointmentId, scope)
+  } catch {
+    // Store-level error handles the failure state.
+  }
+  closeCancelModal()
+}
 
 onMounted(async () => {
   form.date = formatInputDate(new Date())
@@ -159,26 +195,27 @@ async function submitBooking() {
     return
   }
 
-  const startDate = new Date(`${form.date}T${form.time}:00`)
-  const endDate = new Date(startDate.getTime() + form.durationMinutes * 60_000)
-
   try {
     if (selectedPatient.value?.calendarColor !== form.calendarColor) {
       await persistCalendarColor(form.calendarColor)
     }
     await appointmentStore.bookAppointment(Number(form.patientId), {
       startAt: buildDateTime(form.date, form.time),
-      endAt: buildDateTime(
-        formatInputDate(endDate),
-        `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`,
-      ),
+      durationMinutes: form.durationMinutes,
       reason: form.reason.trim(),
       notes: form.notes.trim(),
+      recurrence: form.repeatWeekly ? 'WEEKLY' : 'NONE',
+      recurrenceCount: form.repeatWeekly ? form.recurrenceCount : undefined,
+      recurrenceEndDate:
+        form.repeatWeekly && form.recurrenceEndDate ? form.recurrenceEndDate : undefined,
     })
     form.reason = ''
     form.notes = ''
     form.time = '09:00'
     form.durationMinutes = 50
+    form.repeatWeekly = false
+    form.recurrenceCount = 12
+    form.recurrenceEndDate = ''
   } catch {
     // Store-level error handles the failure state.
   }
@@ -292,12 +329,28 @@ async function submitBooking() {
           <label class="field">
             <span>Duration</span>
             <select v-model.number="form.durationMinutes">
-              <option :value="30">30 minutes</option>
-              <option :value="45">45 minutes</option>
-              <option :value="50">50 minutes</option>
-              <option :value="60">60 minutes</option>
+              <option :value="30">30 min</option>
+              <option :value="45">45 min</option>
+              <option :value="50">50 min (standard)</option>
+              <option :value="60">60 min</option>
             </select>
           </label>
+
+          <label class="field field-inline">
+            <input v-model="form.repeatWeekly" type="checkbox" />
+            <span>Repeat weekly</span>
+          </label>
+
+          <div v-if="form.repeatWeekly" class="recurrence-options">
+            <label class="field">
+              <span>End after (weeks)</span>
+              <input v-model.number="form.recurrenceCount" type="number" min="1" max="104" />
+            </label>
+            <label class="field">
+              <span>Or end by date</span>
+              <input v-model="form.recurrenceEndDate" type="date" />
+            </label>
+          </div>
 
           <label class="field">
             <span>Reason</span>
@@ -368,8 +421,19 @@ async function submitBooking() {
                   <h4>
                     <span class="patient-swatch" aria-hidden="true"></span>
                     {{ appointment.patientName }}
+                    <span v-if="appointment.seriesId" class="series-badge" title="Recurring"
+                      >&#8635;</span
+                    >
                   </h4>
                   <p class="appointment-reason">{{ appointment.reason || 'No reason supplied' }}</p>
+                  <button
+                    v-if="appointment.status === 'SCHEDULED'"
+                    class="btn-cancel-appointment"
+                    type="button"
+                    @click="openCancelModal(appointment)"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </article>
             </div>
@@ -403,6 +467,9 @@ async function submitBooking() {
                   <h4>
                     <span class="patient-swatch" aria-hidden="true"></span>
                     {{ appointment.patientName }}
+                    <span v-if="appointment.seriesId" class="series-badge" title="Recurring"
+                      >&#8635;</span
+                    >
                   </h4>
                   <p class="appointment-reason">{{ appointment.reason || 'No reason supplied' }}</p>
                 </div>
@@ -412,6 +479,13 @@ async function submitBooking() {
         </div>
       </section>
     </div>
+
+    <AppointmentCancelModal
+      :show="cancelModal.show"
+      :is-series="cancelModal.isSeries"
+      @confirm="confirmCancel"
+      @cancel="closeCancelModal"
+    />
   </div>
 </template>
 
@@ -769,6 +843,57 @@ async function submitBooking() {
   padding: var(--space-4);
 }
 
+.field-inline {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.field-inline input[type='checkbox'] {
+  width: auto;
+  height: 18px;
+  accent-color: #fbbf24;
+}
+
+.recurrence-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.series-badge {
+  margin-left: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: #93c5fd;
+  opacity: 0.8;
+}
+
+.btn-cancel-appointment {
+  align-self: start;
+  margin-top: var(--space-2);
+  padding: 0.25rem 0.7rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: #fecaca;
+  background: rgba(220, 38, 38, 0.12);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: var(--border-radius-full);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.btn-cancel-appointment:hover {
+  background: rgba(220, 38, 38, 0.22);
+  border-color: rgba(220, 38, 38, 0.5);
+}
+
 @media (max-width: 960px) {
   .hero-panel,
   .calendar-layout,
@@ -780,7 +905,8 @@ async function submitBooking() {
     grid-template-columns: 1fr;
   }
 
-  .field-grid {
+  .field-grid,
+  .recurrence-options {
     grid-template-columns: 1fr;
   }
 }

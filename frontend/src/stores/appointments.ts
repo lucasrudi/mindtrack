@@ -15,21 +15,31 @@ export interface AppointmentSummary {
   reason: string | null
   notes: string | null
   durationMinutes: number
+  recurrenceRule: string | null
+  seriesId: string | null
+  seriesIndex: number | null
   createdAt: string
   updatedAt: string
 }
 
+export type RecurrenceType = 'NONE' | 'WEEKLY'
+export type CancellationScope = 'SINGLE' | 'THIS_AND_FOLLOWING' | 'ALL_IN_SERIES'
+
 export interface AppointmentBookingRequest {
   startAt: string
-  endAt: string
+  durationMinutes: number
   reason: string
   notes: string
+  recurrence: RecurrenceType
+  recurrenceCount?: number
+  recurrenceEndDate?: string
 }
 
 export const useAppointmentStore = defineStore('appointments', () => {
   const appointments = ref<AppointmentSummary[]>([])
   const loading = ref(false)
   const booking = ref(false)
+  const cancelling = ref(false)
   const error = ref<string | null>(null)
   const notice = ref<string | null>(null)
 
@@ -56,13 +66,58 @@ export const useAppointmentStore = defineStore('appointments', () => {
       appointments.value = [...appointments.value, response.data].sort((left, right) =>
         left.startAt.localeCompare(right.startAt),
       )
-      notice.value = 'Appointment booked'
+      notice.value =
+        request.recurrence === 'WEEKLY' ? 'Recurring series booked' : 'Appointment booked'
       return response.data
     } catch (err) {
       error.value = 'Failed to book appointment'
       throw err
     } finally {
       booking.value = false
+    }
+  }
+
+  async function cancelAppointment(appointmentId: number, scope: CancellationScope) {
+    cancelling.value = true
+    error.value = null
+    notice.value = null
+    try {
+      await api.delete(`/therapist/appointments/${appointmentId}`, { params: { scope } })
+      if (scope === 'ALL_IN_SERIES') {
+        const target = appointments.value.find((a) => a.id === appointmentId)
+        const seriesId = target?.seriesId ?? null
+        appointments.value = appointments.value.map((a) =>
+          a.seriesId !== null && a.seriesId === seriesId
+            ? { ...a, status: 'CANCELLED' as const }
+            : a,
+        )
+      } else if (scope === 'THIS_AND_FOLLOWING') {
+        const target = appointments.value.find((a) => a.id === appointmentId)
+        const seriesId = target?.seriesId ?? null
+        const fromIndex = target?.seriesIndex ?? null
+        appointments.value = appointments.value.map((a) => {
+          if (
+            a.seriesId !== null &&
+            a.seriesId === seriesId &&
+            a.seriesIndex !== null &&
+            fromIndex !== null &&
+            a.seriesIndex >= fromIndex
+          ) {
+            return { ...a, status: 'CANCELLED' as const }
+          }
+          return a
+        })
+      } else {
+        appointments.value = appointments.value.map((a) =>
+          a.id === appointmentId ? { ...a, status: 'CANCELLED' as const } : a,
+        )
+      }
+      notice.value = 'Appointment cancelled'
+    } catch (err) {
+      error.value = 'Failed to cancel appointment'
+      throw err
+    } finally {
+      cancelling.value = false
     }
   }
 
@@ -84,10 +139,12 @@ export const useAppointmentStore = defineStore('appointments', () => {
     appointments,
     loading,
     booking,
+    cancelling,
     error,
     notice,
     fetchAppointments,
     bookAppointment,
+    cancelAppointment,
     updatePatientCalendarColor,
     clearNotice,
     clearError,

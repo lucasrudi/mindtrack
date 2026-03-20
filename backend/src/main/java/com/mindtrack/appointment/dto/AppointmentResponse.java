@@ -20,6 +20,9 @@ public class AppointmentResponse {
     private String reason;
     private String notes;
     private long durationMinutes;
+    private String recurrenceRule;
+    private String seriesId;
+    private Integer seriesIndex;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -120,6 +123,30 @@ public class AppointmentResponse {
 
     public void setDurationMinutes(long durationMinutes) {
         this.durationMinutes = durationMinutes;
+    }
+
+    public String getRecurrenceRule() {
+        return recurrenceRule;
+    }
+
+    public void setRecurrenceRule(String recurrenceRule) {
+        this.recurrenceRule = recurrenceRule;
+    }
+
+    public String getSeriesId() {
+        return seriesId;
+    }
+
+    public void setSeriesId(String seriesId) {
+        this.seriesId = seriesId;
+    }
+
+    public Integer getSeriesIndex() {
+        return seriesIndex;
+    }
+
+    public void setSeriesIndex(Integer seriesIndex) {
+        this.seriesIndex = seriesIndex;
     }
 
     public LocalDateTime getCreatedAt() {

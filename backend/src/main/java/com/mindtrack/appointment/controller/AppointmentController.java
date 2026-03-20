@@ -2,6 +2,7 @@ package com.mindtrack.appointment.controller;
 
 import com.mindtrack.appointment.dto.AppointmentRequest;
 import com.mindtrack.appointment.dto.AppointmentResponse;
+import com.mindtrack.appointment.model.CancellationScope;
 import com.mindtrack.appointment.service.AppointmentService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -9,11 +10,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -40,7 +43,7 @@ public class AppointmentController {
     }
 
     /**
-     * Books a new appointment for a therapist-patient pair.
+     * Books a new appointment (single or recurring series) for a therapist-patient pair.
      */
     @PostMapping("/patients/{patientId}/appointments")
     public ResponseEntity<AppointmentResponse> bookAppointment(
@@ -50,5 +53,19 @@ public class AppointmentController {
         Long therapistId = (Long) authentication.getPrincipal();
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(appointmentService.bookAppointment(therapistId, patientId, request));
+    }
+
+    /**
+     * Cancels an appointment. The scope controls whether only this occurrence,
+     * this and all following, or all in the series are cancelled.
+     */
+    @DeleteMapping("/appointments/{id}")
+    public ResponseEntity<Void> cancelAppointment(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "SINGLE") CancellationScope scope,
+            Authentication authentication) {
+        Long therapistId = (Long) authentication.getPrincipal();
+        appointmentService.cancelAppointment(id, therapistId, scope);
+        return ResponseEntity.noContent().build();
     }
 }
