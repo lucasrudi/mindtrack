@@ -31,15 +31,18 @@ public class AppointmentService {
     private final TherapistPatientRepository therapistPatientRepository;
     private final UserRepository userRepository;
     private final AppointmentMapper appointmentMapper;
+    private final AppointmentNotificationService appointmentNotificationService;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
                               TherapistPatientRepository therapistPatientRepository,
                               UserRepository userRepository,
-                              AppointmentMapper appointmentMapper) {
+                              AppointmentMapper appointmentMapper,
+                              AppointmentNotificationService appointmentNotificationService) {
         this.appointmentRepository = appointmentRepository;
         this.therapistPatientRepository = therapistPatientRepository;
         this.userRepository = userRepository;
         this.appointmentMapper = appointmentMapper;
+        this.appointmentNotificationService = appointmentNotificationService;
     }
 
     /**
@@ -79,9 +82,13 @@ public class AppointmentService {
         appointment.setReason(request.getReason());
         appointment.setNotes(request.getNotes());
 
+        User patient = loadUser(patientId, PATIENT_NOT_FOUND_PREFIX);
         Appointment saved = appointmentRepository.save(appointment);
-        return appointmentMapper.toResponse(saved, loadPatient(patientId),
-                loadCalendarColor(therapistId, patientId));
+        appointmentNotificationService.notifyPatientAboutBooking(
+                saved,
+                loadUser(therapistId, "Therapist not found: "),
+                patient);
+        return appointmentMapper.toResponse(saved, patient, loadCalendarColor(therapistId, patientId));
     }
 
     private void validateRelationship(Long therapistId, Long patientId) {
@@ -122,8 +129,12 @@ public class AppointmentService {
     }
 
     private User loadPatient(Long patientId) {
-        return userRepository.findById(patientId)
-                .orElseThrow(() -> new IllegalArgumentException(PATIENT_NOT_FOUND_PREFIX + patientId));
+        return loadUser(patientId, PATIENT_NOT_FOUND_PREFIX);
+    }
+
+    private User loadUser(Long userId, String notFoundPrefix) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException(notFoundPrefix + userId));
     }
 
     private String loadCalendarColor(Long therapistId, Long patientId) {

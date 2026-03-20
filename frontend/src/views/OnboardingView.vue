@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { useProfileStore } from '@/stores/profile'
 
 const router = useRouter()
+const auth = useAuthStore()
 const profileStore = useProfileStore()
 const mode = ref<'choose' | 'survey' | 'done'>('choose')
 
@@ -65,7 +67,7 @@ async function submitSurvey() {
       lifeAreas: lifeAreas.value,
     })
     mode.value = 'done'
-    setTimeout(() => router.push({ name: 'dashboard' }), 1500)
+    setTimeout(() => router.push({ name: auth.homeRouteName }), 1500)
   } catch {
     error.value = 'Something went wrong. Please try again.'
   } finally {
@@ -78,7 +80,7 @@ async function skipSurvey() {
   error.value = null
   try {
     await profileStore.skipSurvey()
-    router.push({ name: 'dashboard' })
+    router.push({ name: auth.homeRouteName })
   } catch {
     error.value = 'Something went wrong. Please try again.'
   } finally {
