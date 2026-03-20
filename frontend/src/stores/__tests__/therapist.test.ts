@@ -104,6 +104,7 @@ describe('useTherapistStore', () => {
 
       expect(api.get).toHaveBeenCalledWith('/therapist/patients')
       expect(store.patients).toEqual(mockPatients)
+      expect(store.patientsLoading).toBe(false)
       expect(store.loading).toBe(false)
     })
 
@@ -116,10 +117,12 @@ describe('useTherapistStore', () => {
       const store = useTherapistStore()
 
       const fetchPromise = store.fetchPatients()
+      expect(store.patientsLoading).toBe(true)
       expect(store.loading).toBe(true)
 
       resolvePromise!({ data: mockPatients })
       await fetchPromise
+      expect(store.patientsLoading).toBe(false)
       expect(store.loading).toBe(false)
     })
 
@@ -128,7 +131,9 @@ describe('useTherapistStore', () => {
       const store = useTherapistStore()
 
       await expect(store.fetchPatients()).rejects.toThrow()
+      expect(store.patientsError).toBe('Failed to load patients')
       expect(store.error).toBe('Failed to load patients')
+      expect(store.patientsLoading).toBe(false)
       expect(store.loading).toBe(false)
     })
   })
@@ -142,6 +147,7 @@ describe('useTherapistStore', () => {
 
       expect(api.get).toHaveBeenCalledWith('/therapist/patients/1')
       expect(store.currentPatient).toEqual(mockPatientDetail)
+      expect(store.detailLoading).toBe(false)
       expect(store.loading).toBe(false)
     })
 
@@ -154,10 +160,12 @@ describe('useTherapistStore', () => {
       const store = useTherapistStore()
 
       const fetchPromise = store.fetchPatientDetail(1)
+      expect(store.detailLoading).toBe(true)
       expect(store.loading).toBe(true)
 
       resolvePromise!({ data: mockPatientDetail })
       await fetchPromise
+      expect(store.detailLoading).toBe(false)
       expect(store.loading).toBe(false)
     })
 
@@ -166,19 +174,23 @@ describe('useTherapistStore', () => {
       const store = useTherapistStore()
 
       await expect(store.fetchPatientDetail(999)).rejects.toThrow()
+      expect(store.detailError).toBe('Failed to load patient details')
       expect(store.error).toBe('Failed to load patient details')
+      expect(store.detailLoading).toBe(false)
       expect(store.loading).toBe(false)
     })
   })
 
   describe('clearPatient', () => {
-    it('clears current patient', () => {
+    it('clears current patient and detail error', () => {
       const store = useTherapistStore()
       store.currentPatient = mockPatientDetail
+      store.detailError = 'Failed to load patient details'
 
       store.clearPatient()
 
       expect(store.currentPatient).toBeNull()
+      expect(store.detailError).toBeNull()
     })
   })
 
@@ -186,10 +198,14 @@ describe('useTherapistStore', () => {
     it('clears the error state', () => {
       const store = useTherapistStore()
       store.error = 'Some error'
+      store.patientsError = 'Patient list error'
+      store.detailError = 'Patient detail error'
 
       store.clearError()
 
       expect(store.error).toBeNull()
+      expect(store.patientsError).toBeNull()
+      expect(store.detailError).toBeNull()
     })
   })
 })

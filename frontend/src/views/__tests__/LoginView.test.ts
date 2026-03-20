@@ -6,6 +6,7 @@ const replaceMock = vi.fn()
 const authState = vi.hoisted(() => ({
   isAuthenticated: false,
   fetchCurrentUser: vi.fn(),
+  homeRouteName: 'dashboard',
 }))
 
 vi.mock('vue-router', () => ({
@@ -20,6 +21,7 @@ describe('LoginView', () => {
   beforeEach(() => {
     replaceMock.mockReset()
     authState.isAuthenticated = false
+    authState.homeRouteName = 'dashboard'
     authState.fetchCurrentUser.mockReset().mockResolvedValue(undefined)
   })
 
@@ -37,7 +39,7 @@ describe('LoginView', () => {
     await flushPromises()
 
     expect(authState.fetchCurrentUser).toHaveBeenCalled()
-    expect(replaceMock).toHaveBeenCalledWith('/dashboard')
+    expect(replaceMock).toHaveBeenCalledWith({ name: 'dashboard' })
   })
 
   it('redirects unauthenticated users back to landing', async () => {
