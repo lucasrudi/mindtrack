@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+import { flushPromises } from '@vue/test-utils'
 import { useAnalyticsStore } from '../analytics'
+import { clearDashboardSessionCache } from '../dashboardSessionCache'
 
 vi.mock('@/services/api', () => ({
   default: {
@@ -41,6 +43,7 @@ describe('useAnalyticsStore', () => {
     const module = await import('@/services/api')
     api = module.default as unknown as typeof api
     vi.clearAllMocks()
+    clearDashboardSessionCache()
   })
 
   describe('fetchSummary', () => {
@@ -179,6 +182,63 @@ describe('useAnalyticsStore', () => {
 
       expect(store.loading).toBe(false)
       expect(store.error).toBe('Failed to load dashboard summary')
+    })
+
+    it('uses cached dashboard data first and revalidates in the background', async () => {
+      api.get.mockResolvedValueOnce({ data: mockSummary })
+      api.get.mockResolvedValueOnce({ data: mockMoodTrends })
+      api.get.mockResolvedValueOnce({ data: mockActivityStats })
+      api.get.mockResolvedValueOnce({ data: mockGoalProgress })
+      api.get.mockResolvedValueOnce({ data: [] })
+
+      const primingStore = useAnalyticsStore()
+      await primingStore.fetchAll()
+
+      const refreshedSummary = { ...mockSummary, totalJournalEntries: 8 }
+      const refreshedMoodTrends = [
+        ...mockMoodTrends,
+        { date: '2025-01-15', averageMood: 9, entryCount: 1 },
+      ]
+      const refreshedActivityStats = [
+        ...mockActivityStats,
+        { activityType: 'MEDITATION', totalLogs: 2, completedLogs: 2, completionRate: 100 },
+      ]
+      const refreshedGoalProgress = [...mockGoalProgress, { status: 'PAUSED', count: 1 }]
+      const refreshedContent = [
+        {
+          type: 'TIP',
+          title: 'Refreshed tip',
+          body: 'Fresh dashboard content',
+          category: 'General',
+          url: null,
+          sourceType: null,
+          sourceLabel: null,
+        },
+      ]
+
+      setActivePinia(createPinia())
+      vi.clearAllMocks()
+      api.get.mockResolvedValueOnce({ data: refreshedSummary })
+      api.get.mockResolvedValueOnce({ data: refreshedMoodTrends })
+      api.get.mockResolvedValueOnce({ data: refreshedActivityStats })
+      api.get.mockResolvedValueOnce({ data: refreshedGoalProgress })
+      api.get.mockResolvedValueOnce({ data: refreshedContent })
+
+      const cachedStore = useAnalyticsStore()
+      const fetchPromise = cachedStore.fetchAll()
+
+      expect(cachedStore.summary).toEqual(mockSummary)
+      expect(cachedStore.loading).toBe(false)
+
+      await fetchPromise
+      await flushPromises()
+
+      expect(api.get).toHaveBeenCalledTimes(5)
+      expect(cachedStore.summary).toEqual(refreshedSummary)
+      expect(cachedStore.moodTrends).toEqual(refreshedMoodTrends)
+      expect(cachedStore.activityStats).toEqual(refreshedActivityStats)
+      expect(cachedStore.goalProgress).toEqual(refreshedGoalProgress)
+      expect(cachedStore.contentItems).toEqual(refreshedContent)
     })
   })
 

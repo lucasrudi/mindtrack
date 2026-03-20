@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+import { flushPromises } from '@vue/test-utils'
 import { useActivitiesStore } from '../activities'
+import { clearDashboardSessionCache } from '../dashboardSessionCache'
 
 const mockActivities = [
   {
@@ -51,6 +53,7 @@ describe('useActivitiesStore', () => {
     const module = await import('@/services/api')
     api = module.default as unknown as typeof api
     vi.clearAllMocks()
+    clearDashboardSessionCache()
   })
 
   it('initializes with empty state', () => {
@@ -255,5 +258,43 @@ describe('useActivitiesStore', () => {
     store.error = 'Some error'
     store.clearError()
     expect(store.error).toBeNull()
+  })
+
+  it('uses cached checklist first and refreshes it in the background', async () => {
+    const checklistData = [
+      {
+        activityId: 1,
+        activityName: 'Morning jog',
+        activityType: 'EXERCISE',
+        date: '2025-01-15',
+        logId: null,
+        completed: false,
+        notes: null,
+        moodRating: null,
+      },
+    ]
+    api.get.mockResolvedValueOnce({ data: checklistData })
+    const primingStore = useActivitiesStore()
+    await primingStore.fetchChecklist('2025-01-15')
+
+    const refreshedChecklist = [
+      { ...checklistData[0], logId: 10, completed: true, notes: 'Done', moodRating: 8 },
+    ]
+
+    setActivePinia(createPinia())
+    vi.clearAllMocks()
+    api.get.mockResolvedValueOnce({ data: refreshedChecklist })
+
+    const cachedStore = useActivitiesStore()
+    const fetchPromise = cachedStore.fetchChecklist('2025-01-15')
+
+    expect(cachedStore.checklist).toEqual(checklistData)
+    expect(cachedStore.loading).toBe(false)
+
+    await fetchPromise
+    await flushPromises()
+
+    expect(api.get).toHaveBeenCalledTimes(1)
+    expect(cachedStore.checklist).toEqual(refreshedChecklist)
   })
 })

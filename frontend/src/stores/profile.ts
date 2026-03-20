@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import api from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
+import { getCachedProfile, setCachedProfile } from './dashboardSessionCache'
 
 export interface NotificationPrefs {
   emailNotifications?: boolean
@@ -42,19 +43,47 @@ export const useProfileStore = defineStore('profile', () => {
   const loading = ref(false)
   const saving = ref(false)
   const error = ref<string | null>(null)
+  let refreshToken = 0
 
-  async function fetchProfile() {
-    loading.value = true
-    error.value = null
+  async function refreshProfileSilently(token: number) {
     try {
       const response = await api.get('/profile')
+      if (token !== refreshToken) return
       profile.value = response.data
+      setCachedProfile(profile.value)
+      error.value = null
+    } catch {
+      // Keep cached profile visible if background refresh fails.
+    }
+  }
+
+  async function fetchProfile() {
+    error.value = null
+
+    const cached = getCachedProfile()
+    const token = ++refreshToken
+
+    if (cached) {
+      profile.value = cached
+      loading.value = false
+      void refreshProfileSilently(token)
+      return cached
+    }
+
+    loading.value = true
+    try {
+      const response = await api.get('/profile')
+      if (token !== refreshToken) return response.data
+      profile.value = response.data
+      setCachedProfile(profile.value)
       return response.data
     } catch (err) {
       error.value = 'Failed to load profile'
       throw err
     } finally {
-      loading.value = false
+      if (token === refreshToken) {
+        loading.value = false
+      }
     }
   }
 
@@ -64,6 +93,7 @@ export const useProfileStore = defineStore('profile', () => {
     try {
       const response = await api.put('/profile', form)
       profile.value = response.data
+      setCachedProfile(profile.value)
       return response.data
     } catch (err) {
       error.value = 'Failed to save profile'
@@ -89,6 +119,7 @@ export const useProfileStore = defineStore('profile', () => {
       if (profile.value) {
         profile.value.surveyCompleted = true
         profile.value.onboardingCompleted = true
+        setCachedProfile(profile.value)
       }
     } catch (err) {
       error.value = 'Failed to submit survey'
@@ -105,6 +136,7 @@ export const useProfileStore = defineStore('profile', () => {
       await api.post('/onboarding/skip')
       if (profile.value) {
         profile.value.onboardingCompleted = true
+        setCachedProfile(profile.value)
       }
     } catch (err) {
       error.value = 'Failed to skip survey'
@@ -124,6 +156,7 @@ export const useProfileStore = defineStore('profile', () => {
       if (profile.value) {
         profile.value.isPatient = isPatient
         profile.value.isTherapist = isTherapist
+        setCachedProfile(profile.value)
       }
     } catch (err) {
       error.value = 'Failed to update roles'
@@ -140,6 +173,7 @@ export const useProfileStore = defineStore('profile', () => {
       await api.post('/ai/consent')
       if (profile.value) {
         profile.value.aiConsentGiven = true
+        setCachedProfile(profile.value)
       }
     } catch (err) {
       error.value = 'Failed to record AI consent'
