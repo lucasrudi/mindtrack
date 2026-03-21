@@ -139,6 +139,10 @@ Commit/PR title format: `type(scope): description` — standard Conventional Com
 
 **Required secrets:** `ANTHROPIC_API_KEY` (code review), `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` (GitHub config sync), `SNYK_TOKEN`, `SONAR_TOKEN`.
 
+**Token permissions:**
+- `GH_CONFIG_TOKEN` — PAT used by Renovate and release-please so their PRs trigger CI workflows. Required scopes: `Contents`, `Pull requests`, `Workflows`, **`Issues`** (write). The `Issues` scope is needed so Renovate can add labels to PRs and to the Dependency Dashboard issue. Missing this scope causes "Error while adding labels" in the Renovate dashboard.
+- `RELEASE_TOKEN` — PAT used by release-please. Required scopes: `Contents`, `Pull requests`, `Workflows`.
+
 ## Versioning
 
 Uses release-please with Conventional Commits. Backend, frontend, and infra versioned independently.
