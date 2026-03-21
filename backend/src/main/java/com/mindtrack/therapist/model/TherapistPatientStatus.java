@@ -6,5 +6,6 @@ package com.mindtrack.therapist.model;
 public enum TherapistPatientStatus {
     PENDING,
     ACTIVE,
-    INACTIVE
+    INACTIVE,
+    EXPIRED
 }

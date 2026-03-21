@@ -8,6 +8,7 @@ const requestEmail = ref('')
 const requestLink = ref<string | null>(null)
 const requestMessage = ref<string | null>(null)
 const requesting = ref(false)
+const copyFeedback = ref(false)
 const selectedPatientId = ref<number | null>(null)
 
 const overviewCards = computed(() => {
@@ -159,6 +160,19 @@ function isSelectedPatient(patientId: number): boolean {
   return selectedPatientId.value === patientId
 }
 
+async function copyLink() {
+  if (!requestLink.value) return
+  try {
+    await navigator.clipboard.writeText(requestLink.value)
+    copyFeedback.value = true
+    setTimeout(() => {
+      copyFeedback.value = false
+    }, 2000)
+  } catch {
+    copyFeedback.value = false
+  }
+}
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '-'
   const date = new Date(dateStr)
@@ -228,9 +242,12 @@ function statusClass(status: string): string {
         </button>
       </div>
       <p v-if="requestMessage" class="request-message">{{ requestMessage }}</p>
-      <a v-if="requestLink" class="request-link" :href="requestLink" target="_blank">
-        Open request link
-      </a>
+      <div v-if="requestLink" class="request-link-row">
+        <a class="request-link" :href="requestLink" target="_blank">Open request link</a>
+        <button class="btn btn-secondary btn-sm" data-testid="copy-link-btn" @click="copyLink">
+          {{ copyFeedback ? 'Copied!' : 'Copy link' }}
+        </button>
+      </div>
     </section>
 
     <section v-if="!store.currentPatient" class="pending-panel">

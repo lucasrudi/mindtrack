@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useAnalyticsStore } from '@/stores/analytics'
 import { useProfileStore } from '@/stores/profile'
 import { useGoalsStore } from '@/stores/goals'
+import { usePatientStore } from '@/stores/patient'
 import { useTutorial } from '@/composables/useTutorial'
 import MoodTrendChart from '@/components/charts/MoodTrendChart.vue'
 import ActivityCompletionChart from '@/components/charts/ActivityCompletionChart.vue'
@@ -15,10 +16,12 @@ import MoodEntryWidget from '@/components/dashboard/MoodEntryWidget.vue'
 import ResourcesWidget from '@/components/dashboard/ResourcesWidget.vue'
 import WellbeingWidget from '@/components/dashboard/WellbeingWidget.vue'
 import VideoWidget from '@/components/dashboard/VideoWidget.vue'
+import TherapistRequestsWidget from '@/components/dashboard/TherapistRequestsWidget.vue'
 
 const store = useAnalyticsStore()
 const profileStore = useProfileStore()
 const goalsStore = useGoalsStore()
+const patientStore = usePatientStore()
 const { start: startTutorial } = useTutorial()
 const surveyPromptDismissed = ref(sessionStorage.getItem('surveyPromptDismissed') === 'true')
 
@@ -69,9 +72,25 @@ const wellbeingItems = computed(() =>
 )
 const videoItems = computed(() => store.contentItems.filter((i) => i.type === 'VIDEO'))
 
+async function handleAcceptRequest(relationshipId: number) {
+  try {
+    await patientStore.acceptRequest(relationshipId)
+  } catch {
+    // Error state handled by store
+  }
+}
+
+async function handleRejectRequest(relationshipId: number) {
+  try {
+    await patientStore.rejectRequest(relationshipId)
+  } catch {
+    // Error state handled by store
+  }
+}
+
 onMounted(async () => {
   try {
-    await Promise.all([store.fetchAll(), goalsStore.fetchGoals()])
+    await Promise.all([store.fetchAll(), goalsStore.fetchGoals(), patientStore.fetchRequests()])
   } catch {
     // Error state handled by store
   }
@@ -147,6 +166,19 @@ watch(
       <p>{{ store.error }}</p>
       <button class="btn btn-secondary btn-sm" @click="store.clearError()">Dismiss</button>
     </div>
+
+    <section
+      v-if="patientStore.requests.length || patientStore.loading"
+      class="dashboard-section"
+      data-testid="therapist-requests-section"
+    >
+      <TherapistRequestsWidget
+        :requests="patientStore.requests"
+        :loading="patientStore.loading"
+        @accept="handleAcceptRequest"
+        @reject="handleRejectRequest"
+      />
+    </section>
 
     <div v-if="store.loading" class="loading">
       <p>Loading your dashboard...</p>

@@ -13,6 +13,7 @@ import com.mindtrack.therapist.repository.TherapistPatientRepository;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,7 +81,9 @@ public class InviteService {
         TherapistPatient relationship = therapistPatientRepository
                 .findByTherapistIdAndPatientId(therapistId, patient.getId())
                 .orElse(null);
-        if (relationship != null && relationship.getStatus() != TherapistPatientStatus.INACTIVE) {
+        if (relationship != null
+                && relationship.getStatus() != TherapistPatientStatus.INACTIVE
+                && relationship.getStatus() != TherapistPatientStatus.EXPIRED) {
             throw new IllegalArgumentException("Relationship already exists or is pending");
         }
 
@@ -158,14 +161,36 @@ public class InviteService {
     }
 
     /**
-     * Scheduled task that removes expired invite tokens from the database.
+     * Scheduled task that removes expired invite tokens and marks their associated
+     * PENDING therapist-patient relationships as EXPIRED.
      * Runs daily at 03:00 to keep the table free of stale rows.
      */
     @Scheduled(cron = "0 0 3 * * *")
     @Transactional
     public void cleanupExpiredTokens() {
-        inviteTokenRepository.deleteExpiredTokens(LocalDateTime.now());
-        LOG.info("Expired invite tokens cleaned up");
+        LocalDateTime now = LocalDateTime.now();
+
+        List<InviteToken> expiredTokens =
+                inviteTokenRepository.findByExpiresAtBeforeAndUsedAtIsNull(now);
+        int expiredCount = 0;
+        for (InviteToken expiredToken : expiredTokens) {
+            if (expiredToken.getRecipientId() != null) {
+                therapistPatientRepository
+                        .findByTherapistIdAndPatientIdAndStatus(
+                                expiredToken.getInitiatorId(),
+                                expiredToken.getRecipientId(),
+                                TherapistPatientStatus.PENDING)
+                        .ifPresent(relationship -> {
+                            relationship.setStatus(TherapistPatientStatus.EXPIRED);
+                            therapistPatientRepository.save(relationship);
+                        });
+                expiredCount++;
+            }
+        }
+
+        inviteTokenRepository.deleteExpiredTokens(now);
+        LOG.info("Expired invite tokens cleaned up; {} PENDING relationships marked EXPIRED",
+                expiredCount);
     }
 
     private InviteToken findValidToken(String token) {

@@ -233,4 +233,29 @@ describe('TherapistView', () => {
     expect(wrapper.find('.error-message').exists()).toBe(true)
     expect(wrapper.find('.error-message').text()).toContain('Failed to load patients')
   })
+
+  it('shows copy link button after sending a request and copies to clipboard', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.assign(navigator, { clipboard: { writeText } })
+
+    mockGet.mockResolvedValueOnce({ data: mockPatients })
+    mockGet.mockResolvedValueOnce({ data: mockPendingPatients })
+    const wrapper = mount(TherapistView)
+    await flushPromises()
+
+    const requestInput = wrapper.find('input[type="email"]')
+    await requestInput.setValue('newpatient@test.com')
+    await wrapper.find('.request-panel .btn-primary').trigger('click')
+    await flushPromises()
+
+    const copyBtn = wrapper.find('[data-testid="copy-link-btn"]')
+    expect(copyBtn.exists()).toBe(true)
+    expect(copyBtn.text()).toBe('Copy link')
+
+    await copyBtn.trigger('click')
+    await flushPromises()
+
+    expect(writeText).toHaveBeenCalledWith('http://localhost:3000/invite/request-token')
+    expect(copyBtn.text()).toBe('Copied!')
+  })
 })
