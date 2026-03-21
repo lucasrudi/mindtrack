@@ -64,6 +64,7 @@ public class Appointment {
     private Integer seriesIndex;
 
     public Appointment() {
+        // Default constructor required by JPA.
     }
 
     @PrePersist

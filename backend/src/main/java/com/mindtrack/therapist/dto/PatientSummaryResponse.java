@@ -18,27 +18,7 @@ public class PatientSummaryResponse {
     private String status;
 
     public PatientSummaryResponse() {
-    }
-
-    public PatientSummaryResponse(Long id, String name, String email, String calendarColor,
-                                  int interviewCount, int activeGoalCount, int activityCount,
-                                  LocalDateTime lastInterviewDate) {
-        this(id, name, email, calendarColor, interviewCount, activeGoalCount,
-                activityCount, lastInterviewDate, null);
-    }
-
-    public PatientSummaryResponse(Long id, String name, String email, String calendarColor,
-                                  int interviewCount, int activeGoalCount, int activityCount,
-                                  LocalDateTime lastInterviewDate, String status) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.calendarColor = calendarColor;
-        this.interviewCount = interviewCount;
-        this.activeGoalCount = activeGoalCount;
-        this.activityCount = activityCount;
-        this.lastInterviewDate = lastInterviewDate;
-        this.status = status;
+        // Default constructor for JSON serialization.
     }
 
     public Long getId() {

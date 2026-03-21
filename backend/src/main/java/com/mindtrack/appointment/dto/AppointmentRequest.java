@@ -46,6 +46,7 @@ public class AppointmentRequest {
     private Integer recurrenceCount = DEFAULT_RECURRENCE_COUNT;
 
     public AppointmentRequest() {
+        // Default constructor for request deserialization.
     }
 
     public LocalDateTime getStartAt() {

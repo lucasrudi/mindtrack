@@ -304,12 +304,11 @@ async function submitBooking() {
                   type="button"
                   class="color-chip"
                   :class="{ 'color-chip--active': form.calendarColor === color }"
+                  :aria-label="`Choose calendar color ${color}`"
                   :style="{ '--swatch-color': color }"
                   :disabled="!selectedPatient"
                   @click="chooseCalendarColor(color)"
-                >
-                  <span class="sr-only">{{ color }}</span>
-                </button>
+                ></button>
               </div>
             </div>
             <small class="color-hint">Saved per patient and reused on the next booking.</small>
@@ -544,7 +543,7 @@ async function submitBooking() {
 .subtitle {
   max-width: 62ch;
   margin-top: var(--space-4);
-  color: rgba(226, 232, 240, 0.78);
+  color: rgba(226, 232, 240, 0.92);
   line-height: 1.7;
 }
 
@@ -572,7 +571,7 @@ async function submitBooking() {
 }
 
 .stat-label {
-  color: rgba(226, 232, 240, 0.72);
+  color: rgba(226, 232, 240, 0.9);
   font-size: var(--font-size-sm);
 }
 
@@ -646,7 +645,7 @@ async function submitBooking() {
 .field {
   display: grid;
   gap: var(--space-2);
-  color: rgba(226, 232, 240, 0.78);
+  color: rgba(226, 232, 240, 0.92);
 }
 
 .field span {
@@ -716,7 +715,7 @@ async function submitBooking() {
 }
 
 .color-hint {
-  color: rgba(226, 232, 240, 0.58);
+  color: rgba(226, 232, 240, 0.86);
 }
 
 .field-grid {
@@ -799,7 +798,7 @@ async function submitBooking() {
 
 .appointment-reason {
   margin: 0;
-  color: rgba(226, 232, 240, 0.72);
+  color: rgba(226, 232, 240, 0.9);
   line-height: 1.5;
 }
 
@@ -833,7 +832,7 @@ async function submitBooking() {
 
 .empty-state {
   padding: var(--space-6);
-  color: rgba(226, 232, 240, 0.72);
+  color: rgba(226, 232, 240, 0.9);
   text-align: center;
   border: 1px dashed rgba(148, 163, 184, 0.26);
   border-radius: 18px;
