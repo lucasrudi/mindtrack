@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mindtrack.appointment.dto.AppointmentRequest;
 import com.mindtrack.appointment.dto.AppointmentResponse;
 import com.mindtrack.appointment.model.AppointmentStatus;
+import com.mindtrack.appointment.model.CancellationScope;
 import com.mindtrack.appointment.service.AppointmentService;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,8 +22,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -67,7 +71,7 @@ class AppointmentControllerTest {
     void shouldBookAppointment() throws Exception {
         AppointmentRequest request = new AppointmentRequest();
         request.setStartAt(LocalDateTime.of(2026, 4, 20, 10, 0));
-        request.setEndAt(LocalDateTime.of(2026, 4, 20, 10, 50));
+        request.setDurationMinutes(50);
         request.setReason("Weekly check-in");
 
         AppointmentResponse response = new AppointmentResponse();
@@ -83,5 +87,29 @@ class AppointmentControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(5))
                 .andExpect(jsonPath("$.status").value("SCHEDULED"));
+    }
+
+    @Test
+    void shouldCancelSingleAppointmentByDefault() throws Exception {
+        doNothing().when(appointmentService).cancelAppointment(7L, 3L, CancellationScope.SINGLE);
+
+        mockMvc.perform(delete("/api/therapist/appointments/7")
+                        .with(authentication(therapistAuth())))
+                .andExpect(status().isNoContent());
+
+        verify(appointmentService).cancelAppointment(7L, 3L, CancellationScope.SINGLE);
+    }
+
+    @Test
+    void shouldCancelAllInSeriesWhenScopeProvided() throws Exception {
+        doNothing().when(appointmentService)
+                .cancelAppointment(7L, 3L, CancellationScope.ALL_IN_SERIES);
+
+        mockMvc.perform(delete("/api/therapist/appointments/7")
+                        .param("scope", "ALL_IN_SERIES")
+                        .with(authentication(therapistAuth())))
+                .andExpect(status().isNoContent());
+
+        verify(appointmentService).cancelAppointment(7L, 3L, CancellationScope.ALL_IN_SERIES);
     }
 }
