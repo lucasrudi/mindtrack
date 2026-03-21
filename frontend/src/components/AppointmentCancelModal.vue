@@ -25,12 +25,12 @@ function handleCancel() {
 </script>
 
 <template>
-  <div
+  <dialog
     v-if="show"
     class="modal-backdrop"
-    role="dialog"
-    aria-modal="true"
+    open
     aria-labelledby="cancel-modal-title"
+    @cancel.prevent="handleCancel"
   >
     <div class="modal-panel">
       <h3 id="cancel-modal-title">Cancel appointment</h3>
@@ -59,23 +59,27 @@ function handleCancel() {
         </button>
       </div>
     </div>
-  </div>
+  </dialog>
 </template>
 
 <style scoped>
 .modal-backdrop {
-  position: fixed;
-  inset: 0;
   z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: min(420px, 92vw);
+  max-width: none;
+  margin: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+}
+
+.modal-backdrop::backdrop {
   background: rgba(2, 6, 23, 0.7);
   backdrop-filter: blur(4px);
 }
 
 .modal-panel {
-  width: min(420px, 92vw);
   padding: var(--space-6);
   border-radius: 20px;
   background: #0f172a;
@@ -127,9 +131,9 @@ function handleCancel() {
 }
 
 .btn-danger {
-  color: #fecaca;
-  background: rgba(220, 38, 38, 0.2);
-  border: 1px solid rgba(220, 38, 38, 0.4);
+  color: #fff1f2;
+  background: rgba(153, 27, 27, 0.78);
+  border: 1px solid rgba(248, 113, 113, 0.62);
   padding: var(--space-2) var(--space-4);
   border-radius: 12px;
   cursor: pointer;
@@ -139,7 +143,7 @@ function handleCancel() {
 }
 
 .btn-danger:hover {
-  background: rgba(220, 38, 38, 0.32);
-  border-color: rgba(220, 38, 38, 0.6);
+  background: rgba(185, 28, 28, 0.9);
+  border-color: rgba(252, 165, 165, 0.78);
 }
 </style>

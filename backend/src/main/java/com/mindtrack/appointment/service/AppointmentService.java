@@ -92,9 +92,13 @@ public class AppointmentService {
         LocalDateTime endAt = startAt.plusMinutes(request.getDurationMinutes());
         validateConflicts(therapistId, patientId, startAt, endAt);
 
-        Appointment appointment = buildAppointment(therapistId, patientId, startAt, endAt,
-                request.getDurationMinutes(), request.getReason(), request.getNotes(),
-                null, null, null);
+        Appointment appointment = buildAppointment(
+                therapistId,
+                patientId,
+                request,
+                startAt,
+                endAt,
+                RecurrenceContext.none());
 
         User patient = loadUser(patientId, PATIENT_NOT_FOUND_PREFIX);
         Appointment saved = appointmentRepository.save(appointment);
@@ -123,9 +127,13 @@ public class AppointmentService {
                 break;
             }
             LocalDateTime endAt = startAt.plusMinutes(request.getDurationMinutes());
-            occurrences.add(buildAppointment(therapistId, patientId, startAt, endAt,
-                    request.getDurationMinutes(), request.getReason(), request.getNotes(),
-                    RecurrenceType.WEEKLY.name(), seriesId, i));
+            occurrences.add(buildAppointment(
+                    therapistId,
+                    patientId,
+                    request,
+                    startAt,
+                    endAt,
+                    new RecurrenceContext(RecurrenceType.WEEKLY.name(), seriesId, i)));
         }
 
         if (occurrences.isEmpty()) {
@@ -196,22 +204,21 @@ public class AppointmentService {
     }
 
     private Appointment buildAppointment(Long therapistId, Long patientId,
+                                          AppointmentRequest request,
                                           LocalDateTime startAt, LocalDateTime endAt,
-                                          int durationMinutes, String reason, String notes,
-                                          String recurrenceRule, String seriesId,
-                                          Integer seriesIndex) {
+                                          RecurrenceContext recurrenceContext) {
         Appointment appointment = new Appointment();
         appointment.setTherapistId(therapistId);
         appointment.setPatientId(patientId);
         appointment.setStartAt(startAt);
         appointment.setEndAt(endAt);
-        appointment.setDurationMinutes(durationMinutes);
+        appointment.setDurationMinutes(request.getDurationMinutes());
         appointment.setStatus(AppointmentStatus.SCHEDULED);
-        appointment.setReason(reason);
-        appointment.setNotes(notes);
-        appointment.setRecurrenceRule(recurrenceRule);
-        appointment.setSeriesId(seriesId);
-        appointment.setSeriesIndex(seriesIndex);
+        appointment.setReason(request.getReason());
+        appointment.setNotes(request.getNotes());
+        appointment.setRecurrenceRule(recurrenceContext.recurrenceRule());
+        appointment.setSeriesId(recurrenceContext.seriesId());
+        appointment.setSeriesIndex(recurrenceContext.seriesIndex());
         return appointment;
     }
 
@@ -260,5 +267,13 @@ public class AppointmentService {
                 .filter(rel -> rel.getStatus() == TherapistPatientStatus.ACTIVE)
                 .map(TherapistPatient::getCalendarColor)
                 .orElse(null);
+    }
+
+    private record RecurrenceContext(String recurrenceRule, String seriesId,
+                                     Integer seriesIndex) {
+
+        private static RecurrenceContext none() {
+            return new RecurrenceContext(null, null, null);
+        }
     }
 }

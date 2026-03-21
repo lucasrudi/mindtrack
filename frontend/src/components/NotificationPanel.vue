@@ -39,20 +39,20 @@ async function handleClick(id: number, link: string | null) {
     </div>
 
     <ul v-else class="notification-panel__list">
-      <li
-        v-for="notification in notifications.notifications"
-        :key="notification.id"
-        :class="['notification-item', { 'notification-item--unread': !notification.read }]"
-        role="button"
-        tabindex="0"
-        @click="handleClick(notification.id, notification.link)"
-        @keydown.enter="handleClick(notification.id, notification.link)"
-      >
-        <div class="notification-item__title">{{ notification.title }}</div>
-        <div v-if="notification.body" class="notification-item__body">{{ notification.body }}</div>
-        <div class="notification-item__time">
-          {{ new Date(notification.createdAt).toLocaleString() }}
-        </div>
+      <li v-for="notification in notifications.notifications" :key="notification.id">
+        <button
+          type="button"
+          :class="['notification-item', { 'notification-item--unread': !notification.read }]"
+          @click="handleClick(notification.id, notification.link)"
+        >
+          <div class="notification-item__title">{{ notification.title }}</div>
+          <div v-if="notification.body" class="notification-item__body">
+            {{ notification.body }}
+          </div>
+          <div class="notification-item__time">
+            {{ new Date(notification.createdAt).toLocaleString() }}
+          </div>
+        </button>
       </li>
     </ul>
   </div>
@@ -109,15 +109,23 @@ async function handleClick(id: number, link: string | null) {
   padding: 0;
 }
 
-.notification-item {
-  padding: var(--space-3) var(--space-4);
+.notification-panel__list li {
   border-bottom: 1px solid var(--color-gray-100);
-  cursor: pointer;
-  transition: background-color var(--transition-fast);
 }
 
-.notification-item:last-child {
+.notification-panel__list li:last-child {
   border-bottom: none;
+}
+
+.notification-item {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: background-color var(--transition-fast);
 }
 
 .notification-item:hover {

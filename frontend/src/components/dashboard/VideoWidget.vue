@@ -14,7 +14,7 @@ function getSecureRandomIndex(length: number) {
   if (!cryptoApi?.getRandomValues) return 0
 
   const randomValue = new Uint32Array(1)
-  const maxUint32Exclusive = 0x1_0000_0000
+  const maxUint32Exclusive = 2 ** 32
   const unbiasedUpperBound = maxUint32Exclusive - (maxUint32Exclusive % length)
 
   do {
