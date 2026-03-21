@@ -811,23 +811,23 @@ async function submitBooking() {
 }
 
 .status-scheduled {
-  color: #fef3c7;
-  background: rgba(217, 119, 6, 0.16);
+  color: #fffbeb;
+  background: rgba(146, 64, 14, 0.88);
 }
 
 .status-completed {
-  color: #bbf7d0;
-  background: rgba(22, 163, 74, 0.16);
+  color: #f0fdf4;
+  background: rgba(21, 128, 61, 0.86);
 }
 
 .status-cancelled {
-  color: #fecaca;
-  background: rgba(220, 38, 38, 0.16);
+  color: #fff1f2;
+  background: rgba(153, 27, 27, 0.88);
 }
 
 .status-no-show {
-  color: #f5d0fe;
-  background: rgba(147, 51, 234, 0.16);
+  color: #faf5ff;
+  background: rgba(107, 33, 168, 0.88);
 }
 
 .empty-state {
@@ -878,9 +878,9 @@ async function submitBooking() {
   padding: 0.25rem 0.7rem;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
-  color: #fecaca;
-  background: rgba(220, 38, 38, 0.12);
-  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: #fff1f2;
+  background: rgba(153, 27, 27, 0.78);
+  border: 1px solid rgba(248, 113, 113, 0.62);
   border-radius: var(--border-radius-full);
   cursor: pointer;
   transition:
@@ -889,8 +889,8 @@ async function submitBooking() {
 }
 
 .btn-cancel-appointment:hover {
-  background: rgba(220, 38, 38, 0.22);
-  border-color: rgba(220, 38, 38, 0.5);
+  background: rgba(185, 28, 28, 0.9);
+  border-color: rgba(252, 165, 165, 0.78);
 }
 
 @media (max-width: 960px) {

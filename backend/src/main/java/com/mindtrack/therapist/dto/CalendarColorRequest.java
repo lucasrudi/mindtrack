@@ -13,6 +13,7 @@ public class CalendarColorRequest {
     private String calendarColor;
 
     public CalendarColorRequest() {
+        // Default constructor for JSON deserialization.
     }
 
     public String getCalendarColor() {
