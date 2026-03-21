@@ -30,6 +30,9 @@ const appointments = [
     reason: 'Follow-up',
     notes: 'Bring notes',
     durationMinutes: 50,
+    recurrenceRule: null,
+    seriesId: null,
+    seriesIndex: null,
     createdAt: '2026-04-01T10:00:00',
     updatedAt: '2026-04-01T10:00:00',
   },
@@ -45,6 +48,9 @@ const appointments = [
     reason: 'Past session',
     notes: null,
     durationMinutes: 50,
+    recurrenceRule: null,
+    seriesId: null,
+    seriesIndex: null,
     createdAt: '2026-03-01T10:00:00',
     updatedAt: '2026-03-01T10:00:00',
   },
@@ -53,6 +59,7 @@ const appointments = [
 const mockGet = vi.fn()
 const mockPost = vi.fn()
 const mockPut = vi.fn()
+const mockDelete = vi.fn()
 
 vi.mock('@/services/api', () => ({
   default: {
@@ -60,7 +67,7 @@ vi.mock('@/services/api', () => ({
     post: (...args: unknown[]) => mockPost(...args),
     put: (...args: unknown[]) => mockPut(...args),
     patch: vi.fn(),
-    delete: vi.fn(),
+    delete: (...args: unknown[]) => mockDelete(...args),
   },
 }))
 
@@ -70,6 +77,7 @@ describe('TherapistCalendarView', () => {
     mockGet.mockReset()
     mockPost.mockReset()
     mockPut.mockReset()
+    mockDelete.mockReset()
   })
 
   it('renders the appointment agenda', async () => {
@@ -112,9 +120,12 @@ describe('TherapistCalendarView', () => {
 
     expect(mockPost).toHaveBeenCalledWith('/therapist/patients/10/appointments', {
       startAt: '2026-04-22T11:00:00',
-      endAt: '2026-04-22T11:50:00',
+      durationMinutes: 50,
       reason: 'New follow-up',
       notes: 'Bring worksheets',
+      recurrence: 'NONE',
+      recurrenceCount: undefined,
+      recurrenceEndDate: undefined,
     })
     expect(wrapper.text()).toContain('Appointment booked')
   })
@@ -138,5 +149,16 @@ describe('TherapistCalendarView', () => {
     expect(mockPut).toHaveBeenCalledWith('/therapist/patients/10/calendar-color', {
       calendarColor: '#10b981',
     })
+  })
+
+  it('shows the cancel button for scheduled appointments', async () => {
+    mockGet.mockResolvedValueOnce({ data: patients })
+    mockGet.mockResolvedValueOnce({ data: appointments })
+
+    const wrapper = mount(TherapistCalendarView)
+    await flushPromises()
+
+    expect(wrapper.find('.btn-cancel-appointment').exists()).toBe(true)
+    expect(wrapper.find('.btn-cancel-appointment').text()).toBe('Cancel')
   })
 })

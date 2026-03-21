@@ -28,6 +28,9 @@ public class AppointmentMapper {
         response.setNotes(appointment.getNotes());
         response.setDurationMinutes(Duration.between(
                 appointment.getStartAt(), appointment.getEndAt()).toMinutes());
+        response.setRecurrenceRule(appointment.getRecurrenceRule());
+        response.setSeriesId(appointment.getSeriesId());
+        response.setSeriesIndex(appointment.getSeriesIndex());
         response.setCreatedAt(appointment.getCreatedAt());
         response.setUpdatedAt(appointment.getUpdatedAt());
         return response;

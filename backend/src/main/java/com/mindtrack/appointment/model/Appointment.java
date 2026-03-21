@@ -51,6 +51,18 @@ public class Appointment {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "duration_minutes", nullable = false)
+    private int durationMinutes = 50;
+
+    @Column(name = "recurrence_rule")
+    private String recurrenceRule;
+
+    @Column(name = "series_id", length = 36)
+    private String seriesId;
+
+    @Column(name = "series_index")
+    private Integer seriesIndex;
+
     public Appointment() {
         // Default constructor required by JPA.
     }
@@ -145,5 +157,37 @@ public class Appointment {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public int getDurationMinutes() {
+        return durationMinutes;
+    }
+
+    public void setDurationMinutes(int durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
+
+    public String getRecurrenceRule() {
+        return recurrenceRule;
+    }
+
+    public void setRecurrenceRule(String recurrenceRule) {
+        this.recurrenceRule = recurrenceRule;
+    }
+
+    public String getSeriesId() {
+        return seriesId;
+    }
+
+    public void setSeriesId(String seriesId) {
+        this.seriesId = seriesId;
+    }
+
+    public Integer getSeriesIndex() {
+        return seriesIndex;
+    }
+
+    public void setSeriesIndex(Integer seriesIndex) {
+        this.seriesIndex = seriesIndex;
     }
 }
