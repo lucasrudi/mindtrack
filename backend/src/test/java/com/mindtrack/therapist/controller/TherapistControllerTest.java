@@ -61,11 +61,22 @@ class TherapistControllerTest {
                 2L, null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
     }
 
+    private static PatientSummaryResponse patientSummary(String color) {
+        PatientSummaryResponse response = new PatientSummaryResponse();
+        response.setId(1L);
+        response.setName("John Patient");
+        response.setEmail("john@example.com");
+        response.setCalendarColor(color);
+        response.setInterviewCount(5);
+        response.setActiveGoalCount(3);
+        response.setActivityCount(8);
+        response.setLastInterviewDate(LocalDateTime.of(2025, 1, 15, 10, 0));
+        return response;
+    }
+
     @Test
     void shouldListPatients() throws Exception {
-        PatientSummaryResponse patient = new PatientSummaryResponse(
-                1L, "John Patient", "john@example.com", "#f97316", 5, 3, 8,
-                LocalDateTime.of(2025, 1, 15, 10, 0));
+        PatientSummaryResponse patient = patientSummary("#f97316");
         when(therapistService.listPatients(3L)).thenReturn(List.of(patient));
 
         mockMvc.perform(get("/api/therapist/patients")
@@ -81,9 +92,7 @@ class TherapistControllerTest {
     void shouldUpdatePatientCalendarColor() throws Exception {
         CalendarColorRequest request = new CalendarColorRequest();
         request.setCalendarColor("#22c55e");
-        PatientSummaryResponse response = new PatientSummaryResponse(
-                1L, "John Patient", "john@example.com", "#22c55e", 5, 3, 8,
-                LocalDateTime.of(2025, 1, 15, 10, 0));
+        PatientSummaryResponse response = patientSummary("#22c55e");
         when(therapistService.setPatientCalendarColor(3L, 1L, "#22c55e"))
                 .thenReturn(response);
 
