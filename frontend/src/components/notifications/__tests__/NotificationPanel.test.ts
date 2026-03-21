@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { useNotificationsStore } from '@/stores/notifications'
 import NotificationPanel from '../NotificationPanel.vue'
 
 const mockGet = vi.fn()
@@ -61,7 +62,53 @@ describe('NotificationPanel', () => {
     expect(notificationButton.element.tagName).toBe('BUTTON')
 
     await notificationButton.trigger('click')
+    await flushPromises()
 
     expect(mockPatch).toHaveBeenCalledWith('/notifications/1/read')
+    expect(push).toHaveBeenCalledWith('/appointments')
+  })
+
+  it('shows an empty state when there are no notifications', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        content: [],
+      },
+    })
+
+    const wrapper = mount(NotificationPanel)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('No notifications yet.')
+  })
+
+  it('marks all notifications as read from the header action', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        content: [
+          {
+            id: 1,
+            type: 'APPOINTMENT',
+            title: 'Upcoming appointment',
+            body: 'Tomorrow at 10:00',
+            read: false,
+            link: '/appointments',
+            createdAt: '2026-03-21T10:00:00Z',
+          },
+        ],
+      },
+    })
+    mockPatch.mockResolvedValueOnce({})
+
+    const notificationsStore = useNotificationsStore()
+    notificationsStore.unreadCount = 1
+
+    const wrapper = mount(NotificationPanel)
+    await flushPromises()
+
+    await wrapper.find('.notification-panel__mark-all').trigger('click')
+    await flushPromises()
+
+    expect(mockPatch).toHaveBeenCalledWith('/notifications/read-all')
+    expect(notificationsStore.unreadCount).toBe(0)
   })
 })

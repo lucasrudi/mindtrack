@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, nextTick, watch } from 'vue'
 import { useChatStore } from '@/stores/chat'
-import AiConsentDialog from '@/components/AiConsentDialog.vue'
+import AiConsentDialog from '@/components/ai/AiConsentDialog.vue'
 
 const store = useChatStore()
 const messageInput = ref('')

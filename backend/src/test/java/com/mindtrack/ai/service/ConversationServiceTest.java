@@ -5,9 +5,12 @@ import com.mindtrack.ai.dto.ChatResponse;
 import com.mindtrack.ai.dto.ConversationDto;
 import com.mindtrack.ai.model.Channel;
 import com.mindtrack.ai.model.Conversation;
+import com.mindtrack.ai.model.Message;
+import com.mindtrack.ai.model.MessageRole;
 import com.mindtrack.ai.model.ConversationType;
 import com.mindtrack.ai.repository.ConversationRepository;
 import com.mindtrack.ai.repository.MessageRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -67,6 +70,23 @@ class ConversationServiceTest {
         // Assert
         assertTrue(result.cached());
         assertEquals("You're doing great!", result.content());
+        verify(claudeApiClient, never()).sendMessage(anyString(), any(), any());
+    }
+
+    @Test
+    void shouldReturnCachedChannelResponseWhenAvailable() {
+        ChatRequest request = new ChatRequest(null, "Quick check-in", ConversationType.QUICK_CHECKIN);
+        ChatResponse cachedResponse = new ChatResponse(5L, 50L, "Cached channel reply", false, 22);
+
+        when(contextBuilder.generateFingerprint(1L)).thenReturn("channel-fp");
+        when(responseCache.get(1L, ConversationType.QUICK_CHECKIN, "channel-fp"))
+                .thenReturn(cachedResponse);
+
+        ChatResponse result = conversationService.chatWithChannel(1L, request, Channel.TELEGRAM);
+
+        assertTrue(result.cached());
+        assertEquals("Cached channel reply", result.content());
+        verify(conversationRepository, never()).findByUserIdAndChannelOrderByStartedAtDesc(anyLong(), any());
         verify(claudeApiClient, never()).sendMessage(anyString(), any(), any());
     }
 
@@ -154,6 +174,27 @@ class ConversationServiceTest {
     }
 
     @Test
+    void shouldListConversationsWithMessages() {
+        Conversation conversation = new Conversation(1L, Channel.WEB);
+        conversation.setId(42L);
+        conversation.setStartedAt(LocalDateTime.of(2026, 3, 21, 11, 0));
+
+        Message message = new Message(conversation, MessageRole.USER, "Hello");
+        message.setId(100L);
+        message.setCreatedAt(LocalDateTime.of(2026, 3, 21, 11, 1));
+
+        when(conversationRepository.findByUserIdOrderByStartedAtDesc(1L)).thenReturn(List.of(conversation));
+        when(messageRepository.findByConversationIdOrderByCreatedAtAsc(42L)).thenReturn(List.of(message));
+
+        List<ConversationDto> conversations = conversationService.listConversations(1L);
+
+        assertEquals(1, conversations.size());
+        assertEquals(42L, conversations.get(0).id());
+        assertEquals(1, conversations.get(0).messages().size());
+        assertEquals("Hello", conversations.get(0).messages().get(0).content());
+    }
+
+    @Test
     void shouldThrowNotFoundWhenConversationDoesNotExist() {
         // Arrange
         when(conversationRepository.findByIdAndUserId(999L, 1L))
@@ -209,6 +250,36 @@ class ConversationServiceTest {
 
         // Assert — save was called once for the first conversation creation; not again for second
         verify(conversationRepository, times(1)).save(any(Conversation.class));
+    }
+
+    @Test
+    void shouldCreateNewConversationWhenRequestedConversationIsMissing() {
+        ChatRequest request = new ChatRequest(999L, "Fallback please", ConversationType.COACHING);
+        ChatResponse apiResponse = new ChatResponse(null, null, "Created a new thread.", false, 44);
+
+        when(contextBuilder.generateFingerprint(1L)).thenReturn("fp");
+        when(responseCache.get(anyLong(), any(), anyString())).thenReturn(null);
+        when(contextBuilder.buildSystemPrompt(anyLong())).thenReturn("prompt");
+        when(conversationRepository.findById(999L)).thenReturn(Optional.empty());
+        when(conversationRepository.save(any())).thenAnswer(inv -> {
+            var conv = inv.getArgument(0, Conversation.class);
+            conv.setId(55L);
+            return conv;
+        });
+        when(messageRepository.save(any())).thenAnswer(inv -> {
+            var msg = inv.getArgument(0, Message.class);
+            msg.setId(77L);
+            return msg;
+        });
+        when(messageRepository.findByConversationIdOrderByCreatedAtAsc(55L)).thenReturn(List.of());
+        when(claudeApiClient.sendMessage(anyString(), any(), eq(ConversationType.COACHING)))
+                .thenReturn(apiResponse);
+
+        ChatResponse result = conversationService.chat(1L, request);
+
+        assertEquals("Created a new thread.", result.content());
+        verify(conversationRepository).findById(999L);
+        verify(conversationRepository).save(any(Conversation.class));
     }
 
     @Test

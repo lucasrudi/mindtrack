@@ -99,6 +99,16 @@ class MessagingServiceTest {
     }
 
     @Test
+    void shouldIgnoreTelegramUpdateWhenMessageTextIsNull() {
+        TelegramUpdate update = createTelegramUpdate("12345", null);
+
+        messagingService.handleTelegramMessage(update);
+
+        verify(telegramService, never()).sendMessage(any(), any());
+        verify(conversationService, never()).chatWithChannel(any(), any(), any());
+    }
+
+    @Test
     void shouldHandleTelegramAiError() {
         TelegramUpdate update = createTelegramUpdate("12345", "Check in");
 
@@ -187,6 +197,57 @@ class MessagingServiceTest {
         WhatsAppWebhook webhook = createWhatsAppWebhook("+1234567890", "Hello");
 
         disabledService.handleWhatsAppMessage(webhook);
+
+        verify(userProfileRepository, never()).findAllByWhatsappNumberNotNull();
+        verify(whatsAppService, never()).sendMessage(any(), any());
+    }
+
+    @Test
+    void shouldIgnoreWhatsAppEntryWithoutChanges() {
+        WhatsAppWebhook webhook = new WhatsAppWebhook();
+        WhatsAppWebhook.Entry entry = new WhatsAppWebhook.Entry();
+        entry.setId("123");
+        webhook.setEntry(List.of(entry));
+
+        messagingService.handleWhatsAppMessage(webhook);
+
+        verify(userProfileRepository, never()).findAllByWhatsappNumberNotNull();
+        verify(whatsAppService, never()).sendMessage(any(), any());
+    }
+
+    @Test
+    void shouldIgnoreWhatsAppChangeWithoutValue() {
+        WhatsAppWebhook webhook = new WhatsAppWebhook();
+        WhatsAppWebhook.Change change = new WhatsAppWebhook.Change();
+        change.setField("messages");
+
+        WhatsAppWebhook.Entry entry = new WhatsAppWebhook.Entry();
+        entry.setId("123");
+        entry.setChanges(List.of(change));
+        webhook.setEntry(List.of(entry));
+
+        messagingService.handleWhatsAppMessage(webhook);
+
+        verify(userProfileRepository, never()).findAllByWhatsappNumberNotNull();
+        verify(whatsAppService, never()).sendMessage(any(), any());
+    }
+
+    @Test
+    void shouldIgnoreWhatsAppChangeWithoutMessages() {
+        WhatsAppWebhook webhook = new WhatsAppWebhook();
+        WhatsAppWebhook.Value value = new WhatsAppWebhook.Value();
+        value.setMessagingProduct("whatsapp");
+
+        WhatsAppWebhook.Change change = new WhatsAppWebhook.Change();
+        change.setField("messages");
+        change.setValue(value);
+
+        WhatsAppWebhook.Entry entry = new WhatsAppWebhook.Entry();
+        entry.setId("123");
+        entry.setChanges(List.of(change));
+        webhook.setEntry(List.of(entry));
+
+        messagingService.handleWhatsAppMessage(webhook);
 
         verify(userProfileRepository, never()).findAllByWhatsappNumberNotNull();
         verify(whatsAppService, never()).sendMessage(any(), any());
