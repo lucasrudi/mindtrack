@@ -49,6 +49,26 @@ function shouldRedirectToOnboarding(
   )
 }
 
+const patientRouteNames = new Set([
+  'dashboard',
+  'interviews',
+  'interview-new',
+  'interview-detail',
+  'interview-edit',
+  'activities',
+  'activity-new',
+  'activity-edit',
+  'journal',
+  'journal-new',
+  'journal-detail',
+  'journal-edit',
+  'goals',
+  'goal-new',
+  'goal-detail',
+  'goal-edit',
+  'chat',
+])
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -98,6 +118,14 @@ const router = createRouter({
     protectedRoute('/therapist', 'therapist', () => import('@/views/TherapistView.vue'), {
       requiresTherapist: true,
     }),
+    protectedRoute(
+      '/therapist/calendar',
+      'therapist-calendar',
+      () => import('@/views/TherapistCalendarView.vue'),
+      {
+        requiresTherapist: true,
+      },
+    ),
     protectedRoute('/onboarding', 'onboarding', () => import('@/views/OnboardingView.vue')),
     publicRoute('/invite/:token', 'invite', () => import('@/views/InviteView.vue')),
   ],
@@ -113,19 +141,8 @@ router.beforeEach(async (to) => {
     return { name: 'landing' }
   }
 
-  if (
-    shouldRedirectToDashboard(
-      to.meta.requiresAdmin,
-      auth.isAdmin,
-      to.meta.requiresTherapist,
-      auth.isTherapist,
-    )
-  ) {
-    return { name: 'dashboard' }
-  }
-
   if (to.name === 'landing' && auth.isAuthenticated) {
-    return { name: 'dashboard' }
+    return { name: auth.homeRouteName }
   }
 
   if (
@@ -137,6 +154,25 @@ router.beforeEach(async (to) => {
     )
   ) {
     return { name: 'onboarding' }
+  }
+
+  if (
+    shouldRedirectToDashboard(
+      to.meta.requiresAdmin,
+      auth.isAdmin,
+      to.meta.requiresTherapist,
+      auth.isTherapist,
+    )
+  ) {
+    return { name: auth.homeRouteName }
+  }
+
+  if (auth.activeView === 'therapist' && patientRouteNames.has(String(to.name))) {
+    return { name: auth.homeRouteName }
+  }
+
+  if (to.name === 'therapist' && auth.activeView === 'patient') {
+    return { name: auth.homeRouteName }
   }
 })
 

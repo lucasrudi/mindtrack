@@ -1,6 +1,7 @@
 package com.mindtrack.therapist.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mindtrack.therapist.dto.CalendarColorRequest;
 import com.mindtrack.goals.dto.GoalRequest;
 import com.mindtrack.goals.dto.GoalResponse;
 import com.mindtrack.goals.model.GoalValidationStatus;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -59,11 +61,22 @@ class TherapistControllerTest {
                 2L, null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
     }
 
+    private static PatientSummaryResponse patientSummary(String color) {
+        PatientSummaryResponse response = new PatientSummaryResponse();
+        response.setId(1L);
+        response.setName("John Patient");
+        response.setEmail("john@example.com");
+        response.setCalendarColor(color);
+        response.setInterviewCount(5);
+        response.setActiveGoalCount(3);
+        response.setActivityCount(8);
+        response.setLastInterviewDate(LocalDateTime.of(2025, 1, 15, 10, 0));
+        return response;
+    }
+
     @Test
     void shouldListPatients() throws Exception {
-        PatientSummaryResponse patient = new PatientSummaryResponse(
-                1L, "John Patient", "john@example.com", 5, 3, 8,
-                LocalDateTime.of(2025, 1, 15, 10, 0));
+        PatientSummaryResponse patient = patientSummary("#f97316");
         when(therapistService.listPatients(3L)).thenReturn(List.of(patient));
 
         mockMvc.perform(get("/api/therapist/patients")
@@ -73,6 +86,22 @@ class TherapistControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].name").value("John Patient"))
                 .andExpect(jsonPath("$[0].interviewCount").value(5));
+    }
+
+    @Test
+    void shouldUpdatePatientCalendarColor() throws Exception {
+        CalendarColorRequest request = new CalendarColorRequest();
+        request.setCalendarColor("#22c55e");
+        PatientSummaryResponse response = patientSummary("#22c55e");
+        when(therapistService.setPatientCalendarColor(3L, 1L, "#22c55e"))
+                .thenReturn(response);
+
+        mockMvc.perform(put("/api/therapist/patients/1/calendar-color")
+                        .with(authentication(therapistAuth()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.calendarColor").value("#22c55e"));
     }
 
     @Test

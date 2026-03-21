@@ -7,19 +7,36 @@ const mockPatients = [
     id: 1,
     name: 'Patient One',
     email: 'patient1@test.com',
+    calendarColor: '#2563eb',
     interviewCount: 3,
     activeGoalCount: 2,
     activityCount: 5,
     lastInterviewDate: '2025-01-15T10:00:00',
+    status: 'ACTIVE',
   },
   {
     id: 2,
     name: 'Patient Two',
     email: 'patient2@test.com',
+    calendarColor: null,
     interviewCount: 1,
     activeGoalCount: 0,
     activityCount: 2,
     lastInterviewDate: null,
+    status: 'ACTIVE',
+  },
+]
+
+const mockPendingPatients = [
+  {
+    id: 3,
+    name: 'Pending Patient',
+    email: 'pending@test.com',
+    interviewCount: 0,
+    activeGoalCount: 0,
+    activityCount: 0,
+    lastInterviewDate: null,
+    status: 'PENDING',
   },
 ]
 
@@ -86,6 +103,8 @@ vi.mock('@/services/api', () => ({
 describe('useTherapistStore', () => {
   let api: {
     get: ReturnType<typeof vi.fn>
+    post: ReturnType<typeof vi.fn>
+    put: ReturnType<typeof vi.fn>
   }
 
   beforeEach(async () => {
@@ -104,6 +123,7 @@ describe('useTherapistStore', () => {
 
       expect(api.get).toHaveBeenCalledWith('/therapist/patients')
       expect(store.patients).toEqual(mockPatients)
+      expect(store.patientsLoading).toBe(false)
       expect(store.loading).toBe(false)
     })
 
@@ -116,10 +136,12 @@ describe('useTherapistStore', () => {
       const store = useTherapistStore()
 
       const fetchPromise = store.fetchPatients()
+      expect(store.patientsLoading).toBe(true)
       expect(store.loading).toBe(true)
 
       resolvePromise!({ data: mockPatients })
       await fetchPromise
+      expect(store.patientsLoading).toBe(false)
       expect(store.loading).toBe(false)
     })
 
@@ -128,7 +150,22 @@ describe('useTherapistStore', () => {
       const store = useTherapistStore()
 
       await expect(store.fetchPatients()).rejects.toThrow()
+      expect(store.patientsError).toBe('Failed to load patients')
       expect(store.error).toBe('Failed to load patients')
+      expect(store.patientsLoading).toBe(false)
+      expect(store.loading).toBe(false)
+    })
+  })
+
+  describe('fetchPendingPatients', () => {
+    it('fetches pending requests', async () => {
+      api.get.mockResolvedValueOnce({ data: mockPendingPatients })
+      const store = useTherapistStore()
+
+      await store.fetchPendingPatients()
+
+      expect(api.get).toHaveBeenCalledWith('/therapist/patients/pending')
+      expect(store.pendingPatients).toEqual(mockPendingPatients)
       expect(store.loading).toBe(false)
     })
   })
@@ -142,6 +179,7 @@ describe('useTherapistStore', () => {
 
       expect(api.get).toHaveBeenCalledWith('/therapist/patients/1')
       expect(store.currentPatient).toEqual(mockPatientDetail)
+      expect(store.detailLoading).toBe(false)
       expect(store.loading).toBe(false)
     })
 
@@ -154,10 +192,12 @@ describe('useTherapistStore', () => {
       const store = useTherapistStore()
 
       const fetchPromise = store.fetchPatientDetail(1)
+      expect(store.detailLoading).toBe(true)
       expect(store.loading).toBe(true)
 
       resolvePromise!({ data: mockPatientDetail })
       await fetchPromise
+      expect(store.detailLoading).toBe(false)
       expect(store.loading).toBe(false)
     })
 
@@ -166,19 +206,23 @@ describe('useTherapistStore', () => {
       const store = useTherapistStore()
 
       await expect(store.fetchPatientDetail(999)).rejects.toThrow()
+      expect(store.detailError).toBe('Failed to load patient details')
       expect(store.error).toBe('Failed to load patient details')
+      expect(store.detailLoading).toBe(false)
       expect(store.loading).toBe(false)
     })
   })
 
   describe('clearPatient', () => {
-    it('clears current patient', () => {
+    it('clears current patient and detail error', () => {
       const store = useTherapistStore()
       store.currentPatient = mockPatientDetail
+      store.detailError = 'Failed to load patient details'
 
       store.clearPatient()
 
       expect(store.currentPatient).toBeNull()
+      expect(store.detailError).toBeNull()
     })
   })
 
@@ -186,10 +230,54 @@ describe('useTherapistStore', () => {
     it('clears the error state', () => {
       const store = useTherapistStore()
       store.error = 'Some error'
+      store.patientsError = 'Patient list error'
+      store.detailError = 'Patient detail error'
 
       store.clearError()
 
       expect(store.error).toBeNull()
+      expect(store.patientsError).toBeNull()
+      expect(store.detailError).toBeNull()
+    })
+  })
+
+  describe('requestPatient', () => {
+    it('creates a therapist request', async () => {
+      api.post.mockResolvedValueOnce({
+        data: { token: 'abc', url: 'http://localhost:3000/invite/abc' },
+      })
+      const store = useTherapistStore()
+
+      const response = await store.requestPatient('patient@test.com')
+
+      expect(api.post).toHaveBeenCalledWith('/invites/request', {
+        patientEmail: 'patient@test.com',
+      })
+      expect(response).toEqual({
+        token: 'abc',
+        url: 'http://localhost:3000/invite/abc',
+      })
+    })
+  })
+
+  describe('setPatientCalendarColor', () => {
+    it('saves the selected color and updates the cached patient list', async () => {
+      api.put.mockResolvedValueOnce({
+        data: {
+          ...mockPatients[0],
+          calendarColor: '#10b981',
+        },
+      })
+
+      const store = useTherapistStore()
+      store.patients = mockPatients
+
+      await store.setPatientCalendarColor(1, '#10b981')
+
+      expect(api.put).toHaveBeenCalledWith('/therapist/patients/1/calendar-color', {
+        calendarColor: '#10b981',
+      })
+      expect(store.patients[0].calendarColor).toBe('#10b981')
     })
   })
 })

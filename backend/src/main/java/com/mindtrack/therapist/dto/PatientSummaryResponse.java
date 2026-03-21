@@ -10,24 +10,15 @@ public class PatientSummaryResponse {
     private Long id;
     private String name;
     private String email;
+    private String calendarColor;
     private int interviewCount;
     private int activeGoalCount;
     private int activityCount;
     private LocalDateTime lastInterviewDate;
+    private String status;
 
     public PatientSummaryResponse() {
-    }
-
-    public PatientSummaryResponse(Long id, String name, String email, int interviewCount,
-                                   int activeGoalCount, int activityCount,
-                                   LocalDateTime lastInterviewDate) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.interviewCount = interviewCount;
-        this.activeGoalCount = activeGoalCount;
-        this.activityCount = activityCount;
-        this.lastInterviewDate = lastInterviewDate;
+        // Default constructor for JSON serialization.
     }
 
     public Long getId() {
@@ -52,6 +43,14 @@ public class PatientSummaryResponse {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getCalendarColor() {
+        return calendarColor;
+    }
+
+    public void setCalendarColor(String calendarColor) {
+        this.calendarColor = calendarColor;
     }
 
     public int getInterviewCount() {
@@ -84,5 +83,13 @@ public class PatientSummaryResponse {
 
     public void setLastInterviewDate(LocalDateTime lastInterviewDate) {
         this.lastInterviewDate = lastInterviewDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

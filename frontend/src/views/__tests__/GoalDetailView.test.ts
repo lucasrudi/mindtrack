@@ -229,6 +229,22 @@ describe('GoalDetailView', () => {
     expect(mockPatch).toHaveBeenCalledWith('/goals/1/status', { status: 'COMPLETED' })
   })
 
+  it('shows mark started action for not started goals', async () => {
+    mockGet.mockResolvedValue({ data: { ...sampleGoal, status: 'NOT_STARTED' } })
+    mockPatch.mockResolvedValue({ data: { ...sampleGoal, status: 'IN_PROGRESS' } })
+    const wrapper = mount(GoalDetailView)
+    await flushPromises()
+
+    const startButton = wrapper.find('.status-start-row .btn-primary')
+    expect(startButton.exists()).toBe(true)
+    expect(startButton.text()).toContain('Mark Started')
+
+    await startButton.trigger('click')
+    await flushPromises()
+
+    expect(mockPatch).toHaveBeenCalledWith('/goals/1/status', { status: 'IN_PROGRESS' })
+  })
+
   it('shows milestone form when Add Milestone button is clicked', async () => {
     const wrapper = mount(GoalDetailView)
     await flushPromises()

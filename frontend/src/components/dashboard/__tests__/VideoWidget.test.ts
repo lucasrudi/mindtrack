@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import VideoWidget from '../VideoWidget.vue'
 import type { ContentItem } from '@/stores/analytics'
@@ -24,6 +24,10 @@ const anotherVideo: ContentItem = {
 }
 
 describe('VideoWidget', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('renders the widget title', () => {
     const wrapper = mount(VideoWidget, { props: { items: [] } })
     expect(wrapper.find('.widget-title').text()).toBe('Health Videos')
@@ -60,5 +64,20 @@ describe('VideoWidget', () => {
   it('does not show nav controls when only one item is provided', () => {
     const wrapper = mount(VideoWidget, { props: { items: [mockVideo] } })
     expect(wrapper.find('.video-nav').exists()).toBe(false)
+  })
+
+  it('uses the browser crypto API to choose the initial video', () => {
+    const getRandomValuesSpy = vi
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((array) => {
+        const typedArray = array as Uint32Array
+        typedArray[0] = 1
+        return typedArray
+      })
+
+    const wrapper = mount(VideoWidget, { props: { items: [mockVideo, anotherVideo] } })
+
+    expect(getRandomValuesSpy).toHaveBeenCalled()
+    expect(wrapper.find('.video-title').text()).toBe('How to Meditate')
   })
 })

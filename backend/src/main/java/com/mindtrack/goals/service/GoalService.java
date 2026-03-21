@@ -141,10 +141,16 @@ public class GoalService {
             return null;
         }
 
+        boolean started = markGoalStartedIfNeeded(goal);
         Milestone milestone = new Milestone();
         milestone.setGoal(goal);
         milestone.setCreatedAt(LocalDateTime.now());
         goalMapper.applyMilestoneRequest(request, milestone);
+
+        if (started) {
+            goal.setUpdatedAt(LocalDateTime.now());
+            goalRepository.save(goal);
+        }
 
         Milestone saved = milestoneRepository.save(milestone);
         LOG.info("Added milestone {} to goal {} for user {}",
@@ -173,12 +179,24 @@ public class GoalService {
             milestone.setCompletedAt(null);
         } else {
             milestone.setCompletedAt(LocalDateTime.now());
+            if (markGoalStartedIfNeeded(goal)) {
+                goal.setUpdatedAt(LocalDateTime.now());
+                goalRepository.save(goal);
+            }
         }
 
         Milestone saved = milestoneRepository.save(milestone);
         LOG.info("Toggled milestone {} completed={} in goal {} for user {}",
                 milestoneId, saved.getCompletedAt() != null, goalId, userId);
         return goalMapper.toMilestoneResponse(saved);
+    }
+
+    private boolean markGoalStartedIfNeeded(Goal goal) {
+        if (goal.getStatus() != GoalStatus.NOT_STARTED) {
+            return false;
+        }
+        goal.setStatus(GoalStatus.IN_PROGRESS);
+        return true;
     }
 
     /**

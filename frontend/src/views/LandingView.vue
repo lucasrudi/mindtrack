@@ -11,7 +11,7 @@ const auth = useAuthStore()
 
 function handleSignIn() {
   if (auth.isAuthenticated) {
-    router.push('/dashboard')
+    router.push({ name: auth.homeRouteName })
   } else {
     globalThis.location.href = '/api/oauth2/authorization/google'
   }

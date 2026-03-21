@@ -32,7 +32,7 @@ class RateLimitInterceptorTest {
     @Test
     void allowsRequestsUnderGeneralLimit() throws Exception {
         MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/interviews");
-        for (int i = 0; i < 60; i++) {
+        for (int i = 0; i < 120; i++) {
             MockHttpServletResponse resp = new MockHttpServletResponse();
             boolean result = interceptor.preHandle(req, resp, null);
             assertThat(result).isTrue();
@@ -42,7 +42,7 @@ class RateLimitInterceptorTest {
     @Test
     void blocksRequestsOverGeneralLimit() throws Exception {
         MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/interviews");
-        for (int i = 0; i < 60; i++) {
+        for (int i = 0; i < 120; i++) {
             interceptor.preHandle(req, new MockHttpServletResponse(), null);
         }
         MockHttpServletResponse resp = new MockHttpServletResponse();
@@ -54,7 +54,7 @@ class RateLimitInterceptorTest {
     @Test
     void aiEndpointHasLowerLimit() throws Exception {
         MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/ai/chat");
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 20; i++) {
             interceptor.preHandle(req, new MockHttpServletResponse(), null);
         }
         MockHttpServletResponse resp = new MockHttpServletResponse();

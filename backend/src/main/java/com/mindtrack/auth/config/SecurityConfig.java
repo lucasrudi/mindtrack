@@ -56,6 +56,7 @@ public class SecurityConfig {
                         }))
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico")
                         .permitAll().requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/invites/**").permitAll()
                         .requestMatchers("/actuator/health")
                         .permitAll().requestMatchers("/api/oauth2/**", "/api/login/oauth2/**").permitAll()
                         .requestMatchers("/api/auth/refresh").permitAll()

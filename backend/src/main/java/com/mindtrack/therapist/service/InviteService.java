@@ -67,14 +67,75 @@ public class InviteService {
     }
 
     /**
+     * Therapist-initiated request for a specific patient by email.
+     */
+    @Transactional
+    public InviteGenerateResponse requestPatient(Long therapistId, String patientEmail) {
+        User patient = userRepository.findByEmail(patientEmail)
+                .orElseThrow(() -> new IllegalArgumentException("Patient not found: " + patientEmail));
+        if (therapistId.equals(patient.getId())) {
+            throw new IllegalArgumentException("Therapist cannot request themselves");
+        }
+
+        TherapistPatient relationship = therapistPatientRepository
+                .findByTherapistIdAndPatientId(therapistId, patient.getId())
+                .orElse(null);
+        if (relationship != null && relationship.getStatus() != TherapistPatientStatus.INACTIVE) {
+            throw new IllegalArgumentException("Relationship already exists or is pending");
+        }
+
+        if (inviteTokenRepository
+                .findByInitiatorIdAndRecipientIdAndUsedAtIsNullAndExpiresAtAfter(
+                        therapistId, patient.getId(), LocalDateTime.now())
+                .isPresent()) {
+            throw new IllegalArgumentException("A request is already pending for this patient");
+        }
+
+        if (relationship == null) {
+            relationship = new TherapistPatient(therapistId, patient.getId(),
+                    TherapistPatientStatus.PENDING);
+        } else {
+            relationship.setStatus(TherapistPatientStatus.PENDING);
+        }
+        therapistPatientRepository.save(relationship);
+
+        byte[] bytes = new byte[32];
+        RANDOM.nextBytes(bytes);
+        String token = HexFormat.of().formatHex(bytes);
+
+        InviteToken inviteToken = new InviteToken();
+        inviteToken.setToken(token);
+        inviteToken.setInitiatorId(therapistId);
+        inviteToken.setInitiatorRole(InitiatorRole.THERAPIST);
+        inviteToken.setRecipientId(patient.getId());
+        inviteToken.setExpiresAt(LocalDateTime.now().plusDays(7));
+        inviteToken.setCreatedAt(LocalDateTime.now());
+        inviteTokenRepository.save(inviteToken);
+
+        String url = frontendUrl + "/invite/" + token;
+        LOG.info("Generated therapist request token for therapist {} patient {}", therapistId,
+                patient.getId());
+        return new InviteGenerateResponse(token, url);
+    }
+
+    /**
      * Returns a preview of who sent the invite (for display before accepting).
      */
     public InvitePreviewResponse previewInvite(String token) {
         InviteToken inviteToken = findValidToken(token);
         User initiator = userRepository.findById(inviteToken.getInitiatorId())
                 .orElseThrow(() -> new IllegalArgumentException("Initiator not found"));
+        String status = null;
+        if (inviteToken.getRecipientId() != null) {
+            status = therapistPatientRepository
+                    .findByTherapistIdAndPatientId(inviteToken.getInitiatorId(),
+                            inviteToken.getRecipientId())
+                    .map(relationship -> relationship.getStatus().name())
+                    .orElse(TherapistPatientStatus.PENDING.name());
+        }
         return new InvitePreviewResponse(initiator.getName(),
-                inviteToken.getInitiatorRole().name());
+                inviteToken.getInitiatorRole().name(),
+                status);
     }
 
     /**
@@ -84,33 +145,16 @@ public class InviteService {
     @Transactional
     public void acceptInvite(String token, Long acceptorId, InitiatorRole acceptorRole) {
         InviteToken inviteToken = findValidToken(token);
+        respondToInvite(inviteToken, acceptorId, acceptorRole, resolveAcceptedStatus(inviteToken));
+    }
 
-        if (inviteToken.getInitiatorRole() == acceptorRole) {
-            throw new IllegalArgumentException("Cannot accept your own role's invite");
-        }
-
-        Long therapistId;
-        Long patientId;
-        TherapistPatientStatus status;
-
-        if (inviteToken.getInitiatorRole() == InitiatorRole.THERAPIST) {
-            therapistId = inviteToken.getInitiatorId();
-            patientId = acceptorId;
-            status = TherapistPatientStatus.ACTIVE;
-        } else {
-            therapistId = acceptorId;
-            patientId = inviteToken.getInitiatorId();
-            status = TherapistPatientStatus.PENDING;
-        }
-
-        TherapistPatient rel = new TherapistPatient(therapistId, patientId, status);
-        therapistPatientRepository.save(rel);
-
-        inviteToken.setUsedAt(LocalDateTime.now());
-        inviteTokenRepository.save(inviteToken);
-
-        LOG.info("Accepted invite: therapist={} patient={} status={}",
-                therapistId, patientId, status);
+    /**
+     * Rejects an invite token, recording the relationship as INACTIVE.
+     */
+    @Transactional
+    public void rejectInvite(String token, Long rejectorId, InitiatorRole rejectorRole) {
+        respondToInvite(findValidToken(token), rejectorId, rejectorRole,
+                TherapistPatientStatus.INACTIVE);
     }
 
     /**
@@ -134,5 +178,51 @@ public class InviteService {
             throw new IllegalArgumentException("Invite token expired");
         }
         return inviteToken;
+    }
+
+    private TherapistPatientStatus resolveAcceptedStatus(InviteToken inviteToken) {
+        if (inviteToken.getRecipientId() != null) {
+            return TherapistPatientStatus.ACTIVE;
+        }
+        return inviteToken.getInitiatorRole() == InitiatorRole.THERAPIST
+                ? TherapistPatientStatus.ACTIVE
+                : TherapistPatientStatus.PENDING;
+    }
+
+    private void respondToInvite(InviteToken inviteToken, Long responderId,
+                                 InitiatorRole responderRole,
+                                 TherapistPatientStatus newStatus) {
+        if (inviteToken.getInitiatorRole() == responderRole) {
+            throw new IllegalArgumentException("Cannot respond to your own role's invite");
+        }
+        if (inviteToken.getRecipientId() != null && !inviteToken.getRecipientId().equals(responderId)) {
+            throw new IllegalArgumentException("Invite is not assigned to this user");
+        }
+
+        Long therapistId;
+        Long patientId;
+
+        if (inviteToken.getRecipientId() != null) {
+            therapistId = inviteToken.getInitiatorId();
+            patientId = inviteToken.getRecipientId();
+        } else if (inviteToken.getInitiatorRole() == InitiatorRole.THERAPIST) {
+            therapistId = inviteToken.getInitiatorId();
+            patientId = responderId;
+        } else {
+            therapistId = responderId;
+            patientId = inviteToken.getInitiatorId();
+        }
+
+        TherapistPatient relationship = therapistPatientRepository
+                .findByTherapistIdAndPatientId(therapistId, patientId)
+                .orElse(new TherapistPatient(therapistId, patientId, newStatus));
+        relationship.setStatus(newStatus);
+        therapistPatientRepository.save(relationship);
+
+        inviteToken.setUsedAt(LocalDateTime.now());
+        inviteTokenRepository.save(inviteToken);
+
+        LOG.info("Responded to invite: therapist={} patient={} status={}",
+                therapistId, patientId, newStatus);
     }
 }

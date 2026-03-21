@@ -43,6 +43,7 @@ vi.mock('@/views/ChatView.vue', () => ({ default: stub }))
 vi.mock('@/views/ProfileView.vue', () => ({ default: stub }))
 vi.mock('@/views/AdminView.vue', () => ({ default: stub }))
 vi.mock('@/views/TherapistView.vue', () => ({ default: stub }))
+vi.mock('@/views/TherapistCalendarView.vue', () => ({ default: stub }))
 vi.mock('@/views/OnboardingView.vue', () => ({ default: stub }))
 vi.mock('@/views/InviteView.vue', () => ({ default: stub }))
 
@@ -80,8 +81,11 @@ describe('Router', () => {
     const profileStore = useProfileStore()
     auth.user = null
     auth.hasBootstrapped = true
+    auth.activeView = 'patient'
     profileStore.profile = null
     localStorageMock.getItem.mockReturnValue(null)
+    localStorageMock.setItem.mockClear()
+    localStorageMock.removeItem.mockClear()
 
     // Reset router to a known state
     await router.push('/login')
@@ -171,6 +175,23 @@ describe('Router', () => {
     expect(router.currentRoute.value.name).toBe('dashboard')
   })
 
+  it('redirects authenticated therapist-view users from landing to therapist dashboard', async () => {
+    const auth = useAuthStore()
+    auth.setUser({
+      id: '1',
+      email: 'test@test.com',
+      name: 'Test',
+      role: 'USER',
+      isPatient: true,
+      isTherapist: true,
+    })
+    auth.setActiveView('therapist')
+
+    await router.push('/')
+    await router.isReady()
+    expect(router.currentRoute.value.name).toBe('therapist')
+  })
+
   it('allows authenticated user to access protected route', async () => {
     const auth = useAuthStore()
     auth.setUser({
@@ -185,6 +206,40 @@ describe('Router', () => {
     await router.push('/journal')
     await router.isReady()
     expect(router.currentRoute.value.name).toBe('journal')
+  })
+
+  it('redirects therapist-view users away from patient routes', async () => {
+    const auth = useAuthStore()
+    auth.setUser({
+      id: '1',
+      email: 'test@test.com',
+      name: 'Test',
+      role: 'USER',
+      isPatient: true,
+      isTherapist: true,
+    })
+    auth.setActiveView('therapist')
+
+    await router.push('/journal')
+    await router.isReady()
+    expect(router.currentRoute.value.name).toBe('therapist')
+  })
+
+  it('redirects therapist-view users from dashboard to therapist dashboard', async () => {
+    const auth = useAuthStore()
+    auth.setUser({
+      id: '1',
+      email: 'test@test.com',
+      name: 'Test',
+      role: 'USER',
+      isPatient: true,
+      isTherapist: true,
+    })
+    auth.setActiveView('therapist')
+
+    await router.push('/dashboard')
+    await router.isReady()
+    expect(router.currentRoute.value.name).toBe('therapist')
   })
 
   it('redirects non-admin users away from admin routes', async () => {
@@ -217,6 +272,12 @@ describe('Router', () => {
     await router.push('/therapist')
     await router.isReady()
     expect(router.currentRoute.value.name).toBe('dashboard')
+  })
+
+  it('has therapist calendar route', () => {
+    const route = router.getRoutes().find((r) => r.path === '/therapist/calendar')
+    expect(route).toBeDefined()
+    expect(route?.name).toBe('therapist-calendar')
   })
 
   it('redirects authenticated users with incomplete onboarding to onboarding', async () => {
@@ -264,6 +325,7 @@ describe('Router', () => {
       '/profile',
       '/admin',
       '/therapist',
+      '/therapist/calendar',
     ]
     for (const path of protectedPaths) {
       const route = router.getRoutes().find((r) => r.path === path)

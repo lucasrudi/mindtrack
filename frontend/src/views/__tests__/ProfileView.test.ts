@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import ProfileView from '../ProfileView.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useProfileStore } from '@/stores/profile'
+import { clearDashboardSessionCache } from '@/stores/dashboardSessionCache'
 
 const mockPush = vi.fn()
 vi.mock('vue-router', () => ({
@@ -54,6 +55,7 @@ vi.mock('@/services/api', () => ({
 describe('ProfileView', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    clearDashboardSessionCache()
     mockPush.mockReset()
     localStorageMock.getItem.mockReturnValue(null)
     mockGet.mockReset().mockResolvedValue({ data: mockProfile })
@@ -239,7 +241,7 @@ describe('ProfileView', () => {
     expect(updateProfileSpy).toHaveBeenCalledWith(
       expect.objectContaining({ tutorialCompleted: false }),
     )
-    expect(mockPush).toHaveBeenCalledWith('/dashboard')
+    expect(mockPush).toHaveBeenCalledWith({ name: 'dashboard' })
   })
 
   it('deletes the account after confirmation', async () => {
