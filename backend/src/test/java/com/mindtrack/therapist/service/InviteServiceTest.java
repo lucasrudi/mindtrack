@@ -11,6 +11,7 @@ import com.mindtrack.therapist.model.TherapistPatientStatus;
 import com.mindtrack.therapist.repository.InviteTokenRepository;
 import com.mindtrack.therapist.repository.TherapistPatientRepository;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,8 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -161,6 +164,66 @@ class InviteServiceTest {
         ArgumentCaptor<TherapistPatient> captor = ArgumentCaptor.forClass(TherapistPatient.class);
         verify(therapistPatientRepository).save(captor.capture());
         assertEquals(TherapistPatientStatus.INACTIVE, captor.getValue().getStatus());
+    }
+
+    @Test
+    void cleanupShouldExpireStaleRelationshipsLinkedToExpiredTokens() {
+        InviteToken expiredToken = makeRequestToken(10L, 20L);
+        expiredToken.setExpiresAt(LocalDateTime.now().minusDays(1));
+        TherapistPatient pending = new TherapistPatient(10L, 20L, TherapistPatientStatus.PENDING);
+        when(inviteTokenRepository.findByExpiresAtBeforeAndUsedAtIsNull(any(LocalDateTime.class)))
+                .thenReturn(List.of(expiredToken));
+        when(therapistPatientRepository.findByTherapistIdAndPatientIdAndStatus(
+                10L, 20L, TherapistPatientStatus.PENDING)).thenReturn(Optional.of(pending));
+        when(therapistPatientRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        inviteService.cleanupExpiredTokens();
+
+        ArgumentCaptor<TherapistPatient> captor = ArgumentCaptor.forClass(TherapistPatient.class);
+        verify(therapistPatientRepository).save(captor.capture());
+        assertEquals(TherapistPatientStatus.EXPIRED, captor.getValue().getStatus());
+        verify(inviteTokenRepository).deleteExpiredTokens(any(LocalDateTime.class));
+    }
+
+    @Test
+    void cleanupShouldNotAffectRelationshipsWithNoExpiredTokens() {
+        when(inviteTokenRepository.findByExpiresAtBeforeAndUsedAtIsNull(any(LocalDateTime.class)))
+                .thenReturn(List.of());
+
+        assertDoesNotThrow(() -> inviteService.cleanupExpiredTokens());
+
+        verify(therapistPatientRepository, never()).save(any());
+        verify(inviteTokenRepository).deleteExpiredTokens(any(LocalDateTime.class));
+    }
+
+    @Test
+    void cleanupShouldSkipGenericTokensWithNoRecipient() {
+        InviteToken genericToken = makeToken(InitiatorRole.THERAPIST, 10L);
+        genericToken.setExpiresAt(LocalDateTime.now().minusDays(1));
+        when(inviteTokenRepository.findByExpiresAtBeforeAndUsedAtIsNull(any(LocalDateTime.class)))
+                .thenReturn(List.of(genericToken));
+
+        inviteService.cleanupExpiredTokens();
+
+        verify(therapistPatientRepository, never()).findByTherapistIdAndPatientIdAndStatus(
+                any(), any(), any());
+        verify(inviteTokenRepository).deleteExpiredTokens(any(LocalDateTime.class));
+    }
+
+    @Test
+    void shouldAllowNewRequestAfterExpiredRelationship() {
+        User patient = makeUser(20L, "Patient One");
+        patient.setEmail("patient@test.com");
+        TherapistPatient expired = new TherapistPatient(10L, 20L, TherapistPatientStatus.EXPIRED);
+        when(userRepository.findByEmail("patient@test.com")).thenReturn(Optional.of(patient));
+        when(therapistPatientRepository.findByTherapistIdAndPatientId(10L, 20L))
+                .thenReturn(Optional.of(expired));
+        when(inviteTokenRepository.findByInitiatorIdAndRecipientIdAndUsedAtIsNullAndExpiresAtAfter(
+                eq(10L), eq(20L), any(LocalDateTime.class))).thenReturn(Optional.empty());
+        when(therapistPatientRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(inviteTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        assertDoesNotThrow(() -> inviteService.requestPatient(10L, "patient@test.com"));
     }
 
     private InviteToken makeToken(InitiatorRole role, Long initiatorId) {

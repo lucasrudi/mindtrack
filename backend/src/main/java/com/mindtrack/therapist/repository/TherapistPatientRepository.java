@@ -17,4 +17,9 @@ public interface TherapistPatientRepository extends JpaRepository<TherapistPatie
 
     boolean existsByTherapistIdAndPatientIdAndStatus(Long therapistId, Long patientId,
                                                       TherapistPatientStatus status);
+
+    List<TherapistPatient> findByPatientIdAndStatusIn(Long patientId, List<TherapistPatientStatus> statuses);
+
+    Optional<TherapistPatient> findByTherapistIdAndPatientIdAndStatus(
+            Long therapistId, Long patientId, TherapistPatientStatus status);
 }
