@@ -6,7 +6,7 @@ import {
   type AppointmentSummary,
   type CancellationScope,
 } from '@/stores/appointments'
-import AppointmentCancelModal from '@/components/AppointmentCancelModal.vue'
+import AppointmentCancelModal from '@/components/appointments/AppointmentCancelModal.vue'
 
 const therapistStore = useTherapistStore()
 const appointmentStore = useAppointmentStore()

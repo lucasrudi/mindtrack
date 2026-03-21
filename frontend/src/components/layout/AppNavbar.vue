@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
-import NotificationBell from '@/components/NotificationBell.vue'
+import NotificationBell from '@/components/notifications/NotificationBell.vue'
 
 const auth = useAuthStore()
 const router = useRouter()

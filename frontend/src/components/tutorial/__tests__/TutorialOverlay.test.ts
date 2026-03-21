@@ -151,4 +151,57 @@ describe('TutorialOverlay', () => {
     expect(element.style.top).toBe('50%')
     expect(element.style.left).toBe('50%')
   })
+
+  it('positions the tooltip and spotlight around the active target', async () => {
+    const { start } = useTutorial()
+    const target = document.createElement('div')
+    const querySelectorSpy = vi.spyOn(document, 'querySelector').mockReturnValue(target)
+    vi.spyOn(target, 'getBoundingClientRect').mockReturnValue({
+      top: 40,
+      left: 80,
+      bottom: 100,
+      right: 180,
+      width: 100,
+      height: 60,
+      x: 80,
+      y: 40,
+      toJSON: () => ({}),
+    } as DOMRect)
+
+    const wrapper = mountOverlay()
+    start()
+    await flushPromises()
+
+    const tooltip = wrapper.find('[data-testid="tutorial-tooltip"]').element as HTMLElement
+    const spotlight = wrapper.find('.tutorial-spotlight').element as HTMLElement
+
+    expect(tooltip.style.top).toBe('116px')
+    expect(tooltip.style.left).toBe('16px')
+    expect(spotlight.style.width).toBe('116px')
+    expect(spotlight.style.height).toBe('76px')
+
+    querySelectorSpy.mockRestore()
+  })
+
+  it('skips safely when elementFromPoint is unavailable', async () => {
+    const { start, isActive } = useTutorial()
+    start()
+    const wrapper = mountOverlay()
+
+    const originalElementFromPoint = document.elementFromPoint
+    Object.defineProperty(document, 'elementFromPoint', {
+      configurable: true,
+      value: undefined,
+    })
+
+    await wrapper.find('.tutorial-backdrop').trigger('click', { clientX: 5, clientY: 5 })
+    await flushPromises()
+
+    expect(isActive.value).toBe(false)
+
+    Object.defineProperty(document, 'elementFromPoint', {
+      configurable: true,
+      value: originalElementFromPoint,
+    })
+  })
 })

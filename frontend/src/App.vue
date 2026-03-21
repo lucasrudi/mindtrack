@@ -2,7 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import AppNavbar from '@/components/layout/AppNavbar.vue'
-import ErrorNotification from '@/components/ErrorNotification.vue'
+import ErrorNotification from '@/components/notifications/ErrorNotification.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
