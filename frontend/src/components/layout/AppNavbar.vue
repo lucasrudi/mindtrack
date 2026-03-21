@@ -56,7 +56,8 @@ function switchView(view: 'patient' | 'therapist') {
       </div>
 
       <div class="navbar-actions">
-        <div v-if="showViewToggle" class="view-toggle" role="group" aria-label="Active view">
+        <fieldset v-if="showViewToggle" class="view-toggle">
+          <legend class="sr-only">Active view</legend>
           <button
             type="button"
             :class="['view-toggle-btn', { active: auth.activeView === 'patient' }]"
@@ -71,7 +72,7 @@ function switchView(view: 'patient' | 'therapist') {
           >
             Therapist
           </button>
-        </div>
+        </fieldset>
         <div v-else-if="auth.isAuthenticated" class="view-badge">
           {{ auth.activeViewLabel }} view
         </div>
@@ -161,6 +162,7 @@ function switchView(view: 'patient' | 'therapist') {
 
 .view-toggle {
   display: inline-flex;
+  margin: 0;
   padding: 2px;
   background-color: var(--color-gray-100);
   border: 1px solid var(--color-gray-200);
