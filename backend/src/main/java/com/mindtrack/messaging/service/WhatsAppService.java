@@ -8,6 +8,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +30,14 @@ public class WhatsAppService {
      *
      * @param properties messaging configuration
      */
+    @Autowired
     public WhatsAppService(MessagingProperties properties) {
+        this(properties, HttpClient.newHttpClient());
+    }
+
+    WhatsAppService(MessagingProperties properties, HttpClient httpClient) {
         this.properties = properties;
-        this.httpClient = HttpClient.newHttpClient();
+        this.httpClient = httpClient;
     }
 
     /**
