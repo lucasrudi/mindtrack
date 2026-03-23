@@ -15,17 +15,17 @@ jobs:
     name: Code Review
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
 
       - name: Run Claude Code Review
         # This action validates that code-review.yml matches the default branch before
         # exchanging its app token, so update this file in a dedicated workflow-only PR.
-        uses: anthropics/claude-code-action@5d0cc745cd0cce4c0e9e0b3511de26c3bc285eb5 # v1
+        uses: anthropics/claude-code-action@426380f01bad0a17200865605a85cb28926dccbf # v1.0.9
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          direct_prompt: |
+          prompt: |
             Review this pull request for the MindTrack application. Focus on:
             1. Correctness and potential bugs
             2. Security vulnerabilities (OWASP Top 10 — auth, injection, data exposure)
