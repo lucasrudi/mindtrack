@@ -29,7 +29,7 @@
         <flyway.version>11.8.1</flyway.version>
 
         <!-- Sentry -->
-        <sentry.version>8.34.1</sentry.version>
+        <sentry.version>8.36.0</sentry.version>
 
         <!-- Sonar properties -->
         <sonar.organization>lucasrudi</sonar.organization>
@@ -173,7 +173,7 @@
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-spring-jakarta</artifactId>
-            <version>8.35.0</version>
+            <version>${sentry.version}</version>
         </dependency>
 
         <!-- JWT -->
