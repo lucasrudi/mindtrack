@@ -33,7 +33,7 @@ services:
       - mindtrack
 
   mysql:
-    image: mysql:8.4
+    image: mysql:9.6
     ports:
       - '3306:3306'
     environment:
@@ -52,7 +52,7 @@ services:
       - mindtrack
 
   localstack:
-    image: localstack/localstack:3
+    image: localstack/localstack:4
     ports:
       - '4566:4566'
     environment:
@@ -64,7 +64,7 @@ services:
   # ── Observability Stack ─────────────────────────────────────────
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.114.0
+    image: otel/opentelemetry-collector-contrib:0.148.0
     command: ['--config=/etc/otel-collector-config.yml']
     ports:
       - '4317:4317' # OTLP gRPC
@@ -78,7 +78,7 @@ services:
       - mindtrack
 
   prometheus:
-    image: prom/prometheus:v2.54.1
+    image: prom/prometheus:v3.0.0
     ports:
       - '9090:9090'
     volumes:
@@ -94,7 +94,7 @@ services:
       - mindtrack
 
   tempo:
-    image: grafana/tempo:2.6.1
+    image: grafana/tempo:2.10.3
     ports:
       - '3200:3200' # Tempo HTTP API
     volumes:
