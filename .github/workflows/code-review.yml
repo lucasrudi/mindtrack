@@ -19,6 +19,8 @@ jobs:
           fetch-depth: 0
 
       - name: Run Claude Code Review
+        id: review
+        continue-on-error: true
         uses: anthropics/claude-code-action@426380f01bad0a17200865605a85cb28926dccbf # v1.0.9
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -38,3 +40,15 @@ jobs:
             (LGTM / Minor issues / Major issues). List findings grouped by severity
             (Critical → High → Medium → Low). For each finding, include file, line range,
             and a concrete suggestion.
+
+      - name: Check review outcome
+        if: steps.review.outcome == 'failure'
+        env:
+          EXECUTION_FILE: ${{ steps.review.outputs.execution_file }}
+        run: |
+          if [ -n "$EXECUTION_FILE" ] && grep -q "Credit balance is too low" "$EXECUTION_FILE"; then
+            echo "Skipping: Anthropic API credit balance is too low."
+            exit 0
+          fi
+          echo "Code review failed for an unexpected reason."
+          exit 1
