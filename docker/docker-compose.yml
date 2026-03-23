@@ -64,7 +64,7 @@ services:
   # ── Observability Stack ─────────────────────────────────────────
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.114.0
+    image: otel/opentelemetry-collector-contrib:0.148.0
     command: ['--config=/etc/otel-collector-config.yml']
     ports:
       - '4317:4317' # OTLP gRPC
@@ -94,7 +94,7 @@ services:
       - mindtrack
 
   tempo:
-    image: grafana/tempo:2.6.1
+    image: grafana/tempo:2.10.3
     ports:
       - '3200:3200' # Tempo HTTP API
     volumes:
