@@ -33,7 +33,7 @@ services:
       - mindtrack
 
   mysql:
-    image: mysql:8.4
+    image: mysql:9.6
     ports:
       - '3306:3306'
     environment:
@@ -52,7 +52,7 @@ services:
       - mindtrack
 
   localstack:
-    image: localstack/localstack:3
+    image: localstack/localstack:4
     ports:
       - '4566:4566'
     environment:
@@ -78,7 +78,7 @@ services:
       - mindtrack
 
   prometheus:
-    image: prom/prometheus:v2.55.1
+    image: prom/prometheus:v3.0.0
     ports:
       - '9090:9090'
     volumes:
