@@ -46,9 +46,15 @@ jobs:
         env:
           EXECUTION_FILE: ${{ steps.review.outputs.execution_file }}
         run: |
-          if [ -n "$EXECUTION_FILE" ] && grep -q "Credit balance is too low" "$EXECUTION_FILE"; then
+          if [ -z "$EXECUTION_FILE" ]; then
+            echo "Code review failed before producing an execution log."
+            exit 1
+          fi
+
+          if grep -q "Credit balance is too low" "$EXECUTION_FILE"; then
             echo "Skipping: Anthropic API credit balance is too low."
             exit 0
           fi
+
           echo "Code review failed for an unexpected reason."
           exit 1
