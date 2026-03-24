@@ -70,9 +70,10 @@ describe('VideoWidget', () => {
     const getRandomValuesSpy = vi
       .spyOn(globalThis.crypto, 'getRandomValues')
       .mockImplementation((array) => {
-        const typedArray = array as Uint32Array
-        typedArray[0] = 1
-        return typedArray
+        if (array instanceof Uint32Array) {
+          array[0] = 1
+        }
+        return array
       })
 
     const wrapper = mount(VideoWidget, { props: { items: [mockVideo, anotherVideo] } })
