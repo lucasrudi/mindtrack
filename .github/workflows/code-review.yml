@@ -52,9 +52,17 @@ jobs:
           if [ -z "$EXECUTION_FILE" ]; then
             CHECK_RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs" --jq '.jobs[] | select(.name == "Code Review") | .id' | head -n 1)"
 
-            if [ -n "$CHECK_RUN_ID" ] && gh api "repos/${GITHUB_REPOSITORY}/check-runs/${CHECK_RUN_ID}/annotations" --jq '.[].message' | grep -q "Credit balance is too low"; then
-              echo "Skipping: Anthropic API credit balance is too low."
-              exit 0
+            if [ -n "$CHECK_RUN_ID" ]; then
+              for _ in $(seq 1 10); do
+                ANNOTATION_MESSAGES="$(gh api "repos/${GITHUB_REPOSITORY}/check-runs/${CHECK_RUN_ID}/annotations" --jq '.[].message' 2>/dev/null || true)"
+
+                if printf '%s\n' "$ANNOTATION_MESSAGES" | grep -q "Credit balance is too low"; then
+                  echo "Skipping: Anthropic API credit balance is too low."
+                  exit 0
+                fi
+
+                sleep 3
+              done
             fi
 
             echo "Code review failed before producing an execution log."
