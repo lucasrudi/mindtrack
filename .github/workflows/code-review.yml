@@ -8,24 +8,24 @@ on:
 permissions:
   contents: read
   pull-requests: write
-  id-token: write
 
 jobs:
   review:
     name: Code Review
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
       - name: Run Claude Code Review
-        # This action validates that code-review.yml matches the default branch before
-        # exchanging its app token, so update this file in a dedicated workflow-only PR.
-        uses: anthropics/claude-code-action@5d0cc745cd0cce4c0e9e0b3511de26c3bc285eb5 # v1
+        id: review
+        continue-on-error: true
+        uses: anthropics/claude-code-action@ff9acae5886d41a99ed4ec14b7dc147d55834722 # v1.0.77
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          direct_prompt: |
+          github_token: ${{ secrets.GH_CONFIG_TOKEN }}
+          prompt: |
             Review this pull request for the MindTrack application. Focus on:
             1. Correctness and potential bugs
             2. Security vulnerabilities (OWASP Top 10 — auth, injection, data exposure)
@@ -40,3 +40,15 @@ jobs:
             (LGTM / Minor issues / Major issues). List findings grouped by severity
             (Critical → High → Medium → Low). For each finding, include file, line range,
             and a concrete suggestion.
+
+      - name: Check review outcome
+        if: steps.review.outcome == 'failure'
+        env:
+          EXECUTION_FILE: ${{ steps.review.outputs.execution_file }}
+        run: |
+          if [ -n "$EXECUTION_FILE" ] && grep -q "Credit balance is too low" "$EXECUTION_FILE"; then
+            echo "Skipping: Anthropic API credit balance is too low."
+            exit 0
+          fi
+          echo "Code review failed for an unexpected reason."
+          exit 1
