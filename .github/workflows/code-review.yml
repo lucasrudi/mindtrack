@@ -6,6 +6,8 @@ on:
     types: [opened, synchronize, reopened]
 
 permissions:
+  actions: read
+  checks: read
   contents: read
   pull-requests: write
 
@@ -45,8 +47,16 @@ jobs:
         if: steps.review.outcome == 'failure'
         env:
           EXECUTION_FILE: ${{ steps.review.outputs.execution_file }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ -z "$EXECUTION_FILE" ]; then
+            CHECK_RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs" --jq '.jobs[] | select(.name == "Code Review") | .id' | head -n 1)"
+
+            if [ -n "$CHECK_RUN_ID" ] && gh api "repos/${GITHUB_REPOSITORY}/check-runs/${CHECK_RUN_ID}/annotations" --jq '.[].message' | grep -q "Credit balance is too low"; then
+              echo "Skipping: Anthropic API credit balance is too low."
+              exit 0
+            fi
+
             echo "Code review failed before producing an execution log."
             exit 1
           fi
