@@ -21,7 +21,7 @@ jobs:
       - name: Run Claude Code Review
         id: review
         continue-on-error: true
-        uses: anthropics/claude-code-action@426380f01bad0a17200865605a85cb28926dccbf # v1.0.9
+        uses: anthropics/claude-code-action@e1f83b5b955a29fc3bab97ac514eabb778444dde # v1.0.79
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GH_CONFIG_TOKEN }}
