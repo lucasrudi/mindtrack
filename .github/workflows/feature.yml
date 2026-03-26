@@ -205,33 +205,48 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check Sonar token availability
+        id: sonar-token
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "SONAR_TOKEN is unavailable for this run; skipping SonarCloud analysis."
+          fi
+
       - name: Download backend coverage
+        if: steps.sonar-token.outputs.available == 'true' && needs.backend.result == 'success'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        if: needs.backend.result == 'success'
         with:
           name: backend-coverage
           path: backend/target/site/jacoco/
 
       - name: Download backend classes
+        if: steps.sonar-token.outputs.available == 'true' && needs.backend.result == 'success'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        if: needs.backend.result == 'success'
         with:
           name: backend-classes
           path: backend/target/classes/
 
       - name: Download frontend coverage
+        if: steps.sonar-token.outputs.available == 'true'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: frontend-coverage
           path: frontend/coverage/
 
       - name: Verify Sonar inputs
+        if: steps.sonar-token.outputs.available == 'true'
         run: |
           test -f backend/target/site/jacoco/jacoco.xml
           test -d backend/target/classes
           test -f frontend/coverage/lcov.info
 
       - name: SonarCloud Scan
+        if: steps.sonar-token.outputs.available == 'true'
         uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9 # v7.0.0
         with:
           args: >
