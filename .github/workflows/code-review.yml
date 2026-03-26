@@ -6,12 +6,17 @@ on:
     types: [opened, synchronize, reopened]
 
 permissions:
+  actions: read
+  checks: read
   contents: read
   pull-requests: write
 
 jobs:
-  review:
-    name: Code Review
+  run-review:
+    name: Run Claude Review
+    outputs:
+      review_outcome: ${{ steps.metadata.outputs.review_outcome }}
+      check_run_id: ${{ steps.metadata.outputs.check_run_id }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -21,7 +26,7 @@ jobs:
       - name: Run Claude Code Review
         id: review
         continue-on-error: true
-        uses: anthropics/claude-code-action@426380f01bad0a17200865605a85cb28926dccbf # v1.0.9
+        uses: anthropics/claude-code-action@e1f83b5b955a29fc3bab97ac514eabb778444dde # v1.0.79
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GH_CONFIG_TOKEN }}
@@ -41,14 +46,47 @@ jobs:
             (Critical → High → Medium → Low). For each finding, include file, line range,
             and a concrete suggestion.
 
-      - name: Check review outcome
-        if: steps.review.outcome == 'failure'
+      - name: Capture review metadata
+        id: metadata
+        if: always()
         env:
-          EXECUTION_FILE: ${{ steps.review.outputs.execution_file }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [ -n "$EXECUTION_FILE" ] && grep -q "Credit balance is too low" "$EXECUTION_FILE"; then
-            echo "Skipping: Anthropic API credit balance is too low."
+          CHECK_RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs" --jq '.jobs[] | select(.name == "Run Claude Review") | .id' | head -n 1)"
+          echo "check_run_id=$CHECK_RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "review_outcome=${{ steps.review.outcome }}" >> "$GITHUB_OUTPUT"
+
+  review:
+    name: Code Review
+    runs-on: ubuntu-latest
+    needs: run-review
+    if: always()
+    steps:
+      - name: Check review outcome
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVIEW_JOB_RESULT: ${{ needs.run-review.result }}
+          REVIEW_OUTCOME: ${{ needs.run-review.outputs.review_outcome }}
+          CHECK_RUN_ID: ${{ needs.run-review.outputs.check_run_id }}
+        run: |
+          if [ "$REVIEW_JOB_RESULT" != "success" ]; then
+            echo "Code review runner job failed before outcome validation."
+            exit 1
+          fi
+
+          if [ "$REVIEW_OUTCOME" != "failure" ]; then
+            echo "Code review completed successfully."
             exit 0
           fi
+
+          if [ -n "$CHECK_RUN_ID" ]; then
+            ANNOTATION_MESSAGES="$(gh api "repos/${GITHUB_REPOSITORY}/check-runs/${CHECK_RUN_ID}/annotations" --jq '.[].message' 2>/dev/null || true)"
+
+            if printf '%s\n' "$ANNOTATION_MESSAGES" | grep -q "Credit balance is too low"; then
+              echo "Skipping: Anthropic API credit balance is too low."
+              exit 0
+            fi
+          fi
+
           echo "Code review failed for an unexpected reason."
           exit 1
