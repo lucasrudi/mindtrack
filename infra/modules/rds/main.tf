@@ -31,7 +31,6 @@ resource "aws_security_group" "rds" {
   }
 }
 
-#tfsec:ignore:aws-rds-enable-iam-auth
 resource "aws_db_instance" "main" {
   identifier        = "${var.name_prefix}-mysql"
   engine            = "mysql"
@@ -43,7 +42,8 @@ resource "aws_db_instance" "main" {
   db_name  = "mindtrack"
   username = "mindtrack_admin"
 
-  manage_master_user_password = true
+  manage_master_user_password         = true
+  iam_database_authentication_enabled = true
 
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]

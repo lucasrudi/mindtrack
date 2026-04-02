@@ -1,3 +1,48 @@
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
+data "aws_iam_policy_document" "flow_logs_kms" {
+  statement {
+    sid    = "EnableAccountAdministration"
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+    }
+
+    actions   = ["kms:*"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "AllowCloudWatchLogsUsage"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["logs.${data.aws_region.current.region}.amazonaws.com"]
+    }
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:Encrypt",
+      "kms:GenerateDataKey*",
+      "kms:ReEncrypt*",
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_kms_key" "flow_logs" {
+  description             = "${var.name_prefix} VPC flow logs encryption key"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.flow_logs_kms.json
+}
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -125,9 +170,9 @@ resource "aws_route_table_association" "private" {
 # VPC Flow Logs — network traffic visibility for security monitoring
 # =============================================================================
 
-#tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "flow_logs" {
   name              = "/aws/vpc/${var.name_prefix}/flow-logs"
+  kms_key_id        = aws_kms_key.flow_logs.arn
   retention_in_days = 90
 }
 

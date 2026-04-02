@@ -12,6 +12,16 @@ resource "aws_iam_access_key" "ci" {
   user = aws_iam_user.ci.name
 }
 
+resource "aws_iam_group" "ci" {
+  name = "${local.name_prefix}-ci"
+  path = "/mindtrack/"
+}
+
+resource "aws_iam_user_group_membership" "ci" {
+  user   = aws_iam_user.ci.name
+  groups = [aws_iam_group.ci.name]
+}
+
 # Lambda execution role for test
 data "aws_iam_policy_document" "lambda_assume" {
   statement {
@@ -110,8 +120,8 @@ data "aws_iam_policy_document" "ci_user" {
   }
 }
 
-resource "aws_iam_user_policy" "ci" {
+resource "aws_iam_group_policy" "ci" {
   name   = "${local.name_prefix}-ci-policy"
-  user   = aws_iam_user.ci.name
+  group  = aws_iam_group.ci.name
   policy = data.aws_iam_policy_document.ci_user.json
 }

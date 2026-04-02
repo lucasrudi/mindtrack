@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mindtrack.messaging.dto.WhatsAppWebhook;
 import com.mindtrack.messaging.service.MessagingService;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.HexFormat;
 import java.util.List;
 import javax.crypto.Mac;
@@ -14,6 +15,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -27,14 +30,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests HMAC-SHA256 signature verification for the WhatsApp webhook endpoint.
  * Requires a non-blank {@code appSecret} to activate signature verification.
  */
-@SpringBootTest(properties = {
-    "mindtrack.messaging.whatsapp.enabled=true",
-    "mindtrack.messaging.whatsapp.verify-token=test-verify-token",
-    "mindtrack.messaging.whatsapp.app-secret=test-app-secret"
-})
+@SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("local")
 class WhatsAppWebhookHmacControllerTest {
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final String VERIFY_TOKEN = "test-verify-token";
+    private static final String APP_SECRET = randomSecret();
 
     @Autowired
     private MockMvc mockMvc;
@@ -44,6 +47,13 @@ class WhatsAppWebhookHmacControllerTest {
 
     @MockitoBean
     private MessagingService messagingService;
+
+    @DynamicPropertySource
+    static void registerProperties(DynamicPropertyRegistry registry) {
+        registry.add("mindtrack.messaging.whatsapp.enabled", () -> "true");
+        registry.add("mindtrack.messaging.whatsapp.verify-token", () -> VERIFY_TOKEN);
+        registry.add("mindtrack.messaging.whatsapp.app-secret", () -> APP_SECRET);
+    }
 
     @Test
     void shouldRejectWebhookWithInvalidHmacSignature() throws Exception {
@@ -83,7 +93,7 @@ class WhatsAppWebhookHmacControllerTest {
         webhook.setEntry(List.of(entry));
 
         String body = objectMapper.writeValueAsString(webhook);
-        String signature = computeHmac(body, "test-app-secret");
+        String signature = computeHmac(body, APP_SECRET);
 
         mockMvc.perform(post("/api/webhooks/whatsapp")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -131,7 +141,7 @@ class WhatsAppWebhookHmacControllerTest {
 
         String body = objectMapper.writeValueAsString(webhook);
         // Compute HMAC with the WRONG secret
-        String wrongSignature = computeHmac(body, "wrong-secret");
+        String wrongSignature = computeHmac(body, randomSecret());
 
         mockMvc.perform(post("/api/webhooks/whatsapp")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -147,5 +157,11 @@ class WhatsAppWebhookHmacControllerTest {
         mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
         byte[] hash = mac.doFinal(body.getBytes(StandardCharsets.UTF_8));
         return "sha256=" + HexFormat.of().formatHex(hash);
+    }
+
+    private static String randomSecret() {
+        byte[] secret = new byte[32];
+        SECURE_RANDOM.nextBytes(secret);
+        return HexFormat.of().formatHex(secret);
     }
 }
