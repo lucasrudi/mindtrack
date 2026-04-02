@@ -69,7 +69,7 @@ class WhatsAppServiceTest {
         assertEquals("application/json", request.headers().firstValue("Content-Type").orElseThrow());
         assertEquals("Bearer api-token", request.headers().firstValue("Authorization").orElseThrow());
         assertEquals(
-                "{\"messaging_product\":\"whatsapp\",\"to\":\"34600\\\"111222\","
+                "{\"messaging_product\":\"whatsapp\",\"to\":\"34600111222\","
                         + "\"type\":\"text\",\"text\":{\"body\":\"Line 1\\nTabbed\\t\\\\\\\\quoted\\\"\"}}",
                 requestBody(request));
     }

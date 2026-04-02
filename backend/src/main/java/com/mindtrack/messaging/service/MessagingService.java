@@ -11,6 +11,7 @@ import com.mindtrack.profile.model.UserProfile;
 import com.mindtrack.profile.repository.UserProfileRepository;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -25,6 +26,8 @@ import org.springframework.stereotype.Service;
 public class MessagingService {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessagingService.class);
+    private static final Pattern TELEGRAM_CHAT_ID = Pattern.compile("^-?\\d{5,20}$");
+    private static final Pattern WHATSAPP_PHONE_NUMBER = Pattern.compile("^\\+?\\d{8,15}$");
 
     private final UserProfileRepository userProfileRepository;
     private final ConversationService conversationService;
@@ -64,12 +67,18 @@ public class MessagingService {
 
         String chatId = String.valueOf(update.getMessage().getChat().getId());
         String text = update.getMessage().getText();
+        String safeChatId = sanitizeTelegramChatId(chatId);
 
-        LOG.info("Telegram message received from chat={}", chatId);
+        if (safeChatId == null) {
+            LOG.warn("Ignoring Telegram message with invalid chat id");
+            return;
+        }
+
+        LOG.info("Telegram message received from chat={}", safeChatId);
 
         // Handle /start command
         if (text.startsWith("/start")) {
-            telegramService.sendMessage(chatId,
+            telegramService.sendMessage(safeChatId,
                     "Welcome to MindTrack! Link your Telegram account in your profile settings "
                             + "to start chatting with your AI coach.");
             return;
@@ -80,10 +89,10 @@ public class MessagingService {
         // linked profiles and compare against the decrypted value in application code.
         Optional<UserProfile> profileOpt = userProfileRepository.findAllByTelegramChatIdNotNull()
                 .stream()
-                .filter(p -> chatId.equals(p.getTelegramChatId()))
+                .filter(p -> safeChatId.equals(sanitizeTelegramChatId(p.getTelegramChatId())))
                 .findFirst();
         if (profileOpt.isEmpty()) {
-            telegramService.sendMessage(chatId,
+            telegramService.sendMessage(safeChatId,
                     "Your Telegram account is not linked to MindTrack. "
                             + "Please add your Telegram Chat ID in your profile settings.");
             return;
@@ -96,10 +105,10 @@ public class MessagingService {
             ChatResponse response = conversationService.chatWithChannel(
                     userId, chatRequest, Channel.TELEGRAM);
 
-            telegramService.sendMessage(chatId, response.content());
+            telegramService.sendMessage(safeChatId, response.content());
         } catch (Exception e) {
-            LOG.error("Error processing Telegram message for chat={}", chatId, e);
-            telegramService.sendMessage(chatId,
+            LOG.error("Error processing Telegram message for chat={}", safeChatId, e);
+            telegramService.sendMessage(safeChatId,
                     "Sorry, I encountered an error processing your message. Please try again later.");
         }
     }
@@ -154,32 +163,57 @@ public class MessagingService {
         }
         String phoneNumber = message.getFrom();
         String text = message.getText().getBody();
+        String safePhoneNumber = sanitizeWhatsappNumber(phoneNumber);
 
-        LOG.info("WhatsApp message received from phone={}", phoneNumber);
+        if (safePhoneNumber == null) {
+            LOG.warn("Ignoring WhatsApp message with invalid phone number");
+            return;
+        }
+
+        LOG.info("WhatsApp message received from phone={}", safePhoneNumber);
 
         // Resolve user by WhatsApp number; see Telegram lookup above for encryption rationale.
         Optional<UserProfile> profileOpt = userProfileRepository.findAllByWhatsappNumberNotNull()
                 .stream()
-                .filter(profile -> phoneNumber.equals(profile.getWhatsappNumber()))
+                .filter(profile -> safePhoneNumber.equals(sanitizeWhatsappNumber(profile.getWhatsappNumber())))
                 .findFirst();
         if (profileOpt.isEmpty()) {
-            LOG.warn("Ignoring WhatsApp message from unlinked phone={}", phoneNumber);
+            LOG.warn("Ignoring WhatsApp message from unlinked phone={}", safePhoneNumber);
             return;
         }
 
         Long userId = profileOpt.get().getUserId();
-        String linkedWhatsappNumber = profileOpt.get().getWhatsappNumber();
 
         try {
             ChatRequest chatRequest = new ChatRequest(null, text, ConversationType.QUICK_CHECKIN);
             ChatResponse response = conversationService.chatWithChannel(
                     userId, chatRequest, Channel.WHATSAPP);
 
-            service.sendMessage(linkedWhatsappNumber, response.content());
+            service.sendMessage(safePhoneNumber, response.content());
         } catch (Exception e) {
-            LOG.error("Error processing WhatsApp message from phone={}", phoneNumber, e);
-            service.sendMessage(linkedWhatsappNumber,
+            LOG.error("Error processing WhatsApp message from phone={}", safePhoneNumber, e);
+            service.sendMessage(safePhoneNumber,
                     "Sorry, I encountered an error processing your message. Please try again later.");
         }
+    }
+
+    @Nullable
+    private String sanitizeTelegramChatId(@Nullable String chatId) {
+        if (chatId == null) {
+            return null;
+        }
+        String trimmed = chatId.trim();
+        return TELEGRAM_CHAT_ID.matcher(trimmed).matches() ? trimmed : null;
+    }
+
+    @Nullable
+    private String sanitizeWhatsappNumber(@Nullable String phoneNumber) {
+        if (phoneNumber == null) {
+            return null;
+        }
+        String trimmed = phoneNumber.trim();
+        String digitsOnly = trimmed.replaceAll("\\D", "");
+        String canonical = trimmed.startsWith("+") ? "+" + digitsOnly : digitsOnly;
+        return WHATSAPP_PHONE_NUMBER.matcher(canonical).matches() ? canonical : null;
     }
 }

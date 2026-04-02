@@ -1,3 +1,48 @@
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
+data "aws_iam_policy_document" "api_access_logs_kms" {
+  statement {
+    sid    = "EnableAccountAdministration"
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+    }
+
+    actions   = ["kms:*"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "AllowCloudWatchLogsUsage"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["logs.${data.aws_region.current.region}.amazonaws.com"]
+    }
+
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:Encrypt",
+      "kms:GenerateDataKey*",
+      "kms:ReEncrypt*",
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_kms_key" "api_access_logs" {
+  description             = "${var.name_prefix} API Gateway access logs encryption key"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.api_access_logs_kms.json
+}
+
 # Public by design: browser clients and third-party messaging webhooks call this HTTP API directly.
 resource "aws_apigatewayv2_api" "main" {
   name          = "${var.name_prefix}-api"
@@ -24,9 +69,9 @@ resource "aws_apigatewayv2_route" "default" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
 }
 
-#tfsec:ignore:aws-cloudwatch-log-group-customer-key
 resource "aws_cloudwatch_log_group" "api_access" {
   name              = "/aws/apigateway/${var.name_prefix}"
+  kms_key_id        = aws_kms_key.api_access_logs.arn
   retention_in_days = 30
 }
 

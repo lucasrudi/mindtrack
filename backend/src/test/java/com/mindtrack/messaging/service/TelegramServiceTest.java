@@ -59,7 +59,7 @@ class TelegramServiceTest {
         when(httpClient.send(any(HttpRequest.class), ArgumentMatchers.<HttpResponse.BodyHandler<String>>any()))
                 .thenReturn(response);
 
-        service.sendMessage("chat-\"1", "Line 1\nTabbed\t\\\\quoted\"");
+        service.sendMessage("-123456789", "Line 1\nTabbed\t\\\\quoted\"");
 
         ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
         verify(httpClient).send(requestCaptor.capture(), ArgumentMatchers.<HttpResponse.BodyHandler<String>>any());
@@ -68,7 +68,7 @@ class TelegramServiceTest {
         assertEquals(URI.create("https://api.telegram.org/botbot-token/sendMessage"), request.uri());
         assertEquals("application/json", request.headers().firstValue("Content-Type").orElseThrow());
         assertEquals(
-                "{\"chat_id\":\"chat-\\\"1\",\"text\":\"Line 1\\nTabbed\\t\\\\\\\\quoted\\\"\",\"parse_mode\":\"Markdown\"}",
+                "{\"chat_id\":\"-123456789\",\"text\":\"Line 1\\nTabbed\\t\\\\\\\\quoted\\\"\",\"parse_mode\":\"Markdown\"}",
                 requestBody(request));
     }
 

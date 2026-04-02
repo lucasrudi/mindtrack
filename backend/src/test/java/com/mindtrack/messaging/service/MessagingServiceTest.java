@@ -124,6 +124,21 @@ class MessagingServiceTest {
         verify(telegramService).sendMessage(eq("12345"), any(String.class));
     }
 
+    @Test
+    void shouldIgnoreTelegramMessageWhenStoredChatIdIsInvalid() {
+        TelegramUpdate update = createTelegramUpdate("12345", "Check in");
+
+        UserProfile profile = new UserProfile();
+        profile.setUserId(1L);
+        profile.setTelegramChatId("https://evil.example");
+        when(userProfileRepository.findAllByTelegramChatIdNotNull()).thenReturn(List.of(profile));
+
+        messagingService.handleTelegramMessage(update);
+
+        verify(telegramService).sendMessage(eq("12345"), any(String.class));
+        verify(conversationService, never()).chatWithChannel(any(), any(), any());
+    }
+
     // --- WhatsApp tests ---
 
     @Test
@@ -178,6 +193,21 @@ class MessagingServiceTest {
         messagingService.handleWhatsAppMessage(webhook);
 
         verify(whatsAppService).sendMessage(eq("+1234567890"), any(String.class));
+    }
+
+    @Test
+    void shouldIgnoreWhatsAppMessageWhenLinkedNumberIsInvalid() {
+        WhatsAppWebhook webhook = createWhatsAppWebhook("+1234567890", "Check in");
+
+        UserProfile profile = new UserProfile();
+        profile.setUserId(2L);
+        profile.setWhatsappNumber("https://evil.example");
+        when(userProfileRepository.findAllByWhatsappNumberNotNull()).thenReturn(List.of(profile));
+
+        messagingService.handleWhatsAppMessage(webhook);
+
+        verify(whatsAppService, never()).sendMessage(any(), any());
+        verify(conversationService, never()).chatWithChannel(any(), any(), any());
     }
 
     @Test

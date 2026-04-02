@@ -64,4 +64,22 @@ ignore:
           No fix available in spring-security-core 6.5.1 (latest managed by
           Spring Boot 3.5.3). Revisit when Spring Security releases a patch.
         expires: '2026-05-28T00:00:00.000Z'
+  SNYK-CC-TF-73:
+    - 'modules/lambda/main.tf > resource > aws_security_group[lambda] > egress[0]':
+        reason: >-
+          Lambda must reach third-party HTTPS endpoints (Telegram, WhatsApp,
+          and the AI provider) through the NAT gateway, so the remaining
+          443 egress cannot be reduced to fixed CIDR ranges without a broader
+          outbound proxy or firewall redesign. Revisit when controlled egress
+          infrastructure is introduced.
+        expires: '2026-07-02T00:00:00.000Z'
+  SNYK-CC-TF-45:
+    - 'modules/s3/main.tf > input > resource > aws_s3_bucket[access_logs] > logging':
+        reason: >-
+          This bucket is the dedicated destination for S3 access logs from the
+          application buckets. AWS treats the log-delivery bucket as the sink,
+          so requiring another logging target would create a recursive logging
+          design rather than add useful audit coverage. Revisit if we introduce
+          a separate centralized audit-log archive bucket.
+        expires: '2026-07-02T00:00:00.000Z'
 patch: {}
