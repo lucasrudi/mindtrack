@@ -76,7 +76,7 @@ services:
       - mindtrack
 
   prometheus:
-    image: prom/prometheus:v3.10.0
+    image: prom/prometheus:v3.11.0
     ports:
       - '9090:9090'
     volumes:
