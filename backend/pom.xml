@@ -215,6 +215,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
+            <!-- Exclude all Jackson 3.x paths to remediate GHSA-2m67-wjpj-xhg9 (no patch available).
+                 Jackson 3.x enters via both spring-boot-starter-jackson-test and
+                 spring-boot-starter-webmvc → spring-boot-starter-jackson. -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-jackson-test</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-jackson</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
