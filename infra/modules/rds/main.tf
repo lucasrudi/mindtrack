@@ -67,6 +67,7 @@ resource "aws_db_instance" "main" {
     ignore_changes = [engine_version]
   }
 
+  #tfsec:ignore:aws-rds-enable-performance-insights
   # db.t4g.micro does not support Performance Insights.
   performance_insights_enabled = false
 
