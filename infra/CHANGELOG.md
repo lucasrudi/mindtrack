@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.1...infra-v0.4.2) (2026-04-08)
+
+
+### Bug Fixes
+
+* **infra:** resolve RDS version drift, S3 MFA delete, and GitHub Pages deploy policy ([#423](https://github.com/lucasrudi/mindtrack/issues/423)) ([8a3fb91](https://github.com/lucasrudi/mindtrack/commit/8a3fb91c1db14d892356e3e49597b8dcf8a1cac9)), closes [#422](https://github.com/lucasrudi/mindtrack/issues/422)
+
 ## [0.4.1](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.0...infra-v0.4.1) (2026-04-08)
 
 
