@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.4.1](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.0...infra-v0.4.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* **common:** relax API rate limits ([#317](https://github.com/lucasrudi/mindtrack/issues/317)) ([0791297](https://github.com/lucasrudi/mindtrack/commit/0791297d8604f2ee3b98160b8dfbb39ee3057e2b)), closes [#316](https://github.com/lucasrudi/mindtrack/issues/316)
+* **deploy:** unblock deploy workflows ([#205](https://github.com/lucasrudi/mindtrack/issues/205)) ([4a7dc2b](https://github.com/lucasrudi/mindtrack/commit/4a7dc2b7a8066c6bdfe919ae432a5b6ba7fc9ca2))
+* **infra:** avoid unsupported prod updates ([#215](https://github.com/lucasrudi/mindtrack/issues/215)) ([f936120](https://github.com/lucasrudi/mindtrack/commit/f936120446912c360deb7f5b01e0bf8a2e40f9a1)), closes [#214](https://github.com/lucasrudi/mindtrack/issues/214)
+* **infra:** ignore deploy-managed lambda sentry dsn ([#218](https://github.com/lucasrudi/mindtrack/issues/218)) ([97ce9dd](https://github.com/lucasrudi/mindtrack/commit/97ce9dd708f783cb5c28f52a4a930661144a45b5)), closes [#217](https://github.com/lucasrudi/mindtrack/issues/217)
+* **security:** remediate current snyk findings ([#403](https://github.com/lucasrudi/mindtrack/issues/403)) ([982eb3d](https://github.com/lucasrudi/mindtrack/commit/982eb3d2a1c384c11b2f153b8ef2b6c6f789e8f4)), closes [#402](https://github.com/lucasrudi/mindtrack/issues/402)
+
+
+### Miscellaneous
+
+* **deps:** update all dependencies ([#414](https://github.com/lucasrudi/mindtrack/issues/414)) ([f258f46](https://github.com/lucasrudi/mindtrack/commit/f258f46555323f64b6495efa7d851562463dae19))
+* **deps:** update minor and patch dependencies ([#371](https://github.com/lucasrudi/mindtrack/issues/371)) ([2903cf1](https://github.com/lucasrudi/mindtrack/commit/2903cf1d0e465ffc2af8663c488a9665d5c3d331))
+* **frontend:** upgrade ESLint to v10 ([#329](https://github.com/lucasrudi/mindtrack/issues/329)) ([675a6da](https://github.com/lucasrudi/mindtrack/commit/675a6dabb1f856b629644c0fbcbecbd8e0143988)), closes [#318](https://github.com/lucasrudi/mindtrack/issues/318)
+* **infra:** upgrade major infrastructure and CI dependencies ([#373](https://github.com/lucasrudi/mindtrack/issues/373)) ([2f3ca9e](https://github.com/lucasrudi/mindtrack/commit/2f3ca9e9daba5e57679986fdc7fc87fa146293d1))
+
+
+### Infrastructure
+
+* **iam:** expand GitHub Actions role permissions for Terraform plan/apply ([#194](https://github.com/lucasrudi/mindtrack/issues/194)) ([591525a](https://github.com/lucasrudi/mindtrack/commit/591525a34667b4a604b7d2e35fea1648833589c5))
+* **rds:** upgrade MySQL from 8.0 to 8.4 LTS before AWS EOL ([#257](https://github.com/lucasrudi/mindtrack/issues/257)) ([25d1f32](https://github.com/lucasrudi/mindtrack/commit/25d1f3253fed29861dc3fd95ae8672b2f4c32bca)), closes [#251](https://github.com/lucasrudi/mindtrack/issues/251)
+
 ## [0.4.0](https://github.com/lucasrudi/mindtrack/compare/infra-v0.3.0...infra-v0.4.0) (2026-03-16)
 
 
