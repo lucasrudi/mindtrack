@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.2...infra-v0.4.3) (2026-04-08)
+
+
+### Bug Fixes
+
+* **infra:** correct GitHub Pages deploy policy and disable RDS Performance Insights ([#429](https://github.com/lucasrudi/mindtrack/issues/429)) ([2c8d4db](https://github.com/lucasrudi/mindtrack/commit/2c8d4dbbc4fba41cfe6da899f9ee07ea562f459c))
+
 ## [0.4.2](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.1...infra-v0.4.2) (2026-04-08)
 
 
