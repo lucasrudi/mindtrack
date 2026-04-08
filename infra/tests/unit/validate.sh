@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 INFRA_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 
@@ -21,8 +21,12 @@ echo ">> Validating github-settings..."
 terraform -chdir="$INFRA_DIR/github-settings" validate
 
 if command -v tflint &> /dev/null; then
+    echo ">> Initializing tflint plugins..."
+    tflint --init --chdir="$INFRA_DIR"
+    tflint --init --chdir="$INFRA_DIR/github-settings"
+
     echo ">> Running tflint..."
-    tflint --recursive --chdir="$INFRA_DIR"
+    tflint --recursive --minimum-failure-severity=error --chdir="$INFRA_DIR"
 else
     echo ">> tflint not installed, skipping."
 fi
