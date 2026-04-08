@@ -31,6 +31,7 @@ resource "aws_security_group" "rds" {
   }
 }
 
+#tfsec:ignore:aws-rds-enable-performance-insights
 resource "aws_db_instance" "main" {
   identifier        = "${var.name_prefix}-mysql"
   engine            = "mysql"
@@ -67,9 +68,8 @@ resource "aws_db_instance" "main" {
     ignore_changes = [engine_version]
   }
 
-  performance_insights_enabled          = true
-  performance_insights_kms_key_id       = aws_kms_key.rds.arn
-  performance_insights_retention_period = 7 # free tier
+  # db.t4g.micro does not support Performance Insights.
+  performance_insights_enabled = false
 
   tags = {
     Name = "${var.name_prefix}-mysql"
