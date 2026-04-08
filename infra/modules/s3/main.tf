@@ -75,7 +75,7 @@ resource "aws_s3_bucket_versioning" "audio_versioning" {
 
   versioning_configuration {
     status     = "Enabled"
-    mfa_delete = "Enabled"
+    mfa_delete = "Disabled"
   }
 }
 
@@ -150,7 +150,7 @@ resource "aws_s3_bucket_versioning" "frontend_versioning" {
 
   versioning_configuration {
     status     = "Enabled"
-    mfa_delete = "Enabled"
+    mfa_delete = "Disabled"
   }
 }
 
@@ -303,7 +303,7 @@ resource "aws_s3_bucket_versioning" "access_logs_versioning" {
 
   versioning_configuration {
     status     = "Enabled"
-    mfa_delete = "Enabled"
+    mfa_delete = "Disabled"
   }
 }
 

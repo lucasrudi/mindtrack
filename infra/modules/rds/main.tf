@@ -61,6 +61,12 @@ resource "aws_db_instance" "main" {
 
   allow_major_version_upgrade = true
 
+  # AWS auto-upgrades RDS minor versions; ignore drift to prevent Terraform
+  # from attempting a downgrade (e.g. 8.4.8 → 8.4.7) which AWS rejects.
+  lifecycle {
+    ignore_changes = [engine_version]
+  }
+
   performance_insights_enabled          = true
   performance_insights_kms_key_id       = aws_kms_key.rds.arn
   performance_insights_retention_period = 7 # free tier

@@ -130,6 +130,21 @@ resource "github_actions_variable" "variables" {
 }
 
 # ------------------------------------
+# GitHub Pages Deployment Environment
+# Allows the deploy-docs job in deploy.yml to deploy from release tags
+# (e.g. backend-v*) in addition to the main branch.
+# ------------------------------------
+resource "github_repository_environment" "github_pages" {
+  repository  = github_repository.this.name
+  environment = "github-pages"
+
+  deployment_branch_policy {
+    protected_branches     = false
+    custom_branch_policies = false
+  }
+}
+
+# ------------------------------------
 # Private Vulnerability Reporting
 # ------------------------------------
 # The integrations/github Terraform provider v6.x does not expose private
