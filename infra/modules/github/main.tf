@@ -140,8 +140,23 @@ resource "github_repository_environment" "github_pages" {
 
   deployment_branch_policy {
     protected_branches     = false
-    custom_branch_policies = false
+    custom_branch_policies = true
   }
+}
+
+# Allow deployments from main and from backend release tags (backend-v*).
+resource "github_repository_deployment_branch_policy" "github_pages_main" {
+  repository       = github_repository.this.name
+  environment_name = github_repository_environment.github_pages.environment
+  name             = "main"
+  type             = "branch"
+}
+
+resource "github_repository_deployment_branch_policy" "github_pages_backend_tags" {
+  repository       = github_repository.this.name
+  environment_name = github_repository_environment.github_pages.environment
+  name             = "backend-v*"
+  type             = "tag"
 }
 
 # ------------------------------------
