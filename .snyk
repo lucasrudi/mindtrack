@@ -26,4 +26,32 @@ ignore:
           design rather than add useful audit coverage. Revisit if we introduce
           a separate centralized audit-log archive bucket.
         expires: '2026-07-02T00:00:00.000Z'
+  SNYK-CC-TF-127:
+    - 'modules/s3/main.tf > resource > aws_s3_bucket_versioning[audio_versioning] > versioning_configuration > mfa_delete':
+        reason: >-
+          AWS documents that MFA Delete can only be enabled by the bucket owner
+          root account via CLI or API, and it cannot be used with S3 lifecycle
+          configurations. These buckets intentionally use lifecycle retention
+          rules, so this is not remediable as a normal Terraform change.
+          Revisit only if lifecycle policies are removed and a manual root-only
+          enablement process is acceptable.
+        expires: '2026-07-07T00:00:00.000Z'
+    - 'modules/s3/main.tf > resource > aws_s3_bucket_versioning[frontend_versioning] > versioning_configuration > mfa_delete':
+        reason: >-
+          AWS documents that MFA Delete can only be enabled by the bucket owner
+          root account via CLI or API, and it cannot be used with S3 lifecycle
+          configurations. These buckets intentionally use lifecycle retention
+          rules, so this is not remediable as a normal Terraform change.
+          Revisit only if lifecycle policies are removed and a manual root-only
+          enablement process is acceptable.
+        expires: '2026-07-07T00:00:00.000Z'
+    - 'modules/s3/main.tf > resource > aws_s3_bucket_versioning[access_logs_versioning] > versioning_configuration > mfa_delete':
+        reason: >-
+          AWS documents that MFA Delete can only be enabled by the bucket owner
+          root account via CLI or API, and it cannot be used with S3 lifecycle
+          configurations. These buckets intentionally use lifecycle retention
+          rules, so this is not remediable as a normal Terraform change.
+          Revisit only if lifecycle policies are removed and a manual root-only
+          enablement process is acceptable.
+        expires: '2026-07-07T00:00:00.000Z'
 patch: {}
