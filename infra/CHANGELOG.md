@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.4](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.3...infra-v0.4.4) (2026-04-08)
+
+
+### Bug Fixes
+
+* **infra:** remove unsupported type argument from deployment branch policy ([#435](https://github.com/lucasrudi/mindtrack/issues/435)) ([5a755ac](https://github.com/lucasrudi/mindtrack/commit/5a755ac48a65b4c1d526b7e57e418e7af85412b8)), closes [#432](https://github.com/lucasrudi/mindtrack/issues/432)
+
 ## [0.4.3](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.2...infra-v0.4.3) (2026-04-08)
 
 
