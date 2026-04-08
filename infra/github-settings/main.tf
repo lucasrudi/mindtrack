@@ -21,6 +21,12 @@ import {
   id = var.repository_name
 }
 
+# Import the github-pages environment created automatically by GitHub Pages.
+import {
+  to = module.github.github_repository_environment.github_pages
+  id = "${var.repository_name}:github-pages"
+}
+
 # Import GitHub's built-in labels that would otherwise conflict on create.
 import {
   for_each = toset(["bug", "documentation", "enhancement"])
