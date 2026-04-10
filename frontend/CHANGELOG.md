@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.0...frontend-v0.5.1) (2026-04-10)
+
+
+### Miscellaneous
+
+* **deps:** update vitest monorepo to v4.1.4 ([#442](https://github.com/lucasrudi/mindtrack/issues/442)) ([4381dc9](https://github.com/lucasrudi/mindtrack/commit/4381dc99a2e9c85d790b17ebafabd3f28ad48ba2))
+
 ## [0.5.0](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.4.0...frontend-v0.5.0) (2026-04-08)
 
 
