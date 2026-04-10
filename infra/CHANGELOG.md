@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.5](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.4...infra-v0.4.5) (2026-04-10)
+
+
+### Bug Fixes
+
+* **security:** refresh current snyk triage ([#439](https://github.com/lucasrudi/mindtrack/issues/439)) ([7fd74f7](https://github.com/lucasrudi/mindtrack/commit/7fd74f70760e99d3135515493403f31780ebf123)), closes [#438](https://github.com/lucasrudi/mindtrack/issues/438)
+
 ## [0.4.4](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.3...infra-v0.4.4) (2026-04-08)
 
 

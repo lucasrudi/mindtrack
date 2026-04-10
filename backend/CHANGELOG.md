@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.2...backend-v0.3.3) (2026-04-10)
+
+
+### Miscellaneous
+
+* **main:** release backend 0.3.3-SNAPSHOT ([#436](https://github.com/lucasrudi/mindtrack/issues/436)) ([6da5afd](https://github.com/lucasrudi/mindtrack/commit/6da5afda648be96ae0afcc090deb2ca6dded9752))
+
 ## [0.3.2](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.1...backend-v0.3.2) (2026-04-08)
 
 
