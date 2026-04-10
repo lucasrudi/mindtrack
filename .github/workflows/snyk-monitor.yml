@@ -60,6 +60,17 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
+      - name: Snyk test Terraform
+        run: |
+          out=$(snyk iac test infra --severity-threshold=high --policy-path=.snyk 2>&1); code=$?
+          echo "$out"
+          if echo "$out" | grep -qiE "test limit|usage limit|upgrade.*plan|snyk.*plans"; then
+            echo "WARN: Snyk test limit reached — skipping Terraform test."; exit 0
+          fi
+          if [ $code -eq 1 ]; then echo "Snyk found high/critical vulnerabilities in Terraform" && exit 1; fi
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
       - name: Snyk monitor backend
         working-directory: backend
         continue-on-error: true
