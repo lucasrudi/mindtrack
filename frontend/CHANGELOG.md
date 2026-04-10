@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.2...frontend-v0.5.3) (2026-04-10)
+
+
+### Miscellaneous
+
+* **frontend:** bump axios from 1.14.0 to 1.15.0 in /frontend ([#447](https://github.com/lucasrudi/mindtrack/issues/447)) ([4857184](https://github.com/lucasrudi/mindtrack/commit/4857184ee42dfe191de16a4c7f2b8329649d2117))
+
 ## [0.5.2](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.1...frontend-v0.5.2) (2026-04-10)
 
 
