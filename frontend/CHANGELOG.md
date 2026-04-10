@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.1...frontend-v0.5.2) (2026-04-10)
+
+
+### Miscellaneous
+
+* **deps:** update dependency @sentry/vue to v10.48.0 ([#443](https://github.com/lucasrudi/mindtrack/issues/443)) ([19d36ed](https://github.com/lucasrudi/mindtrack/commit/19d36ed594e0eb06dbb47144be3fd913c8109dc6))
+
 ## [0.5.1](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.0...frontend-v0.5.1) (2026-04-10)
 
 
