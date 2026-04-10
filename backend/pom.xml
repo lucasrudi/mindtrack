@@ -29,7 +29,7 @@
         <flyway.version>11.8.1</flyway.version>
 
         <!-- Sentry -->
-        <sentry.version>8.37.1</sentry.version>
+        <sentry.version>8.38.0</sentry.version>
 
         <!-- Sonar properties -->
         <sonar.organization>lucasrudi</sonar.organization>
