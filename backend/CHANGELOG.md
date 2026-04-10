@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.4](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.3...backend-v0.3.4) (2026-04-10)
+
+
+### Miscellaneous
+
+* **deps:** update all dependencies from Renovate dashboard ([#454](https://github.com/lucasrudi/mindtrack/issues/454)) ([085a66b](https://github.com/lucasrudi/mindtrack/commit/085a66b26c77970261def7263166f49d93e52fe6))
+* **main:** release backend 0.3.4-SNAPSHOT ([#451](https://github.com/lucasrudi/mindtrack/issues/451)) ([12a6300](https://github.com/lucasrudi/mindtrack/commit/12a630066b8915ceaf85abaa66fd0b9c23c90095))
+
 ## [0.3.3](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.2...backend-v0.3.3) (2026-04-10)
 
 
