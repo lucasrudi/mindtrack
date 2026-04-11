@@ -27,6 +27,8 @@
         <protobuf-java.version>4.34.1</protobuf-java.version>
         <!-- Override Flyway to fix SNYK-JAVA-COMFASTERXMLJACKSONCORE-15365924 (jackson-core via flyway-core 11.7.2) -->
         <flyway.version>11.8.1</flyway.version>
+        <!-- Spring Boot 4.0.5 still manages Tomcat 11.0.20; pin 11.0.21 to remediate current Dependabot alerts -->
+        <tomcat.version>11.0.21</tomcat.version>
 
         <!-- Sentry -->
         <sentry.version>8.38.0</sentry.version>
