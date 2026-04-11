@@ -11,7 +11,7 @@
 
     <groupId>com.mindtrack</groupId>
     <artifactId>mindtrack</artifactId>
-    <version>0.3.4</version>
+    <version>0.3.5-SNAPSHOT</version>
     <name>mindtrack</name>
     <description>MindTrack - Mental Health Tracking Application</description>
 
@@ -19,7 +19,7 @@
         <java.version>21</java.version>
         <spring-cloud-aws.version>4.0.0</spring-cloud-aws.version>
         <jjwt.version>0.13.0</jjwt.version>
-        <opentelemetry.version>1.60.1</opentelemetry.version>
+        <opentelemetry.version>1.61.0</opentelemetry.version>
         <!-- Override Netty to fix CVEs introduced via spring-cloud-aws-starter-s3 4.0.0 -->
         <netty.version>4.2.12.Final</netty.version>
         <!-- Override protobuf to fix SNYK-JAVA-COMGOOGLEPROTOBUF-8055227 (fixed in 3.25.5+, 4.27.5+) -->
@@ -27,6 +27,8 @@
         <protobuf-java.version>4.34.1</protobuf-java.version>
         <!-- Override Flyway to fix SNYK-JAVA-COMFASTERXMLJACKSONCORE-15365924 (jackson-core via flyway-core 11.7.2) -->
         <flyway.version>11.8.1</flyway.version>
+        <!-- Spring Boot 4.0.5 still manages Tomcat 11.0.20; pin 11.0.21 to remediate current Dependabot alerts -->
+        <tomcat.version>11.0.21</tomcat.version>
 
         <!-- Sentry -->
         <sentry.version>8.38.0</sentry.version>
