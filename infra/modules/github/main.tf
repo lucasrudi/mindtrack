@@ -22,9 +22,9 @@ resource "github_repository" "this" {
   homepage_url    = var.homepage_url
   topics          = var.topics
 
-  allow_merge_commit = false
+  allow_merge_commit = true
   allow_squash_merge = true
-  allow_rebase_merge = false
+  allow_rebase_merge = true
   allow_auto_merge   = true
 
   squash_merge_commit_title   = "PR_TITLE"
@@ -70,7 +70,7 @@ resource "github_branch_protection" "main" {
 
   required_pull_request_reviews {
     required_approving_review_count = var.required_approvals
-    dismiss_stale_reviews           = true
+    dismiss_stale_reviews           = false
     require_code_owner_reviews      = false
   }
 
