@@ -45,7 +45,7 @@ flowchart TD
 
         VER["verify.yml — Verify\nbackend + frontend + infra + sonar"]
         REL["release.yml — Release Please\ncreates/updates release PRs"]
-        DS["dependency-submission.yml\npom.xml changes only"]
+        DS["dependency-submission.yml\npom.xml changes + daily fallback + manual"]
         GCS_PUSH["github-config-sync.yml\ninfra/github-settings changes"]
 
         MAIN --> VER & REL & DS & GCS_PUSH
@@ -266,10 +266,12 @@ Uses `secrets.GH_CONFIG_TOKEN` (a PAT) rather than the default `GITHUB_TOKEN` be
 
 ### Dependency Submission (`dependency-submission.yml`)
 
-**Trigger:** Push to `main` when `backend/pom.xml` or any `backend/**/pom.xml` changes
+**Trigger:** Push to `main` when `backend/pom.xml` or any `backend/**/pom.xml` changes; daily at `05:23 UTC`; manual
 **Purpose:** Submit the Maven dependency graph to GitHub for Dependabot alerts.
 
 Uses the `advanced-security/maven-dependency-submission-action` to populate the GitHub Dependency Graph, enabling Dependabot security alerts for the backend.
+
+The daily fallback and manual trigger keep the dependency graph fresh even if a qualifying `push` event is missed or GitHub needs a resubmission after a security-only remediation.
 
 | Job | Steps |
 |-----|-------|

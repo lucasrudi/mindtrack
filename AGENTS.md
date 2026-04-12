@@ -116,7 +116,7 @@ Commit/PR title format: `type(scope): description` — standard Conventional Com
 | Daily Clean Build | `daily-verify.yml` | Daily 04:00 UTC; manual | Clean build with `mvn verify -U` (no cache) to catch dependency drift |
 | Snyk Weekly Security | `snyk-monitor.yml` | Monday 03:00 UTC; manual | Snyk test (high-severity gate) + monitor for backend and frontend |
 | Renovate | `renovate.yml` | Daily 06:00 UTC; manual | Renovate bot creates dependency update PRs using `GH_CONFIG_TOKEN` |
-| Dependency Submission | `dependency-submission.yml` | Push to `main` with `pom.xml` changes | Submits Maven deps to GitHub Dependency Graph for Dependabot alerts |
+| Dependency Submission | `dependency-submission.yml` | Push to `main` with `pom.xml` changes; daily 05:23 UTC; manual | Submits Maven deps to GitHub Dependency Graph for Dependabot alerts |
 | GitHub Config Sync | `github-config-sync.yml` | Push to `infra/github-settings/`; daily 06:00 UTC; manual | Terraform apply for repo settings (branch protection, required checks) |
 
 **Required secrets:** `ANTHROPIC_API_KEY` (code review), `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` (GitHub config sync), `SNYK_TOKEN`, `SONAR_TOKEN`.
