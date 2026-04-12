@@ -6,6 +6,9 @@ on:
     paths:
       - 'backend/pom.xml'
       - 'backend/**/pom.xml'
+  workflow_dispatch:
+  schedule:
+    - cron: '23 5 * * *'
 
 permissions:
   contents: write
