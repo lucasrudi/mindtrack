@@ -219,7 +219,7 @@ jobs:
           enablement: true
 
       - name: Upload to Pages
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: backend/target/reports/apidocs/
 
