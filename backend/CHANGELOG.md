@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.5](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.4...backend-v0.3.5) (2026-04-16)
+
+
+### Bug Fixes
+
+* **backend:** remediate dependabot tomcat alerts ([#464](https://github.com/lucasrudi/mindtrack/issues/464)) ([a9848fa](https://github.com/lucasrudi/mindtrack/commit/a9848fa891e5ea758acd3f9977588f7899f14eae)), closes [#460](https://github.com/lucasrudi/mindtrack/issues/460)
+* **deps:** update dependency io.opentelemetry:opentelemetry-bom to v1.61.0 ([#458](https://github.com/lucasrudi/mindtrack/issues/458)) ([8f3074b](https://github.com/lucasrudi/mindtrack/commit/8f3074b2ab2263c3a4d835b5218d99ad7e6de9fc))
+
+
+### Miscellaneous
+
+* **main:** release backend 0.3.5-SNAPSHOT ([#459](https://github.com/lucasrudi/mindtrack/issues/459)) ([7143859](https://github.com/lucasrudi/mindtrack/commit/7143859ccaf32ca26e07bf9d29fa96ffd3a85b96))
+
 ## [0.3.4](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.3...backend-v0.3.4) (2026-04-10)
 
 
