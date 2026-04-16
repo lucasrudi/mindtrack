@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.5](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.4...frontend-v0.5.5) (2026-04-16)
+
+
+### Miscellaneous
+
+* **deps:** update all dependencies ([#473](https://github.com/lucasrudi/mindtrack/issues/473)) ([661da27](https://github.com/lucasrudi/mindtrack/commit/661da27bf8f0890e849d3ad1689d8c7f92d0d034))
+* **frontend:** bump @vitejs/plugin-vue from 6.0.5 to 6.0.6 in /frontend in the frontend-dependencies group ([#469](https://github.com/lucasrudi/mindtrack/issues/469)) ([7b383d4](https://github.com/lucasrudi/mindtrack/commit/7b383d4a5289cad480b5be8ebf56e2b3dc4c44d2))
+* **frontend:** bump follow-redirects from 1.15.11 to 1.16.0 in /frontend ([#472](https://github.com/lucasrudi/mindtrack/issues/472)) ([546a37e](https://github.com/lucasrudi/mindtrack/commit/546a37e28c136c80f2c44281083b567697e79d4b))
+
 ## [0.5.4](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.3...frontend-v0.5.4) (2026-04-10)
 
 
