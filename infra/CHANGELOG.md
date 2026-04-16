@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.6](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.5...infra-v0.4.6) (2026-04-16)
+
+
+### Infrastructure
+
+* **github:** update repo settings in Terraform module ([#463](https://github.com/lucasrudi/mindtrack/issues/463)) ([ea1447c](https://github.com/lucasrudi/mindtrack/commit/ea1447c37b9891e998ac03a56bc20d61bdaccd9b))
+
 ## [0.4.5](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.4...infra-v0.4.5) (2026-04-10)
 
 
