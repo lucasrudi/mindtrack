@@ -31,7 +31,7 @@
         <tomcat.version>11.0.21</tomcat.version>
 
         <!-- Sentry -->
-        <sentry.version>8.38.0</sentry.version>
+        <sentry.version>8.39.0</sentry.version>
 
         <!-- Sonar properties -->
         <sonar.organization>lucasrudi</sonar.organization>
