@@ -103,7 +103,7 @@ services:
       - mindtrack
 
   grafana:
-    image: grafana/grafana:13.0.0
+    image: grafana/grafana:13.0.1
     ports:
       - '3001:3000'
     environment:
