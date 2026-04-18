@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.7](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.6...backend-v0.3.7) (2026-04-18)
+
+
+### Bug Fixes
+
+* **deps:** update all dependencies ([#485](https://github.com/lucasrudi/mindtrack/issues/485)) ([0dff200](https://github.com/lucasrudi/mindtrack/commit/0dff200bee08cef45086b28b9124cc435f842599))
+
+
+### Miscellaneous
+
+* **main:** release backend 0.3.7-SNAPSHOT ([#487](https://github.com/lucasrudi/mindtrack/issues/487)) ([d8c6a64](https://github.com/lucasrudi/mindtrack/commit/d8c6a6440ab7d556cb8a33b8c9f4e3263431ab68))
+
 ## [0.3.6](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.5...backend-v0.3.6) (2026-04-17)
 
 
