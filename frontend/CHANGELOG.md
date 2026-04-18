@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.7](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.6...frontend-v0.5.7) (2026-04-18)
+
+
+### Miscellaneous
+
+* **deps:** update dependency @sentry/vue to v10.49.0 ([#486](https://github.com/lucasrudi/mindtrack/issues/486)) ([e0011b3](https://github.com/lucasrudi/mindtrack/commit/e0011b328a9481d7fdd446da0ffb1130b4c2706d))
+* **deps:** update dependency eslint to v10.2.1 ([#484](https://github.com/lucasrudi/mindtrack/issues/484)) ([a8356ea](https://github.com/lucasrudi/mindtrack/commit/a8356ea38281c4b77d50057d5432d35a37ec4249))
+
 ## [0.5.6](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.5...frontend-v0.5.6) (2026-04-17)
 
 
