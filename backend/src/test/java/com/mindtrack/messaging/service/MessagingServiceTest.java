@@ -125,6 +125,33 @@ class MessagingServiceTest {
     }
 
     @Test
+    void shouldIgnoreTelegramMessageWhenInboundChatIdIsTooShort() {
+        TelegramUpdate update = new TelegramUpdate();
+        update.setUpdateId(1L);
+
+        TelegramUpdate.TelegramMessage message = new TelegramUpdate.TelegramMessage();
+        message.setMessageId(1L);
+        message.setText("Hello");
+
+        TelegramUpdate.TelegramChat chat = new TelegramUpdate.TelegramChat();
+        chat.setId(123L); // 3 digits — too short for the pattern ^-?\d{5,20}$
+        chat.setType("private");
+        message.setChat(chat);
+
+        TelegramUpdate.TelegramUser from = new TelegramUpdate.TelegramUser();
+        from.setId(123L);
+        from.setFirstName("Test");
+        message.setFrom(from);
+
+        update.setMessage(message);
+
+        messagingService.handleTelegramMessage(update);
+
+        verify(telegramService, never()).sendMessage(any(), any());
+        verify(conversationService, never()).chatWithChannel(any(), any(), any());
+    }
+
+    @Test
     void shouldIgnoreTelegramMessageWhenStoredChatIdIsInvalid() {
         TelegramUpdate update = createTelegramUpdate("12345", "Check in");
 
@@ -193,6 +220,16 @@ class MessagingServiceTest {
         messagingService.handleWhatsAppMessage(webhook);
 
         verify(whatsAppService).sendMessage(eq("+1234567890"), any(String.class));
+    }
+
+    @Test
+    void shouldIgnoreWhatsAppMessageWithInvalidIncomingPhoneNumber() {
+        WhatsAppWebhook webhook = createWhatsAppWebhook("not-a-phone", "Hello");
+
+        messagingService.handleWhatsAppMessage(webhook);
+
+        verify(userProfileRepository, never()).findAllByWhatsappNumberNotNull();
+        verify(whatsAppService, never()).sendMessage(any(), any());
     }
 
     @Test
