@@ -70,7 +70,7 @@ class AppointmentControllerTest {
     @Test
     void shouldBookAppointment() throws Exception {
         AppointmentRequest request = new AppointmentRequest();
-        request.setStartAt(LocalDateTime.of(2026, 4, 20, 10, 0));
+        request.setStartAt(LocalDateTime.now().plusDays(7).withHour(10).withMinute(0).withSecond(0).withNano(0));
         request.setDurationMinutes(50);
         request.setReason("Weekly check-in");
 

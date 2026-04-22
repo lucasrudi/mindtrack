@@ -3,6 +3,16 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import TherapistCalendarView from '../TherapistCalendarView.vue'
 
+function toIso(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+
+const futureStart = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+const futureEnd = new Date(futureStart.getTime() + 50 * 60 * 1000)
+const pastStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+const pastEnd = new Date(pastStart.getTime() + 50 * 60 * 1000)
+
 const patients = [
   {
     id: 10,
@@ -24,8 +34,8 @@ const appointments = [
     patientName: 'Patient One',
     patientEmail: 'patient1@test.com',
     calendarColor: '#2563eb',
-    startAt: '2026-04-20T10:00:00',
-    endAt: '2026-04-20T10:50:00',
+    startAt: toIso(futureStart),
+    endAt: toIso(futureEnd),
     status: 'SCHEDULED',
     reason: 'Follow-up',
     notes: 'Bring notes',
@@ -33,8 +43,8 @@ const appointments = [
     recurrenceRule: null,
     seriesId: null,
     seriesIndex: null,
-    createdAt: '2026-04-01T10:00:00',
-    updatedAt: '2026-04-01T10:00:00',
+    createdAt: toIso(pastStart),
+    updatedAt: toIso(pastStart),
   },
   {
     id: 2,
@@ -42,8 +52,8 @@ const appointments = [
     patientId: 10,
     patientName: 'Patient One',
     patientEmail: 'patient1@test.com',
-    startAt: '2026-03-10T10:00:00',
-    endAt: '2026-03-10T10:50:00',
+    startAt: toIso(pastStart),
+    endAt: toIso(pastEnd),
     status: 'COMPLETED',
     reason: 'Past session',
     notes: null,
@@ -51,8 +61,8 @@ const appointments = [
     recurrenceRule: null,
     seriesId: null,
     seriesIndex: null,
-    createdAt: '2026-03-01T10:00:00',
-    updatedAt: '2026-03-01T10:00:00',
+    createdAt: toIso(pastStart),
+    updatedAt: toIso(pastStart),
   },
 ]
 
@@ -70,6 +80,11 @@ vi.mock('@/services/api', () => ({
     delete: (...args: unknown[]) => mockDelete(...args),
   },
 }))
+
+function formatInputDate(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
 
 describe('TherapistCalendarView', () => {
   beforeEach(() => {
@@ -97,12 +112,17 @@ describe('TherapistCalendarView', () => {
   it('books an appointment from the form', async () => {
     mockGet.mockResolvedValueOnce({ data: patients })
     mockGet.mockResolvedValueOnce({ data: appointments })
+
+    const bookDate = new Date(Date.now() + 4 * 24 * 60 * 60 * 1000)
+    const bookDateStr = formatInputDate(bookDate)
+    const expectedStartAt = `${bookDateStr}T11:00:00`
+
     mockPost.mockResolvedValueOnce({
       data: {
         ...appointments[0],
         id: 3,
-        startAt: '2026-04-22T11:00:00',
-        endAt: '2026-04-22T11:50:00',
+        startAt: expectedStartAt,
+        endAt: toIso(new Date(new Date(expectedStartAt).getTime() + 50 * 60 * 1000)),
         reason: 'New follow-up',
       },
     })
@@ -110,7 +130,7 @@ describe('TherapistCalendarView', () => {
     const wrapper = mount(TherapistCalendarView)
     await flushPromises()
 
-    await wrapper.find('input[type="date"]').setValue('2026-04-22')
+    await wrapper.find('input[type="date"]').setValue(bookDateStr)
     await wrapper.find('input[type="time"]').setValue('11:00')
     await wrapper.find('input[type="text"]').setValue('New follow-up')
     await wrapper.find('textarea').setValue('Bring worksheets')
@@ -119,7 +139,7 @@ describe('TherapistCalendarView', () => {
     await flushPromises()
 
     expect(mockPost).toHaveBeenCalledWith('/therapist/patients/10/appointments', {
-      startAt: '2026-04-22T11:00:00',
+      startAt: expectedStartAt,
       durationMinutes: 50,
       reason: 'New follow-up',
       notes: 'Bring worksheets',
