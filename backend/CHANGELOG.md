@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.9](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.8...backend-v0.3.9) (2026-04-22)
+
+
+### Bug Fixes
+
+* **tests:** use dynamic dates in appointment tests; skip claude-review on bot PRs ([#496](https://github.com/lucasrudi/mindtrack/issues/496)) ([8baa83b](https://github.com/lucasrudi/mindtrack/commit/8baa83b7603c92ab5eb2ee1b3e41764ba467ec46))
+
+
+### Miscellaneous
+
+* **main:** release backend 0.3.9-SNAPSHOT ([#499](https://github.com/lucasrudi/mindtrack/issues/499)) ([4906c3f](https://github.com/lucasrudi/mindtrack/commit/4906c3f6359509bcd3a35334c9f124c52463751c))
+
+
+### Tests
+
+* **messaging:** cover invalid-input branches in messaging services ([#502](https://github.com/lucasrudi/mindtrack/issues/502)) ([bb248dc](https://github.com/lucasrudi/mindtrack/commit/bb248dcdb6ff9d9f1815759f283cd1f5cf108c6f)), closes [#501](https://github.com/lucasrudi/mindtrack/issues/501)
+
 ## [0.3.8](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.7...backend-v0.3.8) (2026-04-20)
 
 
