@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.9](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.8...frontend-v0.5.9) (2026-04-22)
+
+
+### Bug Fixes
+
+* **tests:** use dynamic dates in appointment tests; skip claude-review on bot PRs ([#496](https://github.com/lucasrudi/mindtrack/issues/496)) ([8baa83b](https://github.com/lucasrudi/mindtrack/commit/8baa83b7603c92ab5eb2ee1b3e41764ba467ec46))
+
+
+### Miscellaneous
+
+* **deps:** update all dependencies ([#494](https://github.com/lucasrudi/mindtrack/issues/494)) ([e8f4f9c](https://github.com/lucasrudi/mindtrack/commit/e8f4f9c704ecc864d7bba0ca71aacf80b7244563))
+
 ## [0.5.8](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.7...frontend-v0.5.8) (2026-04-20)
 
 
