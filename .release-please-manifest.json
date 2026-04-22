@@ -1,5 +1,5 @@
 {
-  "backend": "0.3.4",
-  "infra": "0.4.5",
-  "frontend": "0.5.4"
+  "frontend": "0.5.8",
+  "backend": "0.3.8",
+  "infra": "0.4.6"
 }

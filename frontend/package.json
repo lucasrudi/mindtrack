@@ -1,6 +1,6 @@
 {
   "name": "mindtrack-frontend",
-  "version": "0.5.4",
+  "version": "0.5.8",
   "private": true,
   "type": "module",
   "scripts": {
@@ -41,7 +41,7 @@
     "@sentry/vite-plugin": "^5.1.1",
     "@types/node": "^24.12.2",
     "@eslint/js": "^10.0.0",
-    "@vitejs/plugin-vue": "^6.0.0",
+    "@vitejs/plugin-vue": "^6.0.6",
     "@vitest/coverage-v8": "^4.0.18",
     "@vue/eslint-config-prettier": "^10.0.0",
     "@vue/eslint-config-typescript": "^14.7.0",

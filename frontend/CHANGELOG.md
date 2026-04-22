@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.5.8](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.7...frontend-v0.5.8) (2026-04-20)
+
+
+### Miscellaneous
+
+* **deps:** update all dependencies ([#491](https://github.com/lucasrudi/mindtrack/issues/491)) ([fd3c28f](https://github.com/lucasrudi/mindtrack/commit/fd3c28f1e9aa984954a6271c157b31d43a0422e1))
+
+## [0.5.7](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.6...frontend-v0.5.7) (2026-04-18)
+
+
+### Miscellaneous
+
+* **deps:** update dependency @sentry/vue to v10.49.0 ([#486](https://github.com/lucasrudi/mindtrack/issues/486)) ([e0011b3](https://github.com/lucasrudi/mindtrack/commit/e0011b328a9481d7fdd446da0ffb1130b4c2706d))
+* **deps:** update dependency eslint to v10.2.1 ([#484](https://github.com/lucasrudi/mindtrack/issues/484)) ([a8356ea](https://github.com/lucasrudi/mindtrack/commit/a8356ea38281c4b77d50057d5432d35a37ec4249))
+
+## [0.5.6](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.5...frontend-v0.5.6) (2026-04-17)
+
+
+### Bug Fixes
+
+* **deps:** update all dependencies ([#480](https://github.com/lucasrudi/mindtrack/issues/480)) ([6eefccd](https://github.com/lucasrudi/mindtrack/commit/6eefccdd4f59c03d1997261242711ca41e04f13e))
+
+## [0.5.5](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.4...frontend-v0.5.5) (2026-04-16)
+
+
+### Miscellaneous
+
+* **deps:** update all dependencies ([#473](https://github.com/lucasrudi/mindtrack/issues/473)) ([661da27](https://github.com/lucasrudi/mindtrack/commit/661da27bf8f0890e849d3ad1689d8c7f92d0d034))
+* **frontend:** bump @vitejs/plugin-vue from 6.0.5 to 6.0.6 in /frontend in the frontend-dependencies group ([#469](https://github.com/lucasrudi/mindtrack/issues/469)) ([7b383d4](https://github.com/lucasrudi/mindtrack/commit/7b383d4a5289cad480b5be8ebf56e2b3dc4c44d2))
+* **frontend:** bump follow-redirects from 1.15.11 to 1.16.0 in /frontend ([#472](https://github.com/lucasrudi/mindtrack/issues/472)) ([546a37e](https://github.com/lucasrudi/mindtrack/commit/546a37e28c136c80f2c44281083b567697e79d4b))
+
 ## [0.5.4](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.3...frontend-v0.5.4) (2026-04-10)
 
 

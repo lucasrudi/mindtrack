@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.3.8](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.7...backend-v0.3.8) (2026-04-20)
+
+
+### Miscellaneous
+
+* **main:** release backend 0.3.8-SNAPSHOT ([#490](https://github.com/lucasrudi/mindtrack/issues/490)) ([76b0670](https://github.com/lucasrudi/mindtrack/commit/76b06700f4d87138013c8f6214197fc6686351ec))
+
+## [0.3.7](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.6...backend-v0.3.7) (2026-04-18)
+
+
+### Bug Fixes
+
+* **deps:** update all dependencies ([#485](https://github.com/lucasrudi/mindtrack/issues/485)) ([0dff200](https://github.com/lucasrudi/mindtrack/commit/0dff200bee08cef45086b28b9124cc435f842599))
+
+
+### Miscellaneous
+
+* **main:** release backend 0.3.7-SNAPSHOT ([#487](https://github.com/lucasrudi/mindtrack/issues/487)) ([d8c6a64](https://github.com/lucasrudi/mindtrack/commit/d8c6a6440ab7d556cb8a33b8c9f4e3263431ab68))
+
+## [0.3.6](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.5...backend-v0.3.6) (2026-04-17)
+
+
+### Bug Fixes
+
+* **deps:** update all dependencies ([#480](https://github.com/lucasrudi/mindtrack/issues/480)) ([6eefccd](https://github.com/lucasrudi/mindtrack/commit/6eefccdd4f59c03d1997261242711ca41e04f13e))
+
+
+### Miscellaneous
+
+* **main:** release backend 0.3.6-SNAPSHOT ([#481](https://github.com/lucasrudi/mindtrack/issues/481)) ([ef2abea](https://github.com/lucasrudi/mindtrack/commit/ef2abea83a3f8d0050daae618482b9792090789e))
+
+## [0.3.5](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.4...backend-v0.3.5) (2026-04-16)
+
+
+### Bug Fixes
+
+* **backend:** remediate dependabot tomcat alerts ([#464](https://github.com/lucasrudi/mindtrack/issues/464)) ([a9848fa](https://github.com/lucasrudi/mindtrack/commit/a9848fa891e5ea758acd3f9977588f7899f14eae)), closes [#460](https://github.com/lucasrudi/mindtrack/issues/460)
+* **deps:** update dependency io.opentelemetry:opentelemetry-bom to v1.61.0 ([#458](https://github.com/lucasrudi/mindtrack/issues/458)) ([8f3074b](https://github.com/lucasrudi/mindtrack/commit/8f3074b2ab2263c3a4d835b5218d99ad7e6de9fc))
+
+
+### Miscellaneous
+
+* **main:** release backend 0.3.5-SNAPSHOT ([#459](https://github.com/lucasrudi/mindtrack/issues/459)) ([7143859](https://github.com/lucasrudi/mindtrack/commit/7143859ccaf32ca26e07bf9d29fa96ffd3a85b96))
+
 ## [0.3.4](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.3...backend-v0.3.4) (2026-04-10)
 
 
