@@ -29,6 +29,9 @@
         <flyway.version>11.8.1</flyway.version>
         <!-- Spring Boot 4.0.5 still manages Tomcat 11.0.20; pin 11.0.21 to remediate current Dependabot alerts -->
         <tomcat.version>11.0.21</tomcat.version>
+        <!-- Override Spring Framework to fix SNYK-JAVA-ORGSPRINGFRAMEWORK-16109603 / CVE-2026-22741
+             (spring-webmvc resource cache poisoning; fixed in 7.0.7). Spring Boot 4.0.5 manages 7.0.6. -->
+        <spring-framework.version>7.0.7</spring-framework.version>
 
         <!-- Sentry -->
         <sentry.version>8.39.1</sentry.version>
