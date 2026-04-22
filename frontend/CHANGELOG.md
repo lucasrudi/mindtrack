@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.11](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.10...frontend-v0.5.11) (2026-04-22)
+
+
+### Miscellaneous
+
+* **deps:** update dependency vue to v3.5.33 ([#497](https://github.com/lucasrudi/mindtrack/issues/497)) ([34ccd13](https://github.com/lucasrudi/mindtrack/commit/34ccd13d53435fdc47127a91c1714bc3394c1162))
+
 ## [0.5.10](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.9...frontend-v0.5.10) (2026-04-22)
 
 
