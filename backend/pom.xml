@@ -11,7 +11,7 @@
 
     <groupId>com.mindtrack</groupId>
     <artifactId>mindtrack</artifactId>
-    <version>0.3.9</version>
+    <version>0.3.10-SNAPSHOT</version>
     <name>mindtrack</name>
     <description>MindTrack - Mental Health Tracking Application</description>
 
