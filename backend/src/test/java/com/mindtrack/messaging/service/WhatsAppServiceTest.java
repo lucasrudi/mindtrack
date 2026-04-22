@@ -117,6 +117,24 @@ class WhatsAppServiceTest {
         verify(httpClient).send(any(HttpRequest.class), ArgumentMatchers.<HttpResponse.BodyHandler<String>>any());
     }
 
+    @Test
+    void shouldSkipSendWhenPhoneNumberIsTooShort() throws Exception {
+        WhatsAppService service = new WhatsAppService(properties("api-token", "phone-id"), httpClient);
+
+        service.sendMessage("1234", "Hello");
+
+        verify(httpClient, never()).send(any(HttpRequest.class), ArgumentMatchers.<HttpResponse.BodyHandler<String>>any());
+    }
+
+    @Test
+    void shouldSkipSendWhenPhoneNumberIsNonNumeric() throws Exception {
+        WhatsAppService service = new WhatsAppService(properties("api-token", "phone-id"), httpClient);
+
+        service.sendMessage("not-a-phone", "Hello");
+
+        verify(httpClient, never()).send(any(HttpRequest.class), ArgumentMatchers.<HttpResponse.BodyHandler<String>>any());
+    }
+
     private MessagingProperties properties(String token, String phoneNumberId) {
         MessagingProperties properties = new MessagingProperties();
         properties.getWhatsapp().setApiToken(token);

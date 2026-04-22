@@ -114,6 +114,24 @@ class TelegramServiceTest {
         verify(httpClient).send(any(HttpRequest.class), ArgumentMatchers.<HttpResponse.BodyHandler<String>>any());
     }
 
+    @Test
+    void shouldSkipSendWhenChatIdIsTooShort() throws Exception {
+        TelegramService service = new TelegramService(propertiesWithTelegramToken("bot-token"), httpClient);
+
+        service.sendMessage("123", "Hello");
+
+        verify(httpClient, never()).send(any(HttpRequest.class), ArgumentMatchers.<HttpResponse.BodyHandler<String>>any());
+    }
+
+    @Test
+    void shouldSkipSendWhenChatIdIsNonNumeric() throws Exception {
+        TelegramService service = new TelegramService(propertiesWithTelegramToken("bot-token"), httpClient);
+
+        service.sendMessage("not-a-chat-id", "Hello");
+
+        verify(httpClient, never()).send(any(HttpRequest.class), ArgumentMatchers.<HttpResponse.BodyHandler<String>>any());
+    }
+
     private MessagingProperties propertiesWithTelegramToken(String token) {
         MessagingProperties properties = new MessagingProperties();
         properties.getTelegram().setBotToken(token);
