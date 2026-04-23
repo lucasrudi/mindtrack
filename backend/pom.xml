@@ -34,7 +34,7 @@
         <spring-framework.version>7.0.7</spring-framework.version>
 
         <!-- Sentry -->
-        <sentry.version>8.39.1</sentry.version>
+        <sentry.version>8.40.0</sentry.version>
 
         <!-- Sonar properties -->
         <sonar.organization>lucasrudi</sonar.organization>
