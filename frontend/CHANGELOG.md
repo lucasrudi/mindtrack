@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.13](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.12...frontend-v0.5.13) (2026-04-25)
+
+
+### Bug Fixes
+
+* **deps:** update all dependencies ([#516](https://github.com/lucasrudi/mindtrack/issues/516)) ([b8b7259](https://github.com/lucasrudi/mindtrack/commit/b8b7259c2634fcaebcb99d2f48c5e2b64e3f7051))
+
 ## [0.5.12](https://github.com/lucasrudi/mindtrack/compare/frontend-v0.5.11...frontend-v0.5.12) (2026-04-23)
 
 
