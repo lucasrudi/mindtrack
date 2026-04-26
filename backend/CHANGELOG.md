@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.10](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.9...backend-v0.3.10) (2026-04-26)
+
+
+### Bug Fixes
+
+* **deps:** update all dependencies ([#509](https://github.com/lucasrudi/mindtrack/issues/509)) ([b4841c9](https://github.com/lucasrudi/mindtrack/commit/b4841c9798d13dd44ba528edeb403ebafa58f6ef))
+* **deps:** update all dependencies ([#516](https://github.com/lucasrudi/mindtrack/issues/516)) ([b8b7259](https://github.com/lucasrudi/mindtrack/commit/b8b7259c2634fcaebcb99d2f48c5e2b64e3f7051))
+* **deps:** update dependency org.springframework.boot:spring-boot-starter-parent to v4.0.6 ([#514](https://github.com/lucasrudi/mindtrack/issues/514)) ([3ad2094](https://github.com/lucasrudi/mindtrack/commit/3ad2094664d2acd5ad455648ef81d70523eacf98))
+* **security:** bump spring-framework to 7.0.7 to remediate CVE-2026-22741 ([#508](https://github.com/lucasrudi/mindtrack/issues/508)) ([d01a3a7](https://github.com/lucasrudi/mindtrack/commit/d01a3a79fbca1d248a6ef397b35747f9c6d4d8d0)), closes [#507](https://github.com/lucasrudi/mindtrack/issues/507)
+
+
+### Miscellaneous
+
+* **main:** release backend 0.3.10-SNAPSHOT ([#505](https://github.com/lucasrudi/mindtrack/issues/505)) ([efe14eb](https://github.com/lucasrudi/mindtrack/commit/efe14eb15d501b645f6ab033cc10c1cf3bee4556))
+
 ## [0.3.9](https://github.com/lucasrudi/mindtrack/compare/backend-v0.3.8...backend-v0.3.9) (2026-04-22)
 
 
