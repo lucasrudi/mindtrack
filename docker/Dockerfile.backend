@@ -8,7 +8,7 @@ COPY config ../config
 RUN mvn package -DskipTests -q
 
 # Run stage
-FROM eclipse-temurin:25.0.2_10-jre-noble
+FROM eclipse-temurin:25.0.3_9-jre-noble
 WORKDIR /app
 RUN useradd --system --create-home --uid 1001 appuser
 COPY --from=build --chmod=444 /app/target/*.jar app.jar
