@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.8](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.7...infra-v0.4.8) (2026-05-01)
+
+
+### Miscellaneous
+
+* **deps:** update all dependencies ([#527](https://github.com/lucasrudi/mindtrack/issues/527)) ([7925580](https://github.com/lucasrudi/mindtrack/commit/7925580b193b207dcdef63c26091bd28cac5bbae))
+
 ## [0.4.7](https://github.com/lucasrudi/mindtrack/compare/infra-v0.4.6...infra-v0.4.7) (2026-04-24)
 
 
